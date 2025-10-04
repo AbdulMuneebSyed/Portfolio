@@ -1,0 +1,588 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Windows 7 Aero Glass theme with authentic colors */
+:root {
+  /* Windows 7 Aero Blue theme */
+  --win7-taskbar-bg: rgba(154, 154, 154, 0.419);
+  --win7-taskbar-hover: rgba(255, 255, 255, 0.1);
+  --win7-start-orb: linear-gradient(to bottom, #4eb5e5, #1a7dc4);
+  --win7-window-border: rgba(255, 255, 255, 0.3);
+  --win7-window-bg: rgba(255, 255, 255, 0.95);
+
+  /* Windows 7 Start Menu Colors */
+  --win7-start-left-bg: #ffffff;
+  --win7-start-right-bg: linear-gradient(to bottom, #4f8cb8 0%, #326ea0 100%);
+  --win7-hover-bg: linear-gradient(to right, #e3f2fd 0%, #bbdefb 100%);
+  --win7-hover-border: #2196f3;
+
+  --win7-titlebar-active: linear-gradient(
+    to bottom,
+    rgba(64, 128, 197, 0.95),
+    rgba(79, 172, 253, 0.95)
+  );
+  --win7-titlebar-inactive: linear-gradient(
+    to bottom,
+    rgba(240, 240, 240, 0.95),
+    rgba(250, 250, 250, 0.95)
+  );
+  --win7-button-hover: rgba(255, 255, 255, 0.4);
+  --win7-button-active: rgba(0, 0, 0, 0.1);
+  --win7-selection: rgba(51, 153, 255, 0.3);
+  --win7-text: #000000;
+  --win7-text-shadow: rgba(255, 255, 255, 0.8);
+  --win7-desktop-bg: #3a6ea5;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Windows 7 Aero Glass effects */
+.aero-glass {
+  background: var(--win7-window-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--win7-window-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.aero-titlebar-active {
+  background: var(--win7-titlebar-active);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.aero-titlebar-inactive {
+  background: var(--win7-titlebar-inactive);
+  border-bottom: 1px solid rgba(200, 200, 200, 0.5);
+}
+
+.aero-button {
+  transition: background 0.15s ease;
+}
+
+.aero-button:hover {
+  background: var(--win7-button-hover);
+}
+
+.aero-button:active {
+  background: var(--win7-button-active);
+}
+
+.taskbar-glass {
+  background: var(--win7-taskbar-bg);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced desktop icon styles with Aero glow effect */
+.desktop-icon {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.desktop-icon:hover {
+  background: rgba(221, 246, 251, 0.408);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(135, 206, 250, 0.2);
+  transform: translateY(-1px);
+}
+
+.desktop-icon.selected {
+  background: var(--win7-selection);
+  border: 1px solid rgba(51, 153, 255, 0.6);
+  box-shadow: 0 0 8px rgba(51, 153, 255, 0.4);
+}
+
+/* Custom Windows 7 cursor */
+body,
+.desktop-icon,
+button,
+a {
+  cursor: default;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  cursor: text;
+}
+
+button:hover,
+a:hover,
+.desktop-icon:hover {
+  cursor: pointer;
+}
+
+/* Smooth snap animation for icons */
+@keyframes snapToGrid {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.desktop-icon.snapping {
+  animation: snapToGrid 0.2s ease;
+}
+
+/* Startup animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.startup-animation {
+  animation: fadeIn 1s ease;
+}
+
+/* Custom scrollbar for Windows 7 look */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border: 1px solid #d0d0d0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to right, #e0e0e0, #d0d0d0);
+  border: 1px solid #b0b0b0;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to right, #d0d0d0, #c0c0c0);
+}
+
+::-webkit-scrollbar-button {
+  background: #e0e0e0;
+  border: 1px solid #b0b0b0;
+  height: 16px;
+  width: 16px;
+}
+
+/* Context menu animation */
+@keyframes contextMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.context-menu {
+  animation: contextMenuFadeIn 0.15s ease;
+}
+
+/* Windows 7 Startup Animations */
+@keyframes orb-red {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(-40px, -40px);
+    opacity: 1;
+  }
+}
+
+@keyframes orb-green {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(40px, -40px);
+    opacity: 1;
+  }
+}
+
+@keyframes orb-blue {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(-40px, 40px);
+    opacity: 1;
+  }
+}
+
+@keyframes orb-yellow {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(40px, 40px);
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes rays {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5) rotate(180deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-orb-red {
+  animation: orb-red 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-orb-green {
+  animation: orb-green 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-orb-blue {
+  animation: orb-blue 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-orb-yellow {
+  animation: orb-yellow 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-glow {
+  animation: glow 2s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-rays {
+  animation: rays 3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+/* Enhanced Windows 7 Start Menu Styling */
+.win7-start-menu-item {
+  transition: all 0.15s ease-in-out;
+}
+
+.win7-start-menu-item:hover {
+  background: linear-gradient(to right, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #2196f3;
+  box-shadow: 0 1px 3px rgba(33, 150, 243, 0.2);
+}
+
+.win7-program-icon {
+  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  border: 1px solid #ccc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.win7-all-programs-panel {
+  background: #ffffff;
+  border: 1px solid #999;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.win7-right-panel-bg {
+  background: linear-gradient(to bottom, #4f8cb8 0%, #326ea0 100%);
+}
+
+.win7-search-input {
+  border: 2px inset #eeeeee;
+  background: #ffffff;
+  font-size: 11px;
+}
+
+.win7-search-input:focus {
+  border: 2px inset #4a90e2;
+  outline: none;
+}
+
+/* Music Player Aesthetic Enhancements */
+@keyframes musicWave {
+  0%,
+  100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+@keyframes particleFloat {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.music-particle {
+  animation: particleFloat 3s ease-in-out infinite;
+}
+
+.music-button-glow:hover {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.visualizer-bg {
+  background: radial-gradient(
+    circle at center,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(147, 51, 234, 0.05) 50%,
+    transparent 100%
+  );
+}
+
+/* Pixel Tour Styles */
+
+.pixel-btn {
+  image-rendering: pixelated;
+  transition: all 0.1s ease;
+  border-style: solid !important;
+}
+
+.pixel-btn:hover {
+  transform: translateY(-1px);
+}
+
+.pixel-btn:active {
+  transform: translateY(1px);
+}
+
+.pixel-char {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.character-container:hover {
+  animation: pixelBounce 0.6s ease-in-out;
+}
+
+@keyframes pixelBounce {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Pixel border patterns */
+.pixel-border-pattern {
+  background-image: linear-gradient(90deg, #6b4d7a 2px, transparent 2px),
+    linear-gradient(180deg, #6b4d7a 2px, transparent 2px);
+  background-size: 8px 8px;
+}
