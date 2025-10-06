@@ -60,6 +60,7 @@
     "react-hook-form": "^7.60.0",
     "react-joyride": "^2.5.5",
     "react-resizable-panels": "^2.1.7",
+    "react-spring": "^10.0.3",
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.5.5",

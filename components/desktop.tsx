@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useWindowManager } from "@/lib/window-manager";
 import { useGlobalClickSound } from "@/hooks/use-global-click-sound";
 import { DesktopIconComponent } from "./desktop-icon";
@@ -25,6 +25,7 @@ import { FeedbackWindow } from "./windows/feedback-window-clean";
 import { PixelMusicPlayer } from "./windows/modern-music-player";
 import { PhotoPreview } from "./windows/photo-preview";
 import { Windows7Tour } from "./windows7-tour-pixel";
+import { MuneebOS } from "./muneebOS";
 
 function PlaceholderWindow() {
   return (
@@ -73,9 +74,43 @@ export function Desktop() {
     y: number;
   } | null>(null);
   const [isStartingUp, setIsStartingUp] = useState(false);
-  const [hasPlayedStartupSound, setHasPlayedStartupSound] = useState(false);
+  const startupSoundPlayedRef = useRef(false);
+  const startupAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [hasPlayedStartupSound, setHasPlayedStartupSound] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const stored = window.sessionStorage.getItem("win7-startup-played");
+    const alreadyPlayed = stored === "true";
+    if (alreadyPlayed) {
+      startupSoundPlayedRef.current = true;
+    }
+    return alreadyPlayed;
+  });
   const [isTourRunning, setIsTourRunning] = useState(false);
   const [showTourButton, setShowTourButton] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [soundDisabled, setSoundDisabled] = useState(false);
+
+  // Check screen size and device type
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      const newIsMobile = width < 1024; // Less than lg breakpoint
+
+      // If switching to mobile, disable sound to prevent startup sound
+      // if (newIsMobile && !isMobile) {
+      //   setSoundDisabled(true);
+      // }
+
+      setIsMobile(newIsMobile);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, [isMobile]);
 
   // Simple first visit check - start tour automatically
   useEffect(() => {
@@ -92,46 +127,74 @@ export function Desktop() {
   }, [loadState]);
 
   useEffect(() => {
-    if (!isStartingUp && !isShutdown && !hasPlayedStartupSound) {
-      try {
-        const audio = new Audio("/startup.mp3");
-        audio.volume = 0.7;
-        audio.preload = "auto";
-        console.log("Attempting to play startup sound on desktop appear...");
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log(
-                "Startup sound played successfully on desktop appear!"
-              );
-              setHasPlayedStartupSound(true);
-            })
-            .catch((error) => {
-              console.log("Audio play failed on desktop appear:", error);
-              const playOnInteraction = () => {
-                audio
-                  .play()
-                  .then(() => {
-                    console.log("Startup sound played after user interaction!");
-                    setHasPlayedStartupSound(true);
-                  })
-                  .catch(() => {
-                    console.log("Audio still failed after user interaction");
-                  });
-                document.removeEventListener("click", playOnInteraction);
-              };
-              document.addEventListener("click", playOnInteraction, {
-                once: true,
-              });
-            });
-        }
-      } catch (error) {
-        console.log("Audio creation failed:", error);
-      }
+    if (hasPlayedStartupSound) {
+      startupSoundPlayedRef.current = true;
     }
-  }, [isStartingUp, isShutdown, hasPlayedStartupSound]);
+  }, [hasPlayedStartupSound]);
+
+  useEffect(() => {
+    if (isStartingUp || isShutdown || soundDisabled) {
+      return;
+    }
+
+    if (startupSoundPlayedRef.current || hasPlayedStartupSound) {
+      return;
+    }
+
+    try {
+      const audio = startupAudioRef.current ?? new Audio("/startup.mp3");
+      audio.volume = 0.7;
+      audio.preload = "auto";
+      startupAudioRef.current = audio;
+
+      console.log("Attempting to play startup sound on desktop appear...");
+
+      const markPlayed = () => {
+        if (!startupSoundPlayedRef.current) {
+          startupSoundPlayedRef.current = true;
+        }
+        setHasPlayedStartupSound(true);
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("win7-startup-played", "true");
+        }
+      };
+
+      const playOnInteraction = () => {
+        audio
+          .play()
+          .then(() => {
+            console.log("Startup sound played after user interaction!");
+            markPlayed();
+          })
+          .catch(() => {
+            console.log("Audio still failed after user interaction");
+          });
+        document.removeEventListener("click", playOnInteraction);
+      };
+
+      const playPromise = audio.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("Startup sound played successfully on desktop appear!");
+            markPlayed();
+          })
+          .catch((error) => {
+            console.log("Audio play failed on desktop appear:", error);
+            document.addEventListener("click", playOnInteraction, {
+              once: true,
+            });
+          });
+      }
+
+      return () => {
+        document.removeEventListener("click", playOnInteraction);
+      };
+    } catch (error) {
+      console.log("Audio creation failed:", error);
+    }
+  }, [isStartingUp, isShutdown, soundDisabled, hasPlayedStartupSound]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -161,6 +224,14 @@ export function Desktop() {
 
   const handleRestart = () => {
     setIsStartingUp(true);
+    startupSoundPlayedRef.current = false;
+    if (startupAudioRef.current) {
+      startupAudioRef.current.pause();
+      startupAudioRef.current.currentTime = 0;
+    }
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem("win7-startup-played");
+    }
     setHasPlayedStartupSound(false);
     setTimeout(() => {
       restart();
@@ -247,6 +318,11 @@ export function Desktop() {
     setIsTourRunning(true);
     setShowTourButton(false);
   };
+
+  // Show MuneerOS for mobile/tablet
+  if (isMobile) {
+    return <MuneebOS />;
+  }
 
   return (
     <>
