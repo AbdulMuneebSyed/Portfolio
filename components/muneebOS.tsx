@@ -13,6 +13,13 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  Bluetooth,
+  Moon,
+  SignalHigh,
+  Wifi,
+  type LucideIcon,
+} from "lucide-react";
 
 type ProfileCard = {
   id: string;
@@ -43,7 +50,6 @@ type FloatingNotification = {
   accent: string;
   href: string;
 };
-
 const PROFILE_CARDS: ProfileCard[] = [
   {
     id: "now",
@@ -196,6 +202,51 @@ const HOME_APPS = [
   },
 ];
 
+type QuickSettingId = "wifi" | "data" | "bluetooth" | "focus";
+
+type QuickSettingConfig = {
+  id: QuickSettingId;
+  label: string;
+  icon: LucideIcon;
+  gradient: string;
+};
+
+const QUICK_SETTING_CONFIGS: QuickSettingConfig[] = [
+  {
+    id: "wifi",
+    label: "Wi-Fi",
+    icon: Wifi,
+    gradient: "from-sky-500/80 via-cyan-400/70 to-sky-600/80",
+  },
+  {
+    id: "data",
+    label: "Data",
+    icon: SignalHigh,
+    gradient: "from-emerald-500/80 via-teal-400/70 to-emerald-600/80",
+  },
+  {
+    id: "bluetooth",
+    label: "Bluetooth",
+    icon: Bluetooth,
+    gradient: "from-indigo-500/80 via-blue-500/70 to-indigo-600/80",
+  },
+  {
+    id: "focus",
+    label: "Focus",
+    icon: Moon,
+    gradient: "from-purple-500/80 via-fuchsia-400/70 to-purple-600/80",
+  },
+];
+
+type QuickSettingState = Record<QuickSettingId, boolean>;
+
+const QUICK_SETTING_DEFAULT_STATE: QuickSettingState = {
+  wifi: true,
+  data: true,
+  bluetooth: false,
+  focus: false,
+};
+
 const CONTACT_CARDS = [
   {
     label: "Email",
@@ -267,8 +318,8 @@ const NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
-const PANEL_HEIGHT = 440;
-const PANEL_HANDLE_HEIGHT = 36;
+const PANEL_HANDLE_HEIGHT = 40;
+const NOTIFICATION_DRAG_HANDLE_ZONE = 60;
 const BATTERY_LEVEL = 69;
 
 const FINGERPRINT_VIBRATION_PATTERN: number[] = [0, 28, 20, 32];
@@ -302,8 +353,7 @@ const formatter = {
   }),
 };
 
-const wallpaperStyle: CSSProperties = {
-  height: "100dvh",
+const wallpaperBaseStyle: CSSProperties = {
   backgroundImage: "url('/nothing-wallpaper.jpg')",
   backgroundSize: "cover",
   backgroundPosition: "center",
@@ -314,17 +364,40 @@ type TopStatusBarProps = {
   time: string;
   dataSpeed: string;
   batteryLevel?: number;
+  onOpenNotifications?: () => void;
 };
 
 const TopStatusBar = ({
   time,
   dataSpeed,
   batteryLevel = BATTERY_LEVEL,
+  onOpenNotifications,
 }: TopStatusBarProps) => {
   const clampedBattery = Math.min(Math.max(batteryLevel, 0), 100);
+  const showNotificationButton = typeof onOpenNotifications === "function";
 
   return (
-    <div className="flex items-center justify-between px-3 py-2 text-white">
+    <div
+      className="relative flex items-center justify-between px-3 text-white"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.5rem)",
+        paddingBottom: "0.5rem",
+      }}
+    >
+      {showNotificationButton && (
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.94 }}
+          onClick={onOpenNotifications}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+          }}
+          className="pointer-events-auto absolute left-1/2 top-5 z-[120] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] text-white/80 shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/85 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+          aria-label="Open notifications"
+        >
+          Notifications
+        </motion.button>
+      )}
       <div className="flex items-center space-x-2">
         <div className="h-4 w-4 bg-black flex items-center justify-center rounded-full">
           <div className="h-2 w-2 bg-white/10 rounded-full"></div>
@@ -1367,6 +1440,8 @@ type LockScreenProps = {
   onFingerprintStart: () => void;
   onFingerprintEnd: () => void;
   onCardDismiss: (id: string) => void;
+  wallpaperStyle: CSSProperties;
+  onOpenNotifications: () => void;
 };
 
 const LockScreen = ({
@@ -1382,6 +1457,8 @@ const LockScreen = ({
   onFingerprintStart,
   onFingerprintEnd,
   onCardDismiss,
+  wallpaperStyle,
+  onOpenNotifications,
 }: LockScreenProps) => {
   return (
     <div className="relative w-full overflow-hidden" style={wallpaperStyle}>
@@ -1390,6 +1467,7 @@ const LockScreen = ({
           time={statusTime}
           dataSpeed={dataSpeed}
           batteryLevel={BATTERY_LEVEL}
+          onOpenNotifications={onOpenNotifications}
         />
 
         <div className="flex flex-1 flex-col items-start justify-start px-4 text-white">
@@ -1450,7 +1528,12 @@ const LockScreen = ({
           </div>
         </div>
 
-        <div className="flex justify-center select-none pb-20">
+        <div
+          className="flex justify-center select-none"
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 3.5rem)",
+          }}
+        >
           <div className="relative">
             <motion.div
               id="fingerprint-area"
@@ -1494,7 +1577,12 @@ const LockScreen = ({
           </div>
         </div>
 
-        <div className="pointer-events-none absolute bottom-10 left-0 right-0 text-center">
+        <div
+          className="pointer-events-none absolute left-0 right-0 text-center"
+          style={{
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 2.5rem)",
+          }}
+        >
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
@@ -1590,14 +1678,14 @@ const FloatingNotificationToast = ({
   return (
     <motion.div
       layout
-      initial={{ y: -80, opacity: 0, scale: 0.92 }}
+      initial={{ y: -80, opacity: 0, scale: 0.8 }}
       animate={{ y: 0, opacity: 1, scale: 1 }}
       exit={{ y: -70, opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       drag="y"
-      dragConstraints={{ top: -160, bottom: 120 }}
+      dragConstraints={{ top: -160, bottom: 10 }}
       dragElastic={0.25}
-      whileDrag={{ scale: 0.97 }}
+      whileDrag={{ scaleY: 1.7 }}
       onDragEnd={(_, info) => {
         if (info.offset.y < -40 || info.velocity.y < -500) {
           onDismiss(notification.id);
@@ -1738,6 +1826,8 @@ type HomeScreenProps = {
   onRelock: () => void;
   onOpenApp: (app: MobileAppId) => void;
   onOpenLinkedIn: () => void;
+  wallpaperStyle: CSSProperties;
+  onOpenNotifications: () => void;
 };
 
 type DockLaunch = {
@@ -1753,6 +1843,8 @@ const HomeScreen = ({
   onRelock,
   onOpenApp,
   onOpenLinkedIn,
+  wallpaperStyle,
+  onOpenNotifications,
 }: HomeScreenProps) => {
   const dockItems: DockLaunch[] = useMemo(
     () => [
@@ -1803,13 +1895,42 @@ const HomeScreen = ({
     [onOpenApp]
   );
 
+  const viewportFillStyle = useMemo(
+    () => ({
+      minHeight: "calc(var(--muneebos-vh, 1vh) * 100)",
+      height: "calc(var(--muneebos-vh, 1vh) * 100)",
+    }),
+    []
+  );
+
+  const contentPaddingStyle = useMemo(
+    () => ({
+      paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 3.5rem)",
+    }),
+    []
+  );
+
+  const dockPaddingStyle = useMemo(
+    () => ({
+      paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)",
+    }),
+    []
+  );
+
   return (
     <div className="relative w-full overflow-hidden" style={wallpaperStyle}>
-      <div className="flex h-[100dvh] flex-col">
-        <TopStatusBar time={statusTime} dataSpeed={dataSpeed} />
+      <div className="flex flex-col" style={viewportFillStyle}>
+        <TopStatusBar
+          time={statusTime}
+          dataSpeed={dataSpeed}
+          onOpenNotifications={onOpenNotifications}
+        />
 
-        <div className="flex-1 px-4 pb-10 pt-4 text-white">
-          <div className="flex h-full flex-col gap-4">
+        <div
+          className="flex-1 overflow-y-auto px-4 pt-4 text-white"
+          style={contentPaddingStyle}
+        >
+          <div className="flex min-h-0 flex-col gap-4">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1848,8 +1969,11 @@ const HomeScreen = ({
           </div>
         </div>
 
-        <div className="pointer-events-none relative flex justify-center pb-1">
-          <div className="pointer-events-auto flex w-[90%] max-w-sm items-end justify-between rounded-[32px]   px-6 py-3 backdrop-blur-s,">
+        <div
+          className="pointer-events-none relative flex justify-center"
+          style={dockPaddingStyle}
+        >
+          <div className="pointer-events-auto flex w-[90%] max-w-sm items-end justify-between rounded-[32px] border border-white/10 bg-black/55 px-6 py-3 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
             {dockItems.map((item) => (
               <DockIcon key={item.id} {...item} />
             ))}
@@ -1866,6 +1990,10 @@ type NotificationPanelProps = {
   notifications: NotificationItem[];
   statusTime: string;
   dataSpeed: string;
+  quickSettings: QuickSettingState;
+  onToggleQuickSetting: (id: QuickSettingId) => void;
+  panelHeight: number;
+  panelHandleHeight?: number;
 };
 
 const NotificationPanel = ({
@@ -1874,76 +2002,171 @@ const NotificationPanel = ({
   notifications,
   statusTime,
   dataSpeed,
+  quickSettings,
+  onToggleQuickSetting,
+  panelHeight,
+  panelHandleHeight,
 }: NotificationPanelProps) => {
+  const handleHeight = panelHandleHeight ?? PANEL_HANDLE_HEIGHT;
+  const notificationsMaxHeight = Math.max(
+    180,
+    panelHeight - (handleHeight + 200)
+  );
+  const openThreshold = panelHeight * 0.3;
+  const closeThreshold = panelHeight * 0.25;
+  const velocityThreshold = 420;
+
   return (
     <motion.div
       drag="y"
       dragConstraints={{
-        top: -PANEL_HEIGHT + PANEL_HANDLE_HEIGHT,
+        top: -panelHeight + handleHeight,
         bottom: 0,
       }}
-      dragElastic={0.32}
+      dragElastic={0.18}
+      dragMomentum={false}
       onDragEnd={(_, info) => {
-        const distanceThreshold = PANEL_HEIGHT * 0.12;
-        const velocityThreshold = 160;
-
         if (isOpen) {
           const shouldClose =
             info.velocity.y < -velocityThreshold ||
-            info.offset.y < -distanceThreshold;
+            info.offset.y < -closeThreshold;
           onToggle(!shouldClose);
         } else {
           const shouldOpen =
             info.velocity.y > velocityThreshold ||
-            info.offset.y > distanceThreshold;
+            info.offset.y > openThreshold;
           onToggle(shouldOpen);
         }
       }}
       initial={false}
       animate={{
-        y: isOpen ? 0 : -PANEL_HEIGHT + PANEL_HANDLE_HEIGHT,
+        y: isOpen ? 0 : -panelHeight + handleHeight,
       }}
-      transition={{ type: "spring", stiffness: 320, damping: 36 }}
+      transition={{
+        type: "spring",
+        stiffness: 260,
+        damping: 32,
+        mass: 0.9,
+      }}
       className={`absolute inset-x-0 top-0 z-40 mx-auto opacity-${
         isOpen ? 100 : 0
-      } w-full max-w-sm`}
-      style={{ height: PANEL_HEIGHT }}
+      } w-full max-w-[460px] rounded-b-3xl`}
+      style={{ height: panelHeight, maxHeight: panelHeight }}
     >
-      <div className="relative h-full overflow-hidden rounded-3xl border border-white/10 bg-black/80 backdrop-blur-3xl">
-        <div className="flex justify-center pt-2 pb-3">
-          <div className="h-1.5 w-12 rounded-full bg-white/30" />
-        </div>
-
+      <div className="relative h-full overflow-hidden rounded-b-4xl border border-white/10 bg-black/80 text-white backdrop-blur-3xl">
         <TopStatusBar time={statusTime} dataSpeed={dataSpeed} />
+        <div
+          className={`px-5 pt-5 ${isOpen ? "block" : "hidden"}`}
+          style={{
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
+          }}
+        >
+          <div className="space-y-6">
+            <section>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/65">
+                  Quick Settings
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-white/40">
+                  Tap to toggle
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {QUICK_SETTING_CONFIGS.map((config) => {
+                  const Icon = config.icon;
+                  const isActive = quickSettings[config.id];
 
-        <div className="px-5 pb-6">
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-            Notifications
-          </span>
+                  return (
+                    <motion.button
+                      key={config.id}
+                      type="button"
+                      whileTap={{ scale: 0.94 }}
+                      onClick={() => onToggleQuickSetting(config.id)}
+                      aria-pressed={isActive}
+                      className={`group relative flex flex-col justify-between rounded-3xl border px-4 py-4 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 ${
+                        isActive
+                          ? `border-transparent bg-white/80 text-black shadow-[0_16px_35px_rgba(15,118,110,0.32)]`
+                          : "border-white/12 bg-white/5 text-white/75 hover:border-white/25 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.34em]">
+                            {config.label}
+                          </span>
+                          <p className="mt-1 text-base font-semibold">
+                            {isActive ? "Enabled" : "Disabled"}
+                          </p>
+                        </div>
+                        <motion.span
+                          layout
+                          transition={{
+                            type: "spring",
+                            stiffness: 320,
+                            damping: 28,
+                          }}
+                          className={`flex h-10 w-10 items-center justify-center rounded-2xl border text-white ${
+                            isActive
+                              ? "border-black/30 bg-black"
+                              : "border-white/10 bg-black/40"
+                          }`}
+                        >
+                          <Icon className="h-5 w-5" />
+                        </motion.span>
+                      </div>
+                      <motion.div
+                        layout
+                        transition={{
+                          type: "spring",
+                          stiffness: 260,
+                          damping: 24,
+                        }}
+                        className={`mt-5 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] ${
+                          isActive
+                            ? "bg-black text-white"
+                            : "border border-white/15 bg-black/40 text-white/70"
+                        }`}
+                      >
+                        {isActive ? "Tap to disable" : "Tap to enable"}
+                      </motion.div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </section>
 
-          <div
-            className="mt-4 space-y-3 overflow-y-auto pr-1"
-            style={{ maxHeight: PANEL_HEIGHT - 140 }}
-          >
-            {notifications.map((item) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-xl"
+            <section>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
+                Notifications
+              </span>
+
+              <div
+                className="mt-4 space-y-3 overflow-y-auto pr-1"
+                style={{ maxHeight: notificationsMaxHeight }}
               >
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">{item.title}</h4>
-                  <span className="text-xs text-white/60">{item.time}</span>
-                </div>
-                <p className="mt-2 text-sm text-white/70">{item.description}</p>
-                <div
-                  className={`mt-3 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-black/85 ${item.accent}`}
-                >
-                  Activity
-                </div>
-              </motion.div>
-            ))}
+                {notifications.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-xl"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">{item.title}</h4>
+                      <span className="text-xs text-white/60">{item.time}</span>
+                    </div>
+                    <p className="mt-2 text-sm text-white/70">
+                      {item.description}
+                    </p>
+                    <div
+                      className={`mt-3 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-black/85 ${item.accent}`}
+                    >
+                      Activity
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -1964,6 +2187,7 @@ export const MuneebOS = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const gestureStartRef = useRef<number | null>(null);
   const gestureActiveRef = useRef(false);
+  const gestureEligibleRef = useRef(false);
   const unlockingTouchRef = useRef(false);
   const [floatingNotifications, setFloatingNotifications] = useState<
     FloatingNotification[]
@@ -1976,6 +2200,70 @@ export const MuneebOS = () => {
     new Map<string, ReturnType<typeof setTimeout>>()
   );
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [quickSettings, setQuickSettings] = useState<QuickSettingState>(
+    QUICK_SETTING_DEFAULT_STATE
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateViewportHeight = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      setViewportHeight(height);
+      document.documentElement.style.setProperty(
+        "--muneebos-vh",
+        `${height * 0.01}px`
+      );
+    };
+
+    updateViewportHeight();
+
+    window.addEventListener("resize", updateViewportHeight);
+    window.addEventListener("orientationchange", updateViewportHeight);
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener("resize", updateViewportHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateViewportHeight);
+      window.removeEventListener("orientationchange", updateViewportHeight);
+      visualViewport?.removeEventListener("resize", updateViewportHeight);
+    };
+  }, []);
+
+  const wallpaperStyle = useMemo<CSSProperties>(() => {
+    const height = viewportHeight;
+    return {
+      ...wallpaperBaseStyle,
+      minHeight: "calc(var(--muneebos-vh, 1vh) * 100)",
+      height: height ? `${height}px` : "calc(var(--muneebos-vh, 1vh) * 100)",
+    };
+  }, [viewportHeight]);
+
+  const panelHeight = useMemo(() => {
+    const base = viewportHeight ?? 640;
+    const maxAllowed = Math.max(260, base - 12);
+    const preferred = Math.max(360, base - 24);
+    const cappedPreferred = Math.min(preferred, 680);
+    return Math.min(cappedPreferred, maxAllowed);
+  }, [viewportHeight]);
+
+  const panelHandleHeight = useMemo(() => {
+    return Math.max(36, Math.min(52, panelHeight * 0.08));
+  }, [panelHeight]);
+
+  const dragActivationZone = useMemo(
+    () => Math.max(NOTIFICATION_DRAG_HANDLE_ZONE, panelHandleHeight + 16),
+    [panelHandleHeight]
+  );
+
+  const handleToggleQuickSetting = useCallback((id: QuickSettingId) => {
+    setQuickSettings((previous) => {
+      const next = { ...previous, [id]: !previous[id] };
+      return next;
+    });
+    vibrateDevice([0, 28]);
+  }, []);
 
   useEffect(() => {
     const tick = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -2141,6 +2429,11 @@ export const MuneebOS = () => {
     setIsNotificationOpen((prev) => (prev === open ? prev : open));
   }, []);
 
+  const handleNotificationButtonPress = useCallback(() => {
+    setIsNotificationOpen(true);
+    vibrateDevice([0, 18]);
+  }, []);
+
   const handleOpenApp = useCallback((app: MobileAppId) => {
     vibrateDevice([0, 24]);
     setActiveApp(app);
@@ -2238,16 +2531,38 @@ export const MuneebOS = () => {
   const handleGesturePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       if (event.pointerType !== "touch") return;
+      const rect = (
+        event.currentTarget as HTMLDivElement
+      ).getBoundingClientRect();
+      const offsetFromTop = event.clientY - rect.top;
+
+      const canStartFromZone =
+        isNotificationOpen || offsetFromTop <= dragActivationZone;
+
+      if (!canStartFromZone) {
+        gestureStartRef.current = null;
+        gestureActiveRef.current = false;
+        gestureEligibleRef.current = false;
+        return;
+      }
+
+      gestureEligibleRef.current = true;
       gestureStartRef.current = event.clientY;
       gestureActiveRef.current = true;
     },
-    []
+    [dragActivationZone, isNotificationOpen]
   );
 
   const handleGesturePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       if (event.pointerType !== "touch") return;
-      if (!gestureActiveRef.current || gestureStartRef.current === null) return;
+      if (
+        !gestureActiveRef.current ||
+        !gestureEligibleRef.current ||
+        gestureStartRef.current === null
+      ) {
+        return;
+      }
 
       const delta = event.clientY - gestureStartRef.current;
       if (delta > 45) {
@@ -2260,6 +2575,7 @@ export const MuneebOS = () => {
   const handleGesturePointerEnd = useCallback(() => {
     gestureStartRef.current = null;
     gestureActiveRef.current = false;
+    gestureEligibleRef.current = false;
   }, []);
 
   return (
@@ -2270,7 +2586,10 @@ export const MuneebOS = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        <div className="pointer-events-none absolute top-4 left-0 right-0 z-[1200] flex flex-col items-center gap-3">
+        <div
+          className="pointer-events-none absolute left-0 right-0 z-[1200] flex flex-col items-center gap-3"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 1rem)" }}
+        >
           <AnimatePresence>
             {floatingNotifications.map((notification) => (
               <FloatingNotificationToast
@@ -2309,6 +2628,10 @@ export const MuneebOS = () => {
               notifications={NOTIFICATIONS}
               statusTime={statusTime}
               dataSpeed={dataSpeed}
+              quickSettings={quickSettings}
+              onToggleQuickSetting={handleToggleQuickSetting}
+              panelHeight={panelHeight}
+              panelHandleHeight={panelHandleHeight}
             />
 
             <motion.div
@@ -2338,6 +2661,8 @@ export const MuneebOS = () => {
                       onFingerprintStart={handleFingerprintStart}
                       onFingerprintEnd={handleFingerprintEnd}
                       onCardDismiss={handleCardDismiss}
+                      wallpaperStyle={wallpaperStyle}
+                      onOpenNotifications={handleNotificationButtonPress}
                     />
                   </motion.div>
                 ) : (
@@ -2354,6 +2679,8 @@ export const MuneebOS = () => {
                       onRelock={handleRelock}
                       onOpenApp={handleOpenApp}
                       onOpenLinkedIn={handleLinkedInOpen}
+                      wallpaperStyle={wallpaperStyle}
+                      onOpenNotifications={handleNotificationButtonPress}
                     />
                   </motion.div>
                 )}
