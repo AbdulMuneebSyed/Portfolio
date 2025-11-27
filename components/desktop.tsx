@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useWindowManager } from "@/lib/window-manager";
 import { useGlobalClickSound } from "@/hooks/use-global-click-sound";
 import { DesktopIconComponent } from "./desktop-icon";
@@ -26,6 +26,8 @@ import { PixelMusicPlayer } from "./windows/modern-music-player";
 import { PhotoPreview } from "./windows/photo-preview";
 import { Windows7Tour } from "./windows7-tour-pixel";
 import { MuneebOS } from "./muneebOS";
+import { Notepad } from "./windows/notepad";
+import { AnimatePresence } from "framer-motion";
 
 function PlaceholderWindow() {
   return (
@@ -53,6 +55,7 @@ const windowComponents: Record<string, React.ComponentType> = {
   FeedbackWindow,
   MusicPlayer: PixelMusicPlayer,
   PhotoPreview,
+  Notepad,
   RecycleBin: PlaceholderWindow,
 };
 
@@ -77,16 +80,10 @@ export function Desktop() {
   const startupSoundPlayedRef = useRef(false);
   const startupAudioRef = useRef<HTMLAudioElement | null>(null);
   const [hasPlayedStartupSound, setHasPlayedStartupSound] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    const stored = window.sessionStorage.getItem("win7-startup-played");
-    const alreadyPlayed = stored === "true";
-    if (alreadyPlayed) {
-      startupSoundPlayedRef.current = true;
-    }
-    return alreadyPlayed;
+    // Default to true so it doesn't play on initial load/reload
+    // It will only play if explicitly set to false during a restart sequence
+    startupSoundPlayedRef.current = true;
+    return true;
   });
   const [isTourRunning, setIsTourRunning] = useState(false);
   const [showTourButton, setShowTourButton] = useState(true);
@@ -154,9 +151,6 @@ export function Desktop() {
           startupSoundPlayedRef.current = true;
         }
         setHasPlayedStartupSound(true);
-        if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("win7-startup-played", "true");
-        }
       };
 
       const playOnInteraction = () => {
@@ -222,22 +216,30 @@ export function Desktop() {
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
-  const handleRestart = () => {
+  const handleRestart = useCallback(() => {
     setIsStartingUp(true);
     startupSoundPlayedRef.current = false;
     if (startupAudioRef.current) {
       startupAudioRef.current.pause();
       startupAudioRef.current.currentTime = 0;
     }
-    if (typeof window !== "undefined") {
-      window.sessionStorage.removeItem("win7-startup-played");
-    }
     setHasPlayedStartupSound(false);
+
     setTimeout(() => {
-      restart();
+      useWindowManager.getState().restart();
       setIsStartingUp(false);
     }, 6500);
-  };
+  }, []);
+
+  const handleTourComplete = useCallback(() => {
+    setIsTourRunning(false);
+    setShowTourButton(true);
+  }, []);
+
+  const handleStartTour = useCallback(() => {
+    setIsTourRunning(true);
+    setShowTourButton(false);
+  }, []);
 
   const contextMenuItems = [
     {
@@ -288,7 +290,10 @@ export function Desktop() {
     return (
       <div
         className="fixed inset-0 bg-black flex items-center justify-center cursor-pointer"
-        onClick={handleRestart}
+        onClick={(e) => {
+          console.log("Shutdown screen clicked");
+          handleRestart();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             handleRestart();
@@ -308,16 +313,6 @@ export function Desktop() {
       </div>
     );
   }
-
-  const handleTourComplete = () => {
-    setIsTourRunning(false);
-    setShowTourButton(true);
-  };
-
-  const handleStartTour = () => {
-    setIsTourRunning(true);
-    setShowTourButton(false);
-  };
 
   // Show MuneerOS for mobile/tablet
   if (isMobile) {
@@ -354,29 +349,33 @@ export function Desktop() {
           ))}
         </div>
 
-        {windows.map((window) => {
-          const WindowComponent =
-            windowComponents[window.component] || PlaceholderWindow;
-          return (
-            <Window key={window.id} window={window}>
-              {windowComponents[window.component] ? (
-                <WindowComponent {...(window.metadata || {})} />
-              ) : (
-                <PlaceholderWindow />
-              )}
-            </Window>
-          );
-        })}
+        <AnimatePresence>
+          {windows.map((window) => {
+            const WindowComponent =
+              windowComponents[window.component] || PlaceholderWindow;
+            return (
+              <Window key={window.id} window={window}>
+                {windowComponents[window.component] ? (
+                  <WindowComponent {...(window.metadata || {})} />
+                ) : (
+                  <PlaceholderWindow />
+                )}
+              </Window>
+            );
+          })}
+        </AnimatePresence>
 
         {/* Context Menu */}
-        {contextMenu && (
-          <ContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
-            items={contextMenuItems}
-            onClose={() => setContextMenu(null)}
-          />
-        )}
+        <AnimatePresence>
+          {contextMenu && (
+            <ContextMenu
+              x={contextMenu.x}
+              y={contextMenu.y}
+              items={contextMenuItems}
+              onClose={() => setContextMenu(null)}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Tour Button */}
         {showTourButton && (

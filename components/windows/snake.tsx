@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RotateCcw, Trophy } from "lucide-react";
+import { RotateCcw, Trophy, Play, Pause } from "lucide-react";
 
 type Position = { x: number; y: number };
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
@@ -155,133 +155,118 @@ export function Snake() {
   }, [direction, gameStatus]);
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Development Notice */}
-      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-b border-amber-200 px-4 py-2">
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-amber-600">⚠️</span>
-          <span className="text-amber-700 font-medium">Under Development:</span>
-          <span className="text-amber-700">
-            This Snake build is an in-progress portfolio feature. Movement,
-            scoring, and collision are live; future updates will refine visuals
-            and add difficulty modes + persistence.
-          </span>
+    <div className="flex flex-col h-full bg-[#C0C0C0] p-1 select-none font-sans">
+      {/* Menu Bar */}
+      <div className="flex bg-[#ECE9D8] border-b border-white px-1 text-xs mb-1">
+        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
+          Game
+        </div>
+        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
+          Help
         </div>
       </div>
 
-      {/* Game Header */}
-      <div className="border-b border-gray-300 bg-gradient-to-b from-white to-gray-50 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="px-4 py-2 bg-black text-green-400 font-mono text-lg font-bold rounded">
-              Score: {score}
-            </div>
-            <button
-              onClick={resetGame}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              New Game
-            </button>
-          </div>
+      {/* Game Container */}
+      <div className="border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] p-2 bg-[#C0C0C0] flex flex-col gap-2 flex-1">
+        {/* Header (Score) */}
+        <div className="border-l-2 border-t-2 border-l-[#808080] border-t-[#808080] border-r-2 border-b-2 border-r-white border-b-white p-2 flex justify-between items-center bg-[#C0C0C0]">
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-600" />
-            <span className="text-sm font-medium text-gray-700">
-              High Score: {highScore}
-            </span>
+            <span className="text-xs font-bold">SCORE:</span>
+            <div className="bg-black text-[#00FF00] font-mono text-xl px-2 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-24 text-right leading-none py-0.5">
+              {score.toString().padStart(5, "0")}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold">HIGH:</span>
+            <div className="bg-black text-[#00FF00] font-mono text-xl px-2 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-24 text-right leading-none py-0.5">
+              {highScore.toString().padStart(5, "0")}
+            </div>
           </div>
         </div>
 
-        <div className="text-sm text-gray-600">
-          Use arrow keys to move • Press Space to pause
-        </div>
-      </div>
-
-      {/* Game Board */}
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-50">
-        <div
-          className="relative border-4 border-gray-800 rounded"
-          style={{
-            width: GRID_SIZE * CELL_SIZE,
-            height: GRID_SIZE * CELL_SIZE,
-          }}
-        >
-          {/* Grid Background */}
-          <div className="absolute inset-0 bg-gray-900">
-            {Array.from({ length: GRID_SIZE }).map((_, y) =>
-              Array.from({ length: GRID_SIZE }).map((_, x) => (
-                <div
-                  key={`${x}-${y}`}
-                  className="absolute border border-gray-800"
-                  style={{
-                    left: x * CELL_SIZE,
-                    top: y * CELL_SIZE,
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
-                  }}
-                />
-              ))
-            )}
-          </div>
-
-          {/* Snake */}
-          {snake.map((segment, index) => (
-            <div
-              key={index}
-              className={`absolute rounded-sm ${
-                index === 0 ? "bg-green-400" : "bg-green-500"
-              }`}
-              style={{
-                left: segment.x * CELL_SIZE + 1,
-                top: segment.y * CELL_SIZE + 1,
-                width: CELL_SIZE - 2,
-                height: CELL_SIZE - 2,
-              }}
-            />
-          ))}
-
-          {/* Food */}
+        {/* Game Board (LCD Style) */}
+        <div className="flex-1 flex items-center justify-center bg-[#9EA792] border-l-4 border-t-4 border-l-[#808080] border-t-[#808080] border-r-4 border-b-4 border-r-white border-b-white p-4 shadow-inner relative overflow-hidden">
+          {/* LCD Grid Pattern */}
           <div
-            className="absolute bg-red-500 rounded-full"
+            className="absolute inset-0 opacity-10 pointer-events-none"
             style={{
-              left: food.x * CELL_SIZE + 2,
-              top: food.y * CELL_SIZE + 2,
-              width: CELL_SIZE - 4,
-              height: CELL_SIZE - 4,
+              backgroundImage:
+                "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
+              backgroundSize: "4px 4px",
             }}
           />
 
-          {/* Overlay Messages */}
-          {gameStatus === "paused" && (
-            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-white mb-2">
-                  Press any arrow key to start
-                </p>
-                <p className="text-gray-300">
-                  Use arrow keys to control the snake
-                </p>
-              </div>
-            </div>
-          )}
+          <div
+            className="relative border-2 border-[#4A503D] bg-[#8B967E] shadow-lg"
+            style={{
+              width: GRID_SIZE * CELL_SIZE,
+              height: GRID_SIZE * CELL_SIZE,
+            }}
+          >
+            {/* Snake */}
+            {snake.map((segment, index) => (
+              <div
+                key={index}
+                className="absolute bg-[#1A1F16] border border-[#8B967E]"
+                style={{
+                  left: segment.x * CELL_SIZE,
+                  top: segment.y * CELL_SIZE,
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                }}
+              />
+            ))}
 
-          {gameStatus === "gameOver" && (
-            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-red-500 mb-2">
-                  Game Over!
-                </p>
-                <p className="text-xl text-white mb-4">Final Score: {score}</p>
-                <button
-                  onClick={resetGame}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                  Play Again
-                </button>
+            {/* Food */}
+            <div
+              className="absolute bg-[#1A1F16] rounded-full animate-pulse"
+              style={{
+                left: food.x * CELL_SIZE + 2,
+                top: food.y * CELL_SIZE + 2,
+                width: CELL_SIZE - 4,
+                height: CELL_SIZE - 4,
+              }}
+            />
+
+            {/* Overlay Messages */}
+            {gameStatus === "paused" && (
+              <div className="absolute inset-0 bg-[#8B967E]/80 flex items-center justify-center z-10">
+                <div className="text-center p-4 border-2 border-[#1A1F16] bg-[#9EA792] shadow-xl">
+                  <p className="text-lg font-bold text-[#1A1F16] mb-2 font-mono">
+                    PAUSED
+                  </p>
+                  <p className="text-xs text-[#1A1F16] font-mono">
+                    PRESS SPACE TO START
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {gameStatus === "gameOver" && (
+              <div className="absolute inset-0 bg-[#8B967E]/80 flex items-center justify-center z-10">
+                <div className="text-center p-4 border-2 border-[#1A1F16] bg-[#9EA792] shadow-xl">
+                  <p className="text-lg font-bold text-[#1A1F16] mb-2 font-mono">
+                    GAME OVER
+                  </p>
+                  <p className="text-sm text-[#1A1F16] mb-4 font-mono">
+                    SCORE: {score}
+                  </p>
+                  <button
+                    onClick={resetGame}
+                    className="px-4 py-1 bg-[#1A1F16] text-[#9EA792] font-mono text-xs hover:bg-[#2C3325] active:translate-y-0.5"
+                  >
+                    TRY AGAIN
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Controls Hint */}
+        <div className="text-center text-[10px] text-gray-600 mt-1 font-mono">
+          ARROWS TO MOVE • SPACE TO PAUSE
         </div>
       </div>
     </div>

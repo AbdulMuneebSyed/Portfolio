@@ -7,6 +7,7 @@ import type { DesktopIcon } from "@/lib/types";
 import { useWindowManager } from "@/lib/window-manager";
 import Image from "next/image";
 import { DesktopIconContextMenu } from "./desktop-icon-context-menu";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DesktopIconProps {
   icon: DesktopIcon;
@@ -93,10 +94,15 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
 
   return (
     <>
-      <div
+      <motion.div
         ref={iconRef}
+        whileHover={{
+          scale: 1.05,
+          backgroundColor: "rgba(255, 255, 255, 0.15)",
+        }}
+        whileTap={{ scale: 0.95, backgroundColor: "rgba(255, 255, 255, 0.25)" }}
         data-icon-id={icon.id}
-        className={`desktop-icon flex flex-col items-center justify-center w-[64px] h-[72px] sm:w-[72px] sm:h-[80px] md:w-[80px] md:h-[88px] select-none transition-all ${"hover:bg-white/15"} ${
+        className={`desktop-icon flex flex-col items-center justify-center w-[64px] h-[72px] sm:w-[72px] sm:h-[80px] md:w-[80px] md:h-[88px] select-none transition-colors ${
           isDragging ? "opacity-70" : ""
         } ${isSnapping ? "snapping" : ""}`}
         style={{
@@ -119,20 +125,22 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
         <div className="text-[10px] sm:text-xs text-white text-center font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] pointer-events-none mt-1 max-w-full break-words leading-tight">
           {icon.title}
         </div>
-      </div>
+      </motion.div>
 
       {/* Context Menu */}
-      {contextMenu && (
-        <DesktopIconContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          onClose={() => setContextMenu(null)}
-          onOpen={() => {
-            handleOpen();
-            setContextMenu(null);
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {contextMenu && (
+          <DesktopIconContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+            onOpen={() => {
+              handleOpen();
+              setContextMenu(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

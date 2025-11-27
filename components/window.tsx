@@ -7,6 +7,7 @@ import { useWindowManager } from "@/lib/window-manager";
 import type { WindowState } from "@/lib/types";
 import { X, Minus, Square } from "lucide-react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 interface WindowProps {
   window: WindowState;
@@ -34,6 +35,24 @@ export function Window({ window, children }: WindowProps) {
     height: 0,
     direction: "bottom-right",
   });
+
+  const [minimizeTarget, setMinimizeTarget] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (window.isMinimized) {
+      const taskbarItem = document.getElementById(`taskbar-item-${window.id}`);
+      if (taskbarItem) {
+        const rect = taskbarItem.getBoundingClientRect();
+        setMinimizeTarget({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        });
+      }
+    }
+  }, [window.isMinimized, window.id]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (window.isMaximized) return;
@@ -129,7 +148,7 @@ export function Window({ window, children }: WindowProps) {
     updateWindowSize,
   ]);
 
-  if (window.isMinimized) return null;
+  // if (window.isMinimized) return null;
 
   const style = window.isMaximized
     ? { top: 0, left: 0, width: "100vw", height: "calc(100vh - 48px)" }
@@ -163,14 +182,40 @@ export function Window({ window, children }: WindowProps) {
       };
 
   return (
-    <div
+    <motion.div
       ref={windowRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={
+        window.isMinimized && minimizeTarget
+          ? {
+              opacity: 0,
+              scale: 0,
+              transition: {
+                duration: 0.4,
+                ease: [0.4, 0, 0.2, 1],
+                opacity: { duration: 0.3, delay: 0.1 },
+              },
+              transitionEnd: { display: "none" },
+            }
+          : {
+              opacity: 1,
+              scale: 1,
+              display: "flex",
+              transition: { duration: 0.3, ease: "easeOut" },
+            }
+      }
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
       className={`absolute rounded-lg overflow-hidden flex flex-col ${
         aeroEffects ? "aero-glass" : "bg-white border border-gray-300"
       }`}
       style={{
         ...style,
         zIndex: window.zIndex,
+        transformOrigin: minimizeTarget
+          ? `${minimizeTarget.x - window.position.x}px ${
+              minimizeTarget.y - window.position.y
+            }px`
+          : "center",
         backdropFilter: aeroEffects ? "blur(20px)" : "none",
         background: aeroEffects
           ? "rgba(255, 255, 255, 0.1)"
@@ -275,6 +320,6 @@ export function Window({ window, children }: WindowProps) {
           />
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

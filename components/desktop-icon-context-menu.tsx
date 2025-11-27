@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 
 interface ContextMenuItem {
   label?: string;
@@ -91,8 +92,12 @@ export function DesktopIconContextMenu({
   const adjustedY = y + menuHeight > window.innerHeight ? y - menuHeight : y;
 
   return (
-    <div
+    <motion.div
       ref={menuRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+      transition={{ duration: 0.1 }}
       className="fixed z-[9999] min-w-[180px] bg-white border border-gray-300 shadow-lg rounded-sm"
       style={{
         left: adjustedX,
@@ -145,6 +150,6 @@ export function DesktopIconContextMenu({
           </div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

@@ -1,15 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  JoyrideWrapper as Joyride,
-  CallBackProps,
-  Step,
-  EVENTS,
-  STATUS,
-} from "@/lib/joyride-patch";
+import React, { useEffect, useRef } from "react";
+import Shepherd from "shepherd.js";
 import { useWindowManager } from "@/lib/window-manager";
-import NextImage from "next/image";
+import "@/styles/shepherd-pixel.css";
 
 interface Windows7TourProps {
   run: boolean;
@@ -17,32 +11,12 @@ interface Windows7TourProps {
   onSkip: () => void;
 }
 
-// Custom Tooltip Component with Pixel Character
-const CustomTooltip = ({
-  content,
-  primaryProps,
-  tooltipProps,
-  backProps,
-  skipProps,
-  step,
-}: any) => {
-  // Different character expressions/poses for different steps
-  const getCharacterStyle = (stepIndex: number) => {
-    const poses = [
-      { transform: "scaleX(1)", filter: "hue-rotate(0deg)" }, // Default greeting
-      { transform: "scaleX(-1)", filter: "hue-rotate(20deg)" }, // Looking left
-      { transform: "scaleX(1) rotate(5deg)", filter: "hue-rotate(40deg)" }, // Excited
-      { transform: "scaleX(-1) rotate(-3deg)", filter: "hue-rotate(60deg)" }, // Pointing
-      { transform: "scaleX(1) scale(1.1)", filter: "hue-rotate(80deg)" }, // Big
-      { transform: "scaleX(-1) rotate(2deg)", filter: "hue-rotate(100deg)" }, // Casual
-    ];
-    return poses[stepIndex % poses.length];
-  };
+export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
+  const { desktopIcons } = useWindowManager();
+  const tourRef = useRef<any>(null);
 
-  // Determine which character image to use based on content
-  const getCharacterImage = () => {
-    const content = step?.content || "";
-
+  // Helper to determine character image based on content
+  const getCharacterImage = (content: string) => {
     if (
       content.includes("That’s my LinkedIn profile") ||
       content.includes("This one’s my resume. Click here")
@@ -62,359 +36,81 @@ const CustomTooltip = ({
     }
   };
 
-  return (
-    <div
-      {...tooltipProps}
-      style={{
-        position: "relative",
-        zIndex: 10000,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        maxWidth: "320px",
-        opacity: 1,
-        transition: "all 0.3s ease-in-out",
-      }}
-    >
-      {/* Pixel Art Speech Bubble */}
-      <div
-        style={{
-          position: "relative",
-          backgroundColor: "#f8f4e8",
-          border: "4px solid #5a4a3a",
-          borderRadius: "0",
-          padding: "16px 20px",
-          color: "#2d1f14",
-          fontFamily: '"Courier New", monospace',
-          fontSize: "13px",
-          lineHeight: "1.6",
-          marginBottom: "12px",
-          width: "300px",
-          boxShadow: "4px 4px 0px #3a2a1a, 8px 8px 0px rgba(0,0,0,0.2)",
-          imageRendering: "pixelated",
-          animation: "bubblePop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-        }}
-      >
-        {/* Pixel art corner decorations */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-4px",
-            left: "-4px",
-            width: "8px",
-            height: "8px",
-            backgroundColor: "#5a4a3a",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: "-4px",
-            right: "-4px",
-            width: "8px",
-            height: "8px",
-            backgroundColor: "#5a4a3a",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-4px",
-            left: "-4px",
-            width: "8px",
-            height: "8px",
-            backgroundColor: "#5a4a3a",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-4px",
-            right: "-4px",
-            width: "8px",
-            height: "8px",
-            backgroundColor: "#5a4a3a",
-          }}
-        />
+  // Helper to determine character style (poses)
+  const getCharacterStyle = (stepIndex: number) => {
+    const poses = [
+      "transform: scaleX(1); filter: hue-rotate(0deg);", // Default greeting
+      "transform: scaleX(-1); filter: hue-rotate(20deg);", // Looking left
+      "transform: scaleX(1) rotate(5deg); filter: hue-rotate(40deg);", // Excited
+      "transform: scaleX(-1) rotate(-3deg); filter: hue-rotate(60deg);", // Pointing
+      "transform: scaleX(1) scale(1.1); filter: hue-rotate(80deg);", // Big
+      "transform: scaleX(-1) rotate(2deg); filter: hue-rotate(100deg);", // Casual
+    ];
+    return poses[stepIndex % poses.length];
+  };
 
-        {/* Pixel art speech bubble tail */}
-        <div
-          style={{
-            position: "absolute",
-            right: "20px",
-            bottom: "-16px",
-            width: "16px",
-            height: "16px",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              width: "16px",
-              height: "4px",
-              backgroundColor: "#5a4a3a",
-              bottom: "12px",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "12px",
-              height: "4px",
-              backgroundColor: "#5a4a3a",
-              bottom: "8px",
-              left: "4px",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "8px",
-              height: "4px",
-              backgroundColor: "#5a4a3a",
-              bottom: "4px",
-              left: "8px",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "4px",
-              height: "4px",
-              backgroundColor: "#5a4a3a",
-              bottom: "0px",
-              left: "12px",
-            }}
-          />
-          {/* Fill */}
-          <div
-            style={{
-              position: "absolute",
-              width: "12px",
-              height: "4px",
-              backgroundColor: "#f8f4e8",
-              bottom: "12px",
-              left: "2px",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "8px",
-              height: "4px",
-              backgroundColor: "#f8f4e8",
-              bottom: "8px",
-              left: "6px",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              width: "4px",
-              height: "4px",
-              backgroundColor: "#f8f4e8",
-              bottom: "4px",
-              left: "10px",
-            }}
-          />
-        </div>
+  // Generate the HTML content for a step
+  const generateStepContent = (text: string, index: number) => {
+    const imageSrc = getCharacterImage(text);
+    const style = getCharacterStyle(index);
 
-        {/* Animations */}
-        <style>
-          {`
-            @keyframes bubblePop {
-              0% {
-                transform: scale(0.8);
-                opacity: 0;
-              }
-              50% {
-                transform: scale(1.05);
-              }
-              100% {
-                transform: scale(1);
-                opacity: 1;
-              }
-            }
-            @keyframes textReveal {
-              0% {
-                opacity: 0;
-              }
-              100% {
-                opacity: 1;
-              }
-            }
-            @keyframes buttonFloat {
-              0%, 100% {
-                transform: translateY(0px);
-              }
-              50% {
-                transform: translateY(-2px);
-              }
-            }
-          `}
-        </style>
-
-        {/* Content with pixel text style */}
-        <div
-          style={{
-            marginBottom: "16px",
-            animation: "textReveal 0.5s ease-in 0.2s both",
-            textShadow: "1px 1px 0px rgba(255, 255, 255, 0.8)",
-            fontWeight: "bold",
-            color: "#2d1f14",
-          }}
-        >
-          {step?.content || content || "Welcome to the tour!"}
-        </div>
-
-        {/* Button row with pixel styling */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "8px",
-            animation: "textReveal 0.5s ease-in 0.4s both",
-          }}
-        >
-          {backProps && (
-            <button
-              {...backProps}
-              style={{
-                backgroundColor: "#d4c4a8",
-                border: "3px solid #5a4a3a",
-                borderRadius: "0",
-                padding: "8px 12px",
-                fontSize: "11px",
-                cursor: "pointer",
-                color: "#2d1f14",
-                fontFamily: '"Courier New", monospace',
-                fontWeight: "bold",
-                boxShadow: "2px 2px 0px #3a2a1a",
-                imageRendering: "pixelated",
-                transition: "all 0.1s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translate(-1px, -1px)";
-                e.currentTarget.style.boxShadow = "3px 3px 0px #3a2a1a";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translate(0, 0)";
-                e.currentTarget.style.boxShadow = "2px 2px 0px #3a2a1a";
-              }}
-            >
-              Back
-            </button>
-          )}
-
-          {skipProps && (
-            <button
-              {...skipProps}
-              style={{
-                backgroundColor: "#d4c4a8",
-                border: "3px solid #5a4a3a",
-                borderRadius: "0",
-                padding: "8px 12px",
-                fontSize: "11px",
-                cursor: "pointer",
-                color: "#2d1f14",
-                fontFamily: '"Courier New", monospace',
-                fontWeight: "bold",
-                boxShadow: "2px 2px 0px #3a2a1a",
-                imageRendering: "pixelated",
-                transition: "all 0.1s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translate(-1px, -1px)";
-                e.currentTarget.style.boxShadow = "3px 3px 0px #3a2a1a";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translate(0, 0)";
-                e.currentTarget.style.boxShadow = "2px 2px 0px #3a2a1a";
-              }}
-            >
-              Skip
-            </button>
-          )}
-
-          <button
-            {...primaryProps}
-            style={{
-              backgroundColor: "#6b9e3e",
-              border: "3px solid #4a6b2a",
-              borderRadius: "0",
-              padding: "8px 12px",
-              fontSize: "11px",
-              cursor: "pointer",
-              color: "#ffffff",
-              fontFamily: '"Courier New", monospace',
-              fontWeight: "bold",
-              boxShadow: "2px 2px 0px #2a3a1a",
-              imageRendering: "pixelated",
-              transition: "all 0.1s ease",
-              animation: "buttonFloat 2s ease-in-out infinite",
-              textShadow: "1px 1px 0px rgba(0,0,0,0.5)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translate(-1px, -1px)";
-              e.currentTarget.style.boxShadow = "3px 3px 0px #2a3a1a";
-              e.currentTarget.style.animation = "none";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translate(0, 0)";
-              e.currentTarget.style.boxShadow = "2px 2px 0px #2a3a1a";
-              e.currentTarget.style.animation =
-                "buttonFloat 2s ease-in-out infinite";
-            }}
-          >
-            Next
-          </button>
-        </div>
+    return `
+      <div>${text}</div>
+      <div class="pixel-character-container" style="${style}">
+        <img src="${imageSrc}" class="pixel-character-img" alt="Guide Character" />
       </div>
-
-      {/* Character */}
-      <div
-        style={{
-          width: "48px",
-          height: "64px",
-          imageRendering: "pixelated",
-          ...getCharacterStyle(step?.index || 0),
-          transition: "all 0.5s ease-in-out",
-          flexShrink: 0,
-          alignSelf: "flex-end",
-        }}
-      >
-        <NextImage
-          src={getCharacterImage()}
-          alt="Guide Character"
-          width={48}
-          height={64}
-          style={{
-            imageRendering: "pixelated",
-            filter: "drop-shadow(2px 2px 0px #000)",
-          }}
-        />
-      </div>
-    </div>
-  );
-};
-
-export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
-  const { desktopIcons } = useWindowManager();
-  const [steps, setSteps] = useState<Step[]>([]);
+    `;
+  };
 
   useEffect(() => {
-    // Define all the tour steps in a casual, conversational style
-    const iconTourSteps: Step[] = [
-      {
-        target: "body",
-        content:
-          "Hey there 👋 I’m Muneeb. Looks a bit unusual, right? Don’t worry!! it’s my portfolio site. Let me give you a quick tour!",
-        placement: "center",
-        disableBeacon: true,
-      },
-    ];
+    if (!run) {
+      if (tourRef.current && tourRef.current.isActive()) {
+        tourRef.current.cancel();
+      }
+      return;
+    }
 
-    desktopIcons.forEach((icon) => {
+    // If tour is already active, don't restart
+    if (tourRef.current && tourRef.current.isActive()) {
+      return;
+    }
+
+    const tour = new Shepherd.Tour({
+      defaultStepOptions: {
+        scrollTo: true,
+        cancelIcon: {
+          enabled: false,
+        },
+        classes: "pixel-theme",
+      },
+      useModalOverlay: true,
+    });
+
+    const tourSteps: any[] = [];
+
+    // Step 1: Intro
+    const introText =
+      "Hey there 👋 I’m Muneeb. Looks a bit unusual, right? Don’t worry!! it’s my portfolio site. Let me give you a quick tour!";
+    tourSteps.push({
+      id: "intro",
+      text: generateStepContent(introText, 0),
+      buttons: [
+        {
+          classes: "shepherd-button",
+          text: "Skip",
+          action: tour.cancel,
+        },
+        {
+          classes: "shepherd-button shepherd-button-primary",
+          text: "Next",
+          action: tour.next,
+        },
+      ],
+      classes: "pixel-theme",
+    });
+
+    // Steps for icons
+    desktopIcons.forEach((icon, index) => {
       const selector = `[data-icon-id="${icon.id}"]`;
       let content = "";
 
@@ -451,76 +147,109 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
           content =
             "🎮 And here’s the fun part,games and interactive demos. Because coding doesn’t always have to be serious.";
           break;
+        case "notepad":
+          content =
+            "📝 Need to jot down something? Notepad is here. Simple, classic, and gets the job done.";
+          break;
+        case "calculator":
+          content =
+            "🧮 A fully functional Calculator. Math is hard, so let this handle the numbers for you.";
+          break;
+        case "music":
+          content =
+            "🎵 Tunes for the vibe. Play some music while you browse around.";
+          break;
+        case "minesweeper":
+          content =
+            "💣 Watch your step! The classic Minesweeper game. Try not to blow up!";
+          break;
+        case "snake":
+          content =
+            "🐍 Hiss... The legendary Snake game. Eat apples, get long, don't hit the wall!";
+          break;
         default:
           content = `✨ This is the ${icon.title}. Each icon has its own little purpose, so click around and explore.`;
       }
 
-      iconTourSteps.push({
-        target: selector,
-        content,
-        placement: "auto",
+      tourSteps.push({
+        id: icon.id,
+        attachTo: { element: selector, on: "auto" },
+        text: generateStepContent(content, index + 1),
+        buttons: [
+          {
+            classes: "shepherd-button",
+            text: "Back",
+            action: tour.back,
+          },
+          {
+            classes: "shepherd-button",
+            text: "Skip",
+            action: tour.cancel,
+          },
+          {
+            classes: "shepherd-button shepherd-button-primary",
+            text: "Next",
+            action: tour.next,
+          },
+        ],
+        classes: "pixel-theme",
       });
     });
 
-    // Final tour step
-    iconTourSteps.push({
-      target: "body",
-      content:
-        '🎉 Quest complete, brave explorer! This "MuneebOS 7"  is really my portfolio in disguise. Click icons, drag windows, and uncover my projects. And if you find treasure worth sharing, connect with me on LinkedIn or check my resume. The site is still under heavy development and many interesting things will be added in coming time. May your exploring quests be bug-free! ⚔️✨',
-      placement: "center",
-      disableBeacon: true,
+    // Final Step
+    const finalText =
+      '🎉 Quest complete, brave explorer! This "MuneebOS 7"  is really my portfolio in disguise. Click icons, drag windows, and uncover my projects. And if you find treasure worth sharing, connect with me on LinkedIn or check my resume. The site is still under heavy development and many interesting things will be added in coming time. May your exploring quests be bug-free! ⚔️✨';
+
+    tourSteps.push({
+      id: "final",
+      text: generateStepContent(finalText, desktopIcons.length + 1),
+      buttons: [
+        {
+          classes: "shepherd-button",
+          text: "Back",
+          action: tour.back,
+        },
+        {
+          classes: "shepherd-button shepherd-button-primary",
+          text: "Finish",
+          action: tour.complete,
+        },
+      ],
+      classes: "pixel-theme",
     });
 
-    setSteps(iconTourSteps);
-  }, [desktopIcons]);
+    tour.addSteps(tourSteps);
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
+    // Event listeners
+    tour.on("complete", onComplete);
+    tour.on("cancel", onSkip);
 
-    if (status === STATUS.FINISHED) {
-      onComplete();
-    } else if (status === STATUS.SKIPPED) {
-      onSkip();
-    }
-  };
+    // Small delay to ensure DOM is ready and animations have settled
+    const startTimer = setTimeout(() => {
+      console.log("Attempting to start tour...", {
+        refExists: !!tourRef.current,
+        isActive: tourRef.current?.isActive(),
+      });
+      if (tourRef.current && !tourRef.current.isActive()) {
+        try {
+          tour.start();
+          console.log("Tour started successfully");
+        } catch (error) {
+          console.error("Failed to start tour:", error);
+        }
+      }
+    }, 1000);
 
-  return (
-    <Joyride
-      callback={handleJoyrideCallback}
-      continuous
-      hideCloseButton
-      run={run}
-      scrollToFirstStep
-      showProgress={false}
-      showSkipButton={true}
-      steps={steps}
-      tooltipComponent={CustomTooltip}
-      styles={{
-        options: {
-          overlayColor: "rgba(0, 0, 0, 0.4)",
-          zIndex: 10000,
-        },
-        overlay: {
-          backgroundColor: "rgba(0, 0, 0, 0.4)",
-          transition: "opacity 0.3s ease-in-out",
-        },
-        tooltip: {
-          padding: 0,
-          backgroundColor: "transparent",
-          border: "none",
-          borderRadius: 0,
-          boxShadow: "none",
-          transition: "all 0.3s ease-in-out",
-        },
-        tooltipContainer: {
-          padding: 0,
-          backgroundColor: "transparent",
-          transition: "all 0.3s ease-in-out",
-        },
-        spotlight: {
-          transition: "all 0.3s ease-in-out",
-        },
-      }}
-    />
-  );
+    tourRef.current = tour;
+
+    return () => {
+      clearTimeout(startTimer);
+      if (tourRef.current) {
+        tourRef.current.cancel();
+        tourRef.current = null;
+      }
+    };
+  }, [run, desktopIcons, onComplete, onSkip]);
+
+  return null;
 }
