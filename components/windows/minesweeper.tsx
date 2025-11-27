@@ -1,319 +1,296 @@
 "use client";
 
-import type React from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Smile, Frown, Meh, RefreshCw } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import { RotateCcw, Trophy } from "lucide-react";
-
-type Cell = {
+interface Cell {
   isMine: boolean;
   isRevealed: boolean;
   isFlagged: boolean;
   neighborMines: number;
-};
+}
 
-type Difficulty = "easy" | "medium" | "hard";
+type GameStatus = "playing" | "won" | "lost";
+type Difficulty = "beginner" | "intermediate" | "expert";
 
 const DIFFICULTIES = {
-  easy: { rows: 9, cols: 9, mines: 10 },
-  medium: { rows: 16, cols: 16, mines: 40 },
-  hard: { rows: 16, cols: 30, mines: 99 },
+  beginner: { rows: 9, cols: 9, mines: 10 },
+  intermediate: { rows: 16, cols: 16, mines: 40 },
+  expert: { rows: 16, cols: 30, mines: 99 },
 };
 
 export function Minesweeper() {
-  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
-  const [board, setBoard] = useState<Cell[][]>([]);
-  const [gameStatus, setGameStatus] = useState<"playing" | "won" | "lost">(
-    "playing"
-  );
-  const [flagsLeft, setFlagsLeft] = useState(DIFFICULTIES[difficulty].mines);
+  const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
+  const [grid, setGrid] = useState<Cell[][]>([]);
+  const [gameStatus, setGameStatus] = useState<GameStatus>("playing");
+  const [mineCount, setMineCount] = useState(0);
   const [timer, setTimer] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [highScores, setHighScores] = useState<Record<Difficulty, number>>({
-    easy: 999,
-    medium: 999,
-    hard: 999,
-  });
+  const [isMouseDown, setIsMouseDown] = useState(false);
 
-  useEffect(() => {
-    initializeBoard();
-  }, [difficulty]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isTimerRunning && gameStatus === "playing") {
-      interval = setInterval(() => setTimer((t) => t + 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning, gameStatus]);
-
-  const initializeBoard = () => {
+  const initializeGame = useCallback(() => {
     const { rows, cols, mines } = DIFFICULTIES[difficulty];
-    const newBoard: Cell[][] = Array(rows)
+    const newGrid: Cell[][] = Array(rows)
       .fill(null)
       .map(() =>
-        Array(cols)
-          .fill(null)
-          .map(() => ({
-            isMine: false,
-            isRevealed: false,
-            isFlagged: false,
-            neighborMines: 0,
-          }))
+        Array(cols).fill({
+          isMine: false,
+          isRevealed: false,
+          isFlagged: false,
+          neighborMines: 0,
+        })
       );
 
-    // Place mines randomly
+    // Place mines
     let minesPlaced = 0;
     while (minesPlaced < mines) {
-      const row = Math.floor(Math.random() * rows);
-      const col = Math.floor(Math.random() * cols);
-      if (!newBoard[row][col].isMine) {
-        newBoard[row][col].isMine = true;
+      const r = Math.floor(Math.random() * rows);
+      const c = Math.floor(Math.random() * cols);
+      if (!newGrid[r][c].isMine) {
+        newGrid[r][c] = { ...newGrid[r][c], isMine: true };
         minesPlaced++;
       }
     }
 
     // Calculate neighbor mines
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        if (!newBoard[row][col].isMine) {
-          let count = 0;
-          for (let dr = -1; dr <= 1; dr++) {
-            for (let dc = -1; dc <= 1; dc++) {
-              const newRow = row + dr;
-              const newCol = col + dc;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (!newGrid[r][c].isMine) {
+          let neighbors = 0;
+          for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
               if (
-                newRow >= 0 &&
-                newRow < rows &&
-                newCol >= 0 &&
-                newCol < cols &&
-                newBoard[newRow][newCol].isMine
+                r + i >= 0 &&
+                r + i < rows &&
+                c + j >= 0 &&
+                c + j < cols &&
+                newGrid[r + i][c + j].isMine
               ) {
-                count++;
+                neighbors++;
               }
             }
           }
-          newBoard[row][col].neighborMines = count;
+          newGrid[r][c] = { ...newGrid[r][c], neighborMines: neighbors };
         }
       }
     }
 
-    setBoard(newBoard);
+    setGrid(newGrid);
     setGameStatus("playing");
-    setFlagsLeft(mines);
+    setMineCount(mines);
     setTimer(0);
-    setIsTimerRunning(false);
-  };
+  }, [difficulty]);
 
-  const revealCell = (row: number, col: number) => {
+  useEffect(() => {
+    initializeGame();
+  }, [initializeGame]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (gameStatus === "playing") {
+      interval = setInterval(() => {
+        setTimer((t) => Math.min(t + 1, 999));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [gameStatus]);
+
+  const revealCell = (r: number, c: number) => {
     if (
       gameStatus !== "playing" ||
-      board[row][col].isRevealed ||
-      board[row][col].isFlagged
+      grid[r][c].isRevealed ||
+      grid[r][c].isFlagged
     )
       return;
 
-    if (!isTimerRunning) setIsTimerRunning(true);
+    const newGrid = [...grid.map((row) => [...row])];
 
-    const newBoard = [...board];
-    newBoard[row][col].isRevealed = true;
-
-    if (newBoard[row][col].isMine) {
-      setGameStatus("lost");
-      setIsTimerRunning(false);
+    if (newGrid[r][c].isMine) {
+      // Game Over
+      newGrid[r][c].isRevealed = true;
       // Reveal all mines
-      newBoard.forEach((row) =>
-        row.forEach((cell) => cell.isMine && (cell.isRevealed = true))
-      );
-    } else if (newBoard[row][col].neighborMines === 0) {
-      // Flood fill for empty cells
-      const queue: [number, number][] = [[row, col]];
-      while (queue.length > 0) {
-        const [r, c] = queue.shift()!;
-        for (let dr = -1; dr <= 1; dr++) {
-          for (let dc = -1; dc <= 1; dc++) {
-            const newRow = r + dr;
-            const newCol = c + dc;
-            if (
-              newRow >= 0 &&
-              newRow < board.length &&
-              newCol >= 0 &&
-              newCol < board[0].length &&
-              !newBoard[newRow][newCol].isRevealed &&
-              !newBoard[newRow][newCol].isFlagged
-            ) {
-              newBoard[newRow][newCol].isRevealed = true;
-              if (
-                newBoard[newRow][newCol].neighborMines === 0 &&
-                !newBoard[newRow][newCol].isMine
-              ) {
-                queue.push([newRow, newCol]);
-              }
+      newGrid.forEach((row, i) => {
+        row.forEach((cell, j) => {
+          if (cell.isMine) newGrid[i][j].isRevealed = true;
+        });
+      });
+      setGrid(newGrid);
+      setGameStatus("lost");
+    } else {
+      // Reveal cell and flood fill if empty
+      const reveal = (row: number, col: number) => {
+        if (
+          row < 0 ||
+          row >= newGrid.length ||
+          col < 0 ||
+          col >= newGrid[0].length ||
+          newGrid[row][col].isRevealed ||
+          newGrid[row][col].isFlagged
+        )
+          return;
+
+        newGrid[row][col].isRevealed = true;
+
+        if (newGrid[row][col].neighborMines === 0) {
+          for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+              reveal(row + i, col + j);
             }
           }
         }
-      }
-    }
+      };
 
-    setBoard(newBoard);
+      reveal(r, c);
+      setGrid(newGrid);
 
-    // Check win condition
-    const allNonMinesRevealed = newBoard.every((row) =>
-      row.every((cell) => cell.isMine || cell.isRevealed)
-    );
-    if (allNonMinesRevealed) {
-      setGameStatus("won");
-      setIsTimerRunning(false);
-      if (timer < highScores[difficulty]) {
-        setHighScores((prev) => ({ ...prev, [difficulty]: timer }));
+      // Check win condition
+      const unrevealedSafeCells = newGrid
+        .flat()
+        .filter((cell) => !cell.isMine && !cell.isRevealed).length;
+      if (unrevealedSafeCells === 0) {
+        setGameStatus("won");
+        setMineCount(0); // Flag all mines visually if we wanted, but just setting count to 0 is fine
       }
     }
   };
 
-  const toggleFlag = (row: number, col: number, e: React.MouseEvent) => {
+  const toggleFlag = (e: React.MouseEvent, r: number, c: number) => {
     e.preventDefault();
-    if (gameStatus !== "playing" || board[row][col].isRevealed) return;
+    if (gameStatus !== "playing" || grid[r][c].isRevealed) return;
 
-    const newBoard = [...board];
-    newBoard[row][col].isFlagged = !newBoard[row][col].isFlagged;
-    setBoard(newBoard);
-    setFlagsLeft((prev) => prev + (newBoard[row][col].isFlagged ? -1 : 1));
+    const newGrid = [...grid.map((row) => [...row])];
+    newGrid[r][c].isFlagged = !newGrid[r][c].isFlagged;
+    setGrid(newGrid);
+    setMineCount((prev) => (newGrid[r][c].isFlagged ? prev - 1 : prev + 1));
   };
 
-  const getCellColor = (cell: Cell) => {
-    if (!cell.isRevealed) return "bg-gray-300 hover:bg-gray-200";
-    if (cell.isMine) return "bg-red-500";
-    return "bg-gray-100";
-  };
+  const getCellContent = (cell: Cell) => {
+    if (cell.isFlagged) return <span className="text-red-600 text-lg">🚩</span>;
+    if (!cell.isRevealed) return null;
+    if (cell.isMine) return <span className="text-black text-lg">💣</span>;
+    if (cell.neighborMines === 0) return null;
 
-  const getNumberColor = (num: number) => {
     const colors = [
       "",
       "text-blue-600",
       "text-green-600",
       "text-red-600",
-      "text-purple-600",
-      "text-orange-600",
+      "text-blue-900",
+      "text-red-900",
       "text-cyan-600",
-      "text-pink-600",
-      "text-gray-800",
+      "text-black",
+      "text-gray-600",
     ];
-    return colors[num] || "text-gray-800";
+    return (
+      <span className={`font-bold ${colors[cell.neighborMines]}`}>
+        {cell.neighborMines}
+      </span>
+    );
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Development Notice */}
-      <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border-b border-amber-200 px-4 py-2">
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-amber-600">⚠️</span>
-          <span className="text-amber-700 font-medium">Under Development:</span>
-          <span className="text-amber-700">
-            This Minesweeper implementation is an early portfolio build. Core
-            logic works, but enhanced animations, accessibility tweaks, and
-            persistent high scores are planned.
-          </span>
+    <div className="flex flex-col h-full bg-[#C0C0C0] p-1 select-none font-sans">
+      {/* Menu Bar */}
+      <div className="flex bg-[#ECE9D8] border-b border-white px-1 text-xs mb-1">
+        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
+          Game
+        </div>
+        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
+          Help
         </div>
       </div>
 
-      {/* Game Header */}
-      <div className="border-b border-gray-300 bg-gradient-to-b from-white to-gray-50 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="px-3 py-1 bg-black text-red-500 font-mono text-lg font-bold rounded">
-              {String(flagsLeft).padStart(3, "0")}
-            </div>
-            <button
-              onClick={initializeBoard}
-              className="w-10 h-10 flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 rounded-full transition-colors"
-              aria-label="New Game"
-            >
-              {gameStatus === "lost"
-                ? "😵"
-                : gameStatus === "won"
-                ? "😎"
-                : "🙂"}
-            </button>
-            <div className="px-3 py-1 bg-black text-red-500 font-mono text-lg font-bold rounded">
-              {String(timer).padStart(3, "0")}
-            </div>
+      {/* Game Container */}
+      <div className="border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] p-2 bg-[#C0C0C0] flex flex-col gap-2">
+        {/* Header (Score & Face) */}
+        <div className="border-l-2 border-t-2 border-l-[#808080] border-t-[#808080] border-r-2 border-b-2 border-r-white border-b-white p-2 flex justify-between items-center bg-[#C0C0C0]">
+          {/* Mine Counter */}
+          <div className="bg-black text-red-600 font-mono text-2xl px-1 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-16 text-center leading-none py-0.5">
+            {Math.max(-99, Math.min(999, mineCount))
+              .toString()
+              .padStart(3, "0")}
           </div>
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-600" />
-            <span className="text-sm font-medium text-gray-700">
-              Best: {highScores[difficulty]}s
-            </span>
-          </div>
-        </div>
 
-        <div className="flex gap-2">
-          {(["easy", "medium", "hard"] as Difficulty[]).map((diff) => (
-            <button
-              key={diff}
-              onClick={() => setDifficulty(diff)}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                difficulty === diff
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {diff.charAt(0).toUpperCase() + diff.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Game Board */}
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-50">
-        <div className="inline-block border-4 border-gray-400 rounded">
-          {board.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex">
-              {row.map((cell, colIndex) => (
-                <button
-                  key={colIndex}
-                  className={`w-8 h-8 border border-gray-400 flex items-center justify-center text-sm font-bold transition-colors ${getCellColor(
-                    cell
-                  )}`}
-                  onClick={() => revealCell(rowIndex, colIndex)}
-                  onContextMenu={(e) => toggleFlag(rowIndex, colIndex, e)}
-                >
-                  {cell.isFlagged ? (
-                    "🚩"
-                  ) : cell.isRevealed ? (
-                    cell.isMine ? (
-                      "💣"
-                    ) : cell.neighborMines > 0 ? (
-                      <span className={getNumberColor(cell.neighborMines)}>
-                        {cell.neighborMines}
-                      </span>
-                    ) : (
-                      ""
-                    )
-                  ) : (
-                    ""
-                  )}
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Status Message */}
-      {gameStatus !== "playing" && (
-        <div className="border-t border-gray-300 bg-gradient-to-b from-gray-50 to-white p-4 text-center">
-          <p className="text-lg font-semibold text-gray-900">
-            {gameStatus === "won" ? "🎉 You Won!" : "💥 Game Over!"}
-          </p>
+          {/* Face Button */}
           <button
-            onClick={initializeBoard}
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+            onClick={initializeGame}
+            onMouseDown={() => setIsMouseDown(true)}
+            onMouseUp={() => setIsMouseDown(false)}
+            onMouseLeave={() => setIsMouseDown(false)}
+            className="w-8 h-8 border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] active:border-l-[#808080] active:border-t-[#808080] active:border-r-white active:border-b-white bg-[#C0C0C0] flex items-center justify-center active:translate-y-[1px] active:translate-x-[1px]"
           >
-            <RotateCcw className="w-4 h-4" />
-            Play Again
+            {gameStatus === "won" ? (
+              <div className="text-yellow-400 drop-shadow-sm text-xl">😎</div>
+            ) : gameStatus === "lost" ? (
+              <div className="text-yellow-400 drop-shadow-sm text-xl">😵</div>
+            ) : isMouseDown ? (
+              <div className="text-yellow-400 drop-shadow-sm text-xl">😮</div>
+            ) : (
+              <div className="text-yellow-400 drop-shadow-sm text-xl">🙂</div>
+            )}
           </button>
+
+          {/* Timer */}
+          <div className="bg-black text-red-600 font-mono text-2xl px-1 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-16 text-center leading-none py-0.5">
+            {timer.toString().padStart(3, "0")}
+          </div>
         </div>
-      )}
+
+        {/* Grid */}
+        <div
+          className="border-l-4 border-t-4 border-l-[#808080] border-t-[#808080] border-r-4 border-b-4 border-r-white border-b-white bg-[#C0C0C0] mx-auto"
+          onMouseDown={() => setIsMouseDown(true)}
+          onMouseUp={() => setIsMouseDown(false)}
+          onMouseLeave={() => setIsMouseDown(false)}
+        >
+          <div
+            className="grid gap-0"
+            style={{
+              gridTemplateColumns: `repeat(${DIFFICULTIES[difficulty].cols}, 20px)`,
+            }}
+          >
+            {grid.map((row, r) =>
+              row.map((cell, c) => (
+                <div
+                  key={`${r}-${c}`}
+                  onClick={() => revealCell(r, c)}
+                  onContextMenu={(e) => toggleFlag(e, r, c)}
+                  className={`w-5 h-5 flex items-center justify-center text-sm font-bold cursor-default
+                    ${
+                      cell.isRevealed
+                        ? "border-[0.5px] border-[#808080] bg-[#C0C0C0]" // Revealed
+                        : "border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] bg-[#C0C0C0] hover:bg-[#D0D0D0]" // Unrevealed
+                    }
+                    ${
+                      cell.isMine && cell.isRevealed && gameStatus === "lost"
+                        ? "bg-red-500"
+                        : ""
+                    }
+                  `}
+                >
+                  {getCellContent(cell)}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Difficulty Selector (Simple footer for now) */}
+      <div className="mt-2 flex justify-center gap-2 text-xs">
+        {(Object.keys(DIFFICULTIES) as Difficulty[]).map((diff) => (
+          <button
+            key={diff}
+            onClick={() => setDifficulty(diff)}
+            className={`px-2 py-1 border border-[#808080] rounded ${
+              difficulty === diff
+                ? "bg-[#316AC5] text-white"
+                : "bg-[#ECE9D8] hover:bg-[#E0E0E0]"
+            }`}
+          >
+            {diff.charAt(0).toUpperCase() + diff.slice(1)}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

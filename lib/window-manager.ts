@@ -10,6 +10,8 @@ import gamesicon from "../public/games.png";
 import ieicon from "../public/internet_explorer.png";
 import settingsicon from "../public/settings.png";
 import feedbackicon from "../public/contact.png"; // Using contact icon for feedback
+import calcicon from "../public/calc.png";
+
 interface WindowManagerState {
   windows: WindowState[];
   nextZIndex: number;
@@ -67,19 +69,12 @@ const DEFAULT_ICONS: DesktopIcon[] = [
     position: { x: 20, y: 220 },
   },
   {
-    id: "feedback",
-    title: "Reviews & Bugs",
-    icon: feedbackicon,
-    component: "FeedbackWindow",
+    id: "recycle",
+    title: "Recycle Bin",
+    icon: recyclebinicon,
+    component: "RecycleBin",
     position: { x: 20, y: 320 },
   },
-  // {
-  //   id: "games",
-  //   title: "Games",
-  //   icon: gamesicon,
-  //   component: "ComputerExplorer",
-  //   position: { x: 20, y: 420 },
-  // },
   {
     id: "ie",
     title: "Internet Explorer",
@@ -88,18 +83,18 @@ const DEFAULT_ICONS: DesktopIcon[] = [
     position: { x: 20, y: 420 },
   },
   {
-    id: "recycle",
-    title: "Recycle Bin",
-    icon: recyclebinicon,
-    component: "RecycleBin",
-    position: { x: 20, y: 520 },
+    id: "feedback",
+    title: "Reviews & Bugs",
+    icon: feedbackicon,
+    component: "FeedbackWindow",
+    position: { x: 120, y: 20 },
   },
   {
     id: "settings",
     title: "Control Panel",
     icon: settingsicon,
     component: "SettingsWindow",
-    position: { x: 20, y: 620 },
+    position: { x: 120, y: 120 },
   },
 ];
 
@@ -115,7 +110,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   loadState: () => {
     if (typeof window === "undefined") return;
 
-    const savedState = localStorage.getItem("win7-desktop-state");
+    const savedState = localStorage.getItem("win7-desktop-state-v4");
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
@@ -144,7 +139,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       aeroEffects: state.aeroEffects,
     };
 
-    localStorage.setItem("win7-desktop-state", JSON.stringify(stateToSave));
+    localStorage.setItem("win7-desktop-state-v4", JSON.stringify(stateToSave));
   },
 
   updateIconPosition: (id, position) => {

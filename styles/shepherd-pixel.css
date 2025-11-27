@@ -1,0 +1,180 @@
+/* Shepherd Pixel Theme */
+@import "shepherd.js/dist/css/shepherd.css";
+
+/* Hide default arrow if present */
+.shepherd-arrow {
+  display: none !important;
+}
+
+/* Main Container */
+.shepherd-element.pixel-theme {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  max-width: 320px;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  z-index: 10000 !important;
+}
+
+.shepherd-element.pixel-theme.shepherd-enabled {
+  opacity: 1;
+}
+
+/* Content Wrapper (The Bubble) */
+.shepherd-element.pixel-theme .shepherd-content {
+  position: relative;
+  background-color: #f8f4e8;
+  border: 4px solid #5a4a3a;
+  border-radius: 0;
+  padding: 16px 20px;
+  color: #2d1f14;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  width: 300px;
+  box-shadow: 4px 4px 0px #3a2a1a, 8px 8px 0px rgba(0, 0, 0, 0.2);
+  image-rendering: pixelated;
+  animation: bubblePop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  overflow: visible !important; /* Allow character to hang out */
+}
+
+/* Pixel Art Corner Decorations (using pseudo-elements) */
+.shepherd-element.pixel-theme .shepherd-content::before,
+.shepherd-element.pixel-theme .shepherd-content::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #5a4a3a;
+  pointer-events: none;
+}
+
+.shepherd-element.pixel-theme .shepherd-content::before {
+  top: -4px;
+  left: -4px;
+  box-shadow: 300px 0 0 #5a4a3a; /* Right top corner */
+}
+
+.shepherd-element.pixel-theme .shepherd-content::after {
+  bottom: -4px;
+  left: -4px;
+  box-shadow: 300px 0 0 #5a4a3a; /* Right bottom corner */
+}
+
+/* Text Area */
+.shepherd-element.pixel-theme .shepherd-text {
+  padding: 0;
+  margin-bottom: 16px;
+  animation: textReveal 0.5s ease-in 0.2s both;
+  text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+  font-weight: bold;
+  color: #2d1f14;
+  position: static; /* Allow children to position relative to content */
+}
+
+/* Footer (Buttons) */
+.shepherd-element.pixel-theme .shepherd-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  animation: textReveal 0.5s ease-in 0.4s both;
+  margin-top: 0;
+}
+
+/* Buttons */
+.shepherd-element.pixel-theme .shepherd-button {
+  background-color: #d4c4a8;
+  border: 3px solid #5a4a3a;
+  border-radius: 0;
+  padding: 8px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #2d1f14;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  box-shadow: 2px 2px 0px #3a2a1a;
+  image-rendering: pixelated;
+  transition: all 0.1s ease;
+  margin: 0;
+}
+
+.shepherd-element.pixel-theme .shepherd-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #3a2a1a;
+  background-color: #d4c4a8;
+}
+
+/* Primary Button (Next/Finish) */
+.shepherd-element.pixel-theme .shepherd-button-primary {
+  background-color: #6b9e3e;
+  border: 3px solid #4a6b2a;
+  color: #ffffff;
+  box-shadow: 2px 2px 0px #2a3a1a;
+  animation: buttonFloat 2s ease-in-out infinite;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+.shepherd-element.pixel-theme .shepherd-button-primary:hover {
+  box-shadow: 3px 3px 0px #2a3a1a;
+  animation: none;
+  background-color: #6b9e3e;
+}
+
+/* Character Container (injected into text) */
+.pixel-character-container {
+  position: absolute;
+  bottom: -64px;
+  right: 0;
+  width: 48px;
+  height: 64px;
+  image-rendering: pixelated;
+  transition: all 0.5s ease-in-out;
+  z-index: 10001;
+  pointer-events: none;
+}
+
+.pixel-character-img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 2px 0px #000);
+}
+
+/* Animations */
+@keyframes bubblePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes textReveal {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes buttonFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}

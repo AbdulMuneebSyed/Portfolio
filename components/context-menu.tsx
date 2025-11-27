@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 
 interface ContextMenuItem {
   label?: string;
@@ -42,8 +43,12 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   }, [onClose]);
 
   return (
-    <div
+    <motion.div
       ref={menuRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+      transition={{ duration: 0.1 }}
       className="context-menu fixed z-[10000] min-w-[200px] bg-[#f0f0f0] border border-[#999] rounded shadow-lg py-1"
       style={{ left: x, top: y }}
     >
@@ -73,6 +78,6 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
           </button>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

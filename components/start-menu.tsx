@@ -115,21 +115,29 @@ export function StartMenu({ onClose }: StartMenuProps) {
   ];
 
   return (
-    <AnimatePresence>
+    <>
       <div className="fixed inset-0 z-[9998]" onClick={onClose} />
       <motion.div
         className="fixed bottom-10 left-1 w-[280px] sm:w-[350px] md:w-[420px] h-[400px] sm:h-[500px] md:h-[580px] bg-white rounded-t-lg overflow-visible z-[9999] flex shadow-2xl border bg-gradient-to-b from-[#4F8CB8] to-[#326EA0] p-2 sm:p-3 md:p-4 pl-1 pb-1 border-gray-400"
         initial={{
-          y: 400,
-          opacity: 1,
+          y: 20,
+          opacity: 0,
+          scale: 0.95,
         }}
         animate={{
           y: 0,
           opacity: 1,
+          scale: 1,
+        }}
+        exit={{
+          y: 20,
+          opacity: 0,
+          scale: 0.95,
+          transition: { duration: 0.1 },
         }}
         transition={{
-          ease: "easeInOut",
-          duration: 0.3,
+          ease: "easeOut",
+          duration: 0.2,
         }}
       >
         <div className="flex-1 rounded-lg bg-white p-0 flex flex-col">
@@ -309,6 +317,6 @@ export function StartMenu({ onClose }: StartMenuProps) {
           </div>
         </div>
       </motion.div>
-    </AnimatePresence>
+    </>
   );
 }
