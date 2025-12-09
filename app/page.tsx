@@ -29,8 +29,9 @@ export default function Home() {
           <Desktop />
         </main>
       ) : (
-        <main className="w-screen md:hidden h-screen overflow-hidden">
-          <MuneebOS />
+        <main className="w-screen md:hidden h-screen overflow-hidden flex items-center justify-center bg-black text-white p-4 text-center">
+          {/* <MuneebOS /> */}
+          MOBILE VIEW IS NOT SUPPORTED YET. PLEASE VISIT ON A DESKTOP DEVICE.
         </main>
       )}
     </>

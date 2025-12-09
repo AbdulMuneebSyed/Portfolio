@@ -54,7 +54,7 @@ const bookmarks: Bookmark[] = [
   },
   {
     name: "E-Cell MJCET",
-    url: "https://www.ecellmjcet.com",
+    url: "https://www.ecell-mjcet.com",
     description: "Entrepreneurship Cell of MJCET",
   },
 ];

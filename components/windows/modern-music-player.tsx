@@ -46,16 +46,6 @@ const songs = [
     year: "2023",
     genre: "Hip Hop",
   },
-  {
-    fileName: "memories.mp3",
-    filePath: "/memories.mp3", // Placeholder
-    title: "Windows 7 Memories",
-    artist: "Microsoft",
-    album: "OS Sounds",
-    duration: "2:30",
-    year: "2009",
-    genre: "Soundtrack",
-  },
 ];
 
 export function PixelMusicPlayer({ fileName, filePath }: MusicPlayerProps) {
