@@ -57,6 +57,24 @@ const bookmarks: Bookmark[] = [
     url: "https://www.ecell-mjcet.com",
     description: "Entrepreneurship Cell of MJCET",
   },
+  {
+    name: "GetMarks Recap",
+    url: "https://recap.getmarks.app",
+    description:
+      "Recap companion for GetMarks that helps students quickly revise key concepts and past questions.",
+  },
+  {
+    name: "Quizrr",
+    url: "https://app.quizrr.in",
+    description:
+      "Interactive quiz platform for engaging assessments and practice across different subjects.",
+  },
+  {
+    name: "Airesumate",
+    url: "https://airesumate.com",
+    description:
+      "AI-powered resume and profile enhancement tool to help professionals stand out.",
+  },
 ];
 
 export function InternetExplorer() {
@@ -72,6 +90,12 @@ export function InternetExplorer() {
   const [urlInput, setUrlInput] = useState("about:bookmarks");
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
+
+  const openInNewTab = (url: string) => {
+    if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
 
   const createNewTab = (
     url: string = "about:bookmarks",
@@ -119,6 +143,23 @@ export function InternetExplorer() {
       title:
         url === "about:bookmarks" ? "Internet Explorer" : new URL(url).hostname,
     });
+
+    {
+      activeTab.url !== "about:bookmarks" && (
+        <div className="border-b border-[#E0E0E0] bg-[#FFFBEA] px-4 py-2 flex items-center justify-between text-xs text-[#664D03]">
+          <span>
+            If this website refuses to connect inside Internet Explorer, you can
+            open it in a normal browser tab instead.
+          </span>
+          <button
+            onClick={() => openInNewTab(activeTab.url)}
+            className="ml-4 px-3 py-1 bg-[#FFCC4D] hover:bg-[#FFB81C] text-[#3A2A00] border border-[#E0A800] rounded font-medium"
+          >
+            Open in other tab instead
+          </button>
+        </div>
+      );
+    }
     setUrlInput(url);
   };
 
@@ -404,6 +445,21 @@ export function InternetExplorer() {
                   <div className="w-3 h-3 border-2 border-[#0066CC] border-t-transparent rounded-full animate-spin"></div>
                   <span>Loading {activeTab.url}...</span>
                 </div>
+              </div>
+            )}
+
+            {activeTab.url !== "about:bookmarks" && (
+              <div className="border-b border-[#E0E0E0] bg-[#FFFBEA] px-4 py-2 flex items-center justify-between text-xs text-[#664D03]">
+                <span>
+                  If this website refuses to connect inside Internet Explorer,
+                  you can open it in a normal browser tab instead.
+                </span>
+                <button
+                  onClick={() => openInNewTab(activeTab.url)}
+                  className="ml-4 px-3 py-1 bg-[#FFCC4D] hover:bg-[#FFB81C] text-[#3A2A00] border border-[#E0A800] rounded font-medium"
+                >
+                  Open in other tab instead
+                </button>
               </div>
             )}
 

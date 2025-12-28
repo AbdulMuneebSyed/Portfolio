@@ -320,7 +320,7 @@ export function Desktop() {
   }
 
   return (
-    <>
+    <div className="!h-dvh !w-dvw overflow-hidden">
       <Windows7Tour
         run={isTourRunning}
         onComplete={handleTourComplete}
@@ -407,6 +407,6 @@ export function Desktop() {
 
       {/* Taskbar */}
       <Taskbar />
-    </>
+    </div>
   );
 }

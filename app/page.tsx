@@ -23,17 +23,17 @@ export default function Home() {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, [isMobile]);
   return (
-    <>
+    <div className="!h-dvh !w-dvw overflow-clip">
       {!isMobile ? (
-        <main className="w-screen hidden md:block h-screen overflow-hidden">
+        <main className="!h-dvh !w-dvw  hidden md:block  overflow-clip">
           <Desktop />
         </main>
       ) : (
-        <main className="w-screen md:hidden h-screen overflow-hidden flex items-center justify-center bg-black text-white p-4 text-center">
+        <main className="!h-dvh !w-dvw md:hidden overflow-hidden flex items-center justify-center bg-black text-white p-4 text-center">
           {/* <MuneebOS /> */}
           MOBILE VIEW IS NOT SUPPORTED YET. PLEASE VISIT ON A DESKTOP DEVICE.
         </main>
       )}
-    </>
+    </div>
   );
 }

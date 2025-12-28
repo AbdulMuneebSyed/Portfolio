@@ -74,6 +74,24 @@
   position: static; /* Allow children to position relative to content */
 }
 
+/* Step layout: image left, text right (non-final steps) */
+.pixel-step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.pixel-step-row .pixel-character-container {
+  position: static;
+  width: 48px;
+  height: 64px;
+  flex-shrink: 0;
+}
+
+.pixel-step-text {
+  flex: 1;
+}
+
 /* Footer (Buttons) */
 .shepherd-element.pixel-theme .shepherd-footer {
   display: flex;
@@ -142,6 +160,7 @@
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
+  object-fit: contain;
   filter: drop-shadow(2px 2px 0px #000);
 }
 

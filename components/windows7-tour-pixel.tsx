@@ -40,24 +40,32 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
   const getCharacterStyle = (stepIndex: number) => {
     const poses = [
       "transform: scaleX(1); filter: hue-rotate(0deg);", // Default greeting
-      "transform: scaleX(-1); filter: hue-rotate(20deg);", // Looking left
-      "transform: scaleX(1) rotate(5deg); filter: hue-rotate(40deg);", // Excited
-      "transform: scaleX(-1) rotate(-3deg); filter: hue-rotate(60deg);", // Pointing
-      "transform: scaleX(1) scale(1.1); filter: hue-rotate(80deg);", // Big
-      "transform: scaleX(-1) rotate(2deg); filter: hue-rotate(100deg);", // Casual
+      "transform: scaleX(-1); filter: hue-rotate(0deg);", // Looking left
+      "transform: scaleX(1) rotate(5deg); filter: hue-rotate(0deg);", // Excited
+      "transform: scaleX(-1) rotate(-3deg); filter: hue-rotate(0deg);", // Pointing
+      "transform: scaleX(1) scale(1.1); filter: hue-rotate(0deg);", // Big
+      "transform: scaleX(-1) rotate(0deg); filter: hue-rotate(0deg);", // Casual
     ];
     return poses[stepIndex % poses.length];
   };
 
   // Generate the HTML content for a step
-  const generateStepContent = (text: string, index: number) => {
+  // "isFinal" keeps the last step with the character below the text
+  const generateStepContent = (
+    text: string,
+    index: number,
+    isFinal: boolean = false
+  ) => {
     const imageSrc = getCharacterImage(text);
     const style = getCharacterStyle(index);
 
+    // For all other steps, place the character to the left of the text
     return `
-      <div>${text}</div>
-      <div class="pixel-character-container" style="${style}">
-        <img src="${imageSrc}" class="pixel-character-img" alt="Guide Character" />
+      <div class="pixel-step-row">
+        <div class="pixel-character-container" style="${style}">
+          <img src="${imageSrc}" class="pixel-character-img" alt="Guide Character" />
+        </div>
+        <div class="pixel-step-text">${text}</div>
       </div>
     `;
   };
@@ -133,7 +141,7 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
           break;
         case "ie":
           content =
-            "🌐 Yep, Internet Explorer! Don’t worry, it’s just for the retro vibes. Inside, you can view my projects.";
+            "🌐 Yep, Internet Explorer! Don’t worry, it’s just for the retro vibes. Inside, you can see all my projects in one place.";
           break;
         case "settings":
           content =
@@ -202,7 +210,7 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
 
     tourSteps.push({
       id: "final",
-      text: generateStepContent(finalText, desktopIcons.length + 1),
+      text: generateStepContent(finalText, desktopIcons.length + 1, true),
       buttons: [
         {
           classes: "shepherd-button",
