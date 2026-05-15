@@ -30,11 +30,11 @@ interface WindowManagerState {
   setActiveWindow: (id: string) => void;
   updateWindowPosition: (
     id: string,
-    position: { x: number; y: number }
+    position: { x: number; y: number },
   ) => void;
   updateWindowSize: (
     id: string,
-    size: { width: number; height: number }
+    size: { width: number; height: number },
   ) => void;
   updateIconPosition: (id: string, position: { x: number; y: number }) => void;
   shutdown: () => void;
@@ -104,7 +104,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   activeWindowId: null,
   desktopIcons: DEFAULT_ICONS,
   isShutdown: false,
-  wallpaper: "url(https://wparena.com/wp-content/uploads/2009/09/img0.jpg)",
+  wallpaper: "url('/xp.jpg')",
   taskbarTransparency: 85,
   aeroEffects: true,
   loadState: () => {
@@ -145,7 +145,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   updateIconPosition: (id, position) => {
     set((state) => ({
       desktopIcons: state.desktopIcons.map((icon) =>
-        icon.id === id ? { ...icon, position } : icon
+        icon.id === id ? { ...icon, position } : icon,
       ),
     }));
     get().saveState();
@@ -191,7 +191,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
                   isActive: true,
                   zIndex: state.nextZIndex,
                 }
-              : { ...w, isActive: false }
+              : { ...w, isActive: false },
           ),
           nextZIndex: state.nextZIndex + 1,
           activeWindowId: window.id,
@@ -218,7 +218,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   minimizeWindow: (id) =>
     set((state) => ({
       windows: state.windows.map((w) =>
-        w.id === id ? { ...w, isMinimized: true, isActive: false } : w
+        w.id === id ? { ...w, isMinimized: true, isActive: false } : w,
       ),
       activeWindowId: state.activeWindowId === id ? null : state.activeWindowId,
     })),
@@ -226,7 +226,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   maximizeWindow: (id) =>
     set((state) => ({
       windows: state.windows.map((w) =>
-        w.id === id ? { ...w, isMaximized: !w.isMaximized } : w
+        w.id === id ? { ...w, isMaximized: !w.isMaximized } : w,
       ),
     })),
 
@@ -240,7 +240,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
               isActive: true,
               zIndex: state.nextZIndex,
             }
-          : { ...w, isActive: false }
+          : { ...w, isActive: false },
       ),
       nextZIndex: state.nextZIndex + 1,
       activeWindowId: id,
@@ -251,7 +251,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       windows: state.windows.map((w) =>
         w.id === id
           ? { ...w, isActive: true, zIndex: state.nextZIndex }
-          : { ...w, isActive: false }
+          : { ...w, isActive: false },
       ),
       nextZIndex: state.nextZIndex + 1,
       activeWindowId: id,

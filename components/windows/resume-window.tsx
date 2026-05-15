@@ -3,13 +3,13 @@
 import { Download, FileText, ExternalLink } from "lucide-react";
 
 export function ResumeWindow() {
-  const pdfUrl = "/2Syed Abdul Muneeb's SE Resume.pdf";
+  const pdfUrl = "/Syed Abdul Muneeb's SDE Resume (15).pdf";
 
   const handleDownload = () => {
     // Create a temporary link element to trigger download
     const link = document.createElement("a");
     link.href = pdfUrl;
-    link.download = "Syed Abdul Muneeb - Software Engineer Resume.pdf";
+    link.download = "Syed Abdul Muneeb - SDE Resume.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -23,11 +23,16 @@ export function ResumeWindow() {
     <div className="flex flex-col h-full bg-white">
       {/* Toolbar */}
       <div className="border-b border-gray-300 bg-gradient-to-b from-white to-gray-50 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-blue-600" />
-          <span className="font-semibold text-gray-900">
-            Syed Abdul Muneeb - Resume.pdf
-          </span>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <span className="font-semibold text-gray-900">
+              Syed Abdul Muneeb - Resume.pdf
+            </span>
+          </div>
+          <div className="text-sm text-gray-600 mt-1">
+            Added to resume: <span className="font-medium">Pulsegen</span>
+          </div>
         </div>
         <div className="flex gap-2">
           <button
