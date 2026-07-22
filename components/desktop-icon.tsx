@@ -5,6 +5,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import type { DesktopIcon } from "@/lib/types";
 import { useWindowManager } from "@/lib/window-manager";
+import { getApp } from "@/lib/app-registry";
 import Image from "next/image";
 import { DesktopIconContextMenu } from "./desktop-icon-context-menu";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,13 +32,44 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     return Math.round(value / GRID_SIZE) * GRID_SIZE;
   };
 
-  const handleOpen = () => {
-    // Special handling for LinkedIn icon to open in new tab
-    const isLinkedInIcon = icon.id === "linkedin";
+  useEffect(() => {
+    if (!isDragging) return;
 
-    if (isLinkedInIcon) {
-      // Open LinkedIn in new tab
-      window.open("https://www.linkedin.com/in/syed-abdul-muneeb/", "_blank");
+    const handleMouseMove = (event: MouseEvent) => {
+      const nextX = Math.max(0, event.clientX - dragOffset.x);
+      const nextY = Math.max(0, event.clientY - dragOffset.y);
+      updateIconPosition(icon.id, { x: nextX, y: nextY });
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      const nextX = snapToGrid(Math.max(0, event.clientX - dragOffset.x));
+      const nextY = snapToGrid(Math.max(0, event.clientY - dragOffset.y));
+      setIsDragging(false);
+      setIsSnapping(true);
+      updateIconPosition(icon.id, { x: nextX, y: nextY });
+      window.setTimeout(() => setIsSnapping(false), 180);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp, { once: true });
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [
+    dragOffset.x,
+    dragOffset.y,
+    icon.id,
+    isDragging,
+    updateIconPosition,
+  ]);
+
+  const handleOpen = () => {
+    const app = getApp(icon.id);
+
+    if (app?.externalUrl) {
+      window.open(app.externalUrl, "_blank", "noopener,noreferrer");
       return;
     }
 
@@ -63,8 +95,8 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       isMinimized: false,
       isMaximized: false,
       position: { x: 100 + Math.random() * 200, y: 50 + Math.random() * 100 },
-      size: { width: 800, height: 600 },
-      metadata,
+      size: app?.defaultSize ?? { width: 800, height: 600 },
+      metadata: app?.metadata ?? metadata,
     });
   };
 
@@ -90,6 +122,14 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     }
 
     setLastClick(now);
+    const rect = iconRef.current?.getBoundingClientRect();
+    if (rect) {
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      setIsDragging(true);
+    }
   };
 
   return (
@@ -106,11 +146,14 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
           isDragging ? "opacity-70" : ""
         } ${isSnapping ? "snapping" : ""}`}
         style={{
+          position: "absolute",
+          left: icon.position.x,
+          top: icon.position.y,
           cursor: isDragging ? "grabbing" : "pointer",
         }}
         onMouseDown={handleMouseDown}
         onContextMenu={handleRightClick}
-        onClick={(e) => {
+        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
           e.stopPropagation();
           setContextMenu(null); // Close context menu on click
         }}

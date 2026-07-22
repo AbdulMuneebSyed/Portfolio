@@ -6,10 +6,10 @@
 /* Windows 7 Aero Glass theme with authentic colors */
 :root {
   /* Windows 7 Aero Blue theme */
-  --win7-taskbar-bg: rgba(154, 154, 154, 0.419);
-  --win7-taskbar-hover: rgba(255, 255, 255, 0.1);
+  --win7-taskbar-bg: rgba(16, 36, 30, 0.5);
+  --win7-taskbar-hover: rgba(255, 255, 255, 0.18);
   --win7-start-orb: linear-gradient(to bottom, #4eb5e5, #1a7dc4);
-  --win7-window-border: rgba(255, 255, 255, 0.3);
+  --win7-window-border: rgba(207, 232, 255, 0.82);
   --win7-window-bg: rgba(255, 255, 255, 0.95);
 
   /* Windows 7 Start Menu Colors */
@@ -20,13 +20,15 @@
 
   --win7-titlebar-active: linear-gradient(
     to bottom,
-    rgba(64, 128, 197, 0.95),
-    rgba(79, 172, 253, 0.95)
+    rgba(218, 241, 255, 0.82) 0%,
+    rgba(111, 177, 231, 0.68) 45%,
+    rgba(51, 122, 186, 0.78) 46%,
+    rgba(156, 209, 244, 0.72) 100%
   );
   --win7-titlebar-inactive: linear-gradient(
     to bottom,
-    rgba(240, 240, 240, 0.95),
-    rgba(250, 250, 250, 0.95)
+    rgba(255, 255, 255, 0.76),
+    rgba(194, 215, 230, 0.5)
   );
   --win7-button-hover: rgba(255, 255, 255, 0.4);
   --win7-button-active: rgba(0, 0, 0, 0.1);
@@ -156,51 +158,116 @@
 
 /* Windows 7 Aero Glass effects */
 .aero-glass {
-  background: var(--win7-window-bg);
-  backdrop-filter: blur(20px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(164, 205, 234, 0.18) 38%, rgba(255, 255, 255, 0.14)),
+    rgba(120, 174, 214, 0.32);
+  backdrop-filter: blur(22px) saturate(1.55);
   border: 1px solid var(--win7-window-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.46),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 0 0 1px rgba(37, 89, 139, 0.38),
+    0 0 18px rgba(178, 226, 255, 0.42) inset;
 }
 
 .aero-titlebar-active {
   background: var(--win7-titlebar-active);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(48, 94, 137, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 -1px 0 rgba(0, 40, 80, 0.18) inset;
 }
 
 .aero-titlebar-inactive {
   background: var(--win7-titlebar-inactive);
-  border-bottom: 1px solid rgba(200, 200, 200, 0.5);
+  border-bottom: 1px solid rgba(139, 158, 174, 0.5);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 .aero-button {
-  transition: background 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.44) inset,
+    0 1px 2px rgba(0, 0, 0, 0.18);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.35);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
 
 .aero-button:hover {
-  background: var(--win7-button-hover);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.54), rgba(97, 169, 224, 0.36));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 0 12px rgba(117, 198, 255, 0.65);
 }
 
 .aero-button:active {
   background: var(--win7-button-active);
+  transform: translateY(1px);
 }
 
 .taskbar-glass {
-  background: var(--win7-taskbar-bg);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.08) 42%, rgba(0, 0, 0, 0.34) 43%, rgba(0, 0, 0, 0.18)),
+    var(--win7-taskbar-bg);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.18) inset;
+}
+
+.win7-start-orb {
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.55));
+}
+
+.win7-start-orb::after {
+  content: "";
+  position: absolute;
+  inset: 8px 9px 25px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), transparent);
+  pointer-events: none;
+}
+
+.win7-taskbar-item {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.05) 48%, rgba(0, 0, 0, 0.12) 50%),
+    rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+
+.win7-taskbar-item:hover,
+.win7-taskbar-item-active {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(125, 204, 255, 0.24) 48%, rgba(18, 88, 145, 0.36) 50%),
+    rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 0 14px rgba(103, 197, 255, 0.44),
+    0 0 0 1px rgba(0, 0, 0, 0.14);
 }
 
 /* Enhanced desktop icon styles with Aero glow effect */
 .desktop-icon {
   transition: all 0.2s ease;
   position: relative;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 .desktop-icon:hover {
-  background: rgba(221, 246, 251, 0.408);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3),
-    0 0 20px rgba(135, 206, 250, 0.2);
+  background:
+    linear-gradient(180deg, rgba(232, 249, 255, 0.28), rgba(89, 177, 238, 0.18)),
+    rgba(221, 246, 251, 0.22);
+  border-color: rgba(186, 230, 255, 0.65);
+  box-shadow:
+    0 0 0 1px rgba(0, 71, 128, 0.12),
+    0 0 12px rgba(255, 255, 255, 0.32),
+    0 0 22px rgba(93, 190, 255, 0.26);
   transform: translateY(-1px);
 }
 
@@ -246,6 +313,15 @@ a:hover,
 
 .desktop-icon.snapping {
   animation: snapToGrid 0.2s ease;
+}
+
+@keyframes loginProgress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
 }
 
 /* Startup animation */
@@ -589,4 +665,49 @@ a:hover,
 
 .font-shadow {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Nothing-inspired mobile OS identity */
+.muneebos-dot-text {
+  color: rgba(255, 255, 255, 0.96);
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .muneebos-dot-text {
+    background-image: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.98) 0 1.25px,
+      transparent 1.45px
+    );
+    background-size: 5px 5px;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.55));
+  }
+}
+
+.muneebos-dot-label {
+  font-family: var(--font-geist-mono), "Courier New", monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.muneebos-dot-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.18) 0 1px,
+    transparent 1.2px
+  );
+  background-size: 9px 9px;
+  mask-image: linear-gradient(to bottom, black, transparent 74%);
+  opacity: 0.65;
 }

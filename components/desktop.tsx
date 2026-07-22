@@ -27,12 +27,18 @@ import { PhotoPreview } from "./windows/photo-preview";
 import { Windows7Tour } from "./windows7-tour-pixel";
 import { MuneebOS } from "./muneebOS";
 import { Notepad } from "./windows/notepad";
+import { TerminalWindow } from "./windows/terminal-window";
+import { ProjectsExplorerPro } from "./windows/projects-explorer-pro";
+import { GitHubActivityViewer } from "./windows/github-activity-viewer";
+import { MailContactClient } from "./windows/mail-contact-client";
+import { RecycleBin } from "./windows/recycle-bin";
+import { TaskManagerWindow } from "./windows/task-manager-window";
 import { AnimatePresence } from "framer-motion";
 
 function PlaceholderWindow() {
   return (
     <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4">Recycle Bin</h2>
+      <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
       <p className="text-muted-foreground">
         This window will be implemented in the next steps.
       </p>
@@ -56,7 +62,12 @@ const windowComponents: Record<string, React.ComponentType> = {
   MusicPlayer: PixelMusicPlayer,
   PhotoPreview,
   Notepad,
-  RecycleBin: PlaceholderWindow,
+  TerminalWindow,
+  ProjectsExplorerPro,
+  GitHubActivityViewer,
+  MailContactClient,
+  RecycleBin,
+  TaskManagerWindow,
 };
 
 export function Desktop() {
@@ -205,6 +216,20 @@ export function Desktop() {
           size: { width: 900, height: 700 },
         });
       }
+
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "Escape") {
+        e.preventDefault();
+        openWindow({
+          id: "task-manager",
+          title: "Task Manager",
+          icon: "/settings.png",
+          component: "TaskManagerWindow",
+          isMinimized: false,
+          isMaximized: false,
+          position: { x: 160, y: 80 },
+          size: { width: 760, height: 500 },
+        });
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -337,11 +362,11 @@ export function Desktop() {
         onContextMenu={handleContextMenu}
         onClick={() => setContextMenu(null)}
       >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(255,255,255,0.22),transparent_32%),linear-gradient(90deg,rgba(0,0,0,0.2),transparent_22%,transparent_78%,rgba(0,0,0,0.18))]" />
         <div
-          className="w-full p-2 sm:p-3 md:p-1 flex flex-col flex-wrap content-start gap-2 sm:gap-3 md:gap-2"
+          className="relative w-full"
           style={{
             height: "calc(100vh - 48px)",
-            alignContent: "flex-start",
           }}
         >
           {desktopIcons.map((icon) => (

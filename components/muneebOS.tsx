@@ -16,8 +16,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Bluetooth,
   Moon,
+  Search,
   SignalHigh,
   Wifi,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -116,6 +118,55 @@ type MobileAppId =
   | "music";
 type HomeOverlayAppId = "gfg" | "resume" | "music";
 
+type MobileAppMeta = {
+  title: string;
+  subtitle: string;
+  icon: string;
+};
+
+const MOBILE_APP_META: Record<MobileAppId, MobileAppMeta> = {
+  chrome: {
+    title: "Chrome",
+    subtitle: "Projects and demos",
+    icon: "/chrome.png",
+  },
+  contact: {
+    title: "Contacts",
+    subtitle: "Reach out",
+    icon: "/contact.png",
+  },
+  camera: {
+    title: "Camera",
+    subtitle: "Capture Studio",
+    icon: "/camera.png",
+  },
+  reaction: {
+    title: "Reaction Dash",
+    subtitle: "Tap speed game",
+    icon: "/games.png",
+  },
+  numbers: {
+    title: "Number Sprint",
+    subtitle: "Sequence challenge",
+    icon: "/calc.png",
+  },
+  gfg: {
+    title: "GeeksforGeeks",
+    subtitle: "Coding profile",
+    icon: "/internet_explorer.png",
+  },
+  resume: {
+    title: "Resume",
+    subtitle: "PDF viewer",
+    icon: "/pdf.png",
+  },
+  music: {
+    title: "Now Playing",
+    subtitle: "Mini player",
+    icon: "/games.png",
+  },
+};
+
 type ChromeBookmark = {
   id: string;
   title: string;
@@ -134,7 +185,7 @@ const CHROME_BOOKMARKS: ChromeBookmark[] = [
     description:
       "AI-powered resume enhancement platform crafted for job seekers.",
     image: "/ai-chat-interface.png",
-    accent: "from-sky-500/30 to-cyan-500/30",
+    accent: "from-white/15 to-black/35",
     category: "AI Career Assist",
   },
   {
@@ -143,7 +194,7 @@ const CHROME_BOOKMARKS: ChromeBookmark[] = [
     url: "https://paighaam-alpha.vercel.app/",
     description: "Real-time multilingual messaging with expressive UI details.",
     image: "/task-management-interface.png",
-    accent: "from-purple-500/30 to-pink-500/30",
+    accent: "from-white/15 to-black/35",
     category: "Realtime WebApp",
   },
   {
@@ -152,7 +203,7 @@ const CHROME_BOOKMARKS: ChromeBookmark[] = [
     url: "https://abdulmuneebsyed.github.io/ecommerce-dashboard/",
     description: "Analytics-first admin dashboard for modern online stores.",
     image: "/ecommerce-dashboard.png",
-    accent: "from-amber-500/30 to-orange-500/30",
+    accent: "from-white/15 to-black/35",
     category: "Data Visualization",
   },
   {
@@ -161,7 +212,7 @@ const CHROME_BOOKMARKS: ChromeBookmark[] = [
     url: "https://abdulmuneebsyed.github.io/portfolio-site/",
     description: "Framer Motion powered personal site celebrating playful UX.",
     image: "/portfolio-website-showcase.png",
-    accent: "from-emerald-500/30 to-lime-500/30",
+    accent: "from-white/15 to-black/35",
     category: "Personal Brand",
   },
 ];
@@ -172,7 +223,7 @@ const HOME_APPS = [
     title: "GeeksforGeeks",
     description: "Track problem streaks, articles, and badges in one glance.",
     icon: "/internet_explorer.png",
-    accent: "from-emerald-500/40 via-emerald-400/30 to-teal-500/30",
+    accent: "from-white/16 via-white/6 to-black/35",
     type: "overlay" as const,
   },
   {
@@ -180,7 +231,7 @@ const HOME_APPS = [
     title: "GitHub",
     description: "Jump straight to repos, commits, and stars.",
     icon: "/torch.png",
-    accent: "from-stone-500/40 via-neutral-500/30 to-stone-700/30",
+    accent: "from-white/14 via-white/5 to-black/45",
     type: "external" as const,
     href: "https://github.com/AbdulMuneebSyed",
   },
@@ -189,7 +240,7 @@ const HOME_APPS = [
     title: "Resume",
     description: "Review the latest resume or download it instantly.",
     icon: "/pdf.png",
-    accent: "from-blue-500/40 via-sky-500/30 to-cyan-500/30",
+    accent: "from-white/15 via-white/6 to-black/40",
     type: "overlay" as const,
   },
   {
@@ -197,7 +248,7 @@ const HOME_APPS = [
     title: "Now Playing",
     description: "Cue up Regrets or For A Reason inside muneebOS.",
     icon: "/games.png",
-    accent: "from-rose-500/40 via-fuchsia-500/30 to-purple-500/30",
+    accent: "from-white/12 via-white/5 to-black/50",
     type: "overlay" as const,
   },
 ];
@@ -251,35 +302,35 @@ const CONTACT_CARDS = [
   {
     label: "Email",
     value: "samuneeb786@gmail.com",
-    accent: "from-blue-500/20 to-sky-500/30",
+    accent: "from-white/10 to-black/25",
     href: "mailto:samuneeb786@gmail.com",
     icon: "📧",
   },
   {
     label: "Phone",
     value: "+91 99667 82707",
-    accent: "from-green-500/20 to-emerald-500/30",
+    accent: "from-white/10 to-black/25",
     href: "tel:+919966782707",
     icon: "📱",
   },
   {
     label: "Location",
     value: "Hyderabad, India",
-    accent: "from-amber-500/20 to-orange-500/30",
+    accent: "from-white/10 to-black/25",
     href: undefined,
     icon: "📍",
   },
   {
     label: "LinkedIn",
     value: "syed-abdul-muneeb",
-    accent: "from-blue-600/20 to-slate-600/30",
+    accent: "from-white/10 to-black/25",
     href: "https://www.linkedin.com/in/syed-abdul-muneeb/",
     icon: "💼",
   },
   {
     label: "GitHub",
     value: "AbdulMuneebSyed",
-    accent: "from-purple-500/20 to-indigo-500/30",
+    accent: "from-white/10 to-black/25",
     href: "https://github.com/AbdulMuneebSyed",
     icon: "💻",
   },
@@ -300,21 +351,21 @@ const NOTIFICATIONS: NotificationItem[] = [
     title: "Torch v2 is live",
     description: "Check out the new animation system you shipped yesterday.",
     time: "2m",
-    accent: "bg-sky-400/80",
+    accent: "bg-white/85",
   },
   {
     id: "notif-2",
     title: "Portfolio feedback",
     description: "Sara sent detailed thoughts on the Windows nostalgia flow.",
     time: "18m",
-    accent: "bg-purple-400/80",
+    accent: "bg-white/85",
   },
   {
     id: "notif-3",
     title: "Coffee run?",
     description: "Arsalan dropped a calendar invite for 4:15pm.",
     time: "1h",
-    accent: "bg-amber-400/80",
+    accent: "bg-white/85",
   },
 ];
 
@@ -429,32 +480,23 @@ const TopStatusBar = ({
   );
 };
 
-const MiniStat = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 backdrop-blur-xl">
-    <p className="text-[10px] uppercase tracking-[0.35em] text-white/50">
-      {label}
-    </p>
-    <p className="mt-2 text-sm font-semibold text-white/85">{value}</p>
-  </div>
-);
-
 const DockIcon = ({ label, icon, onPress }: DockLaunch) => (
   <motion.button
     type="button"
     whileTap={{ scale: 0.9 }}
     onClick={onPress}
-    className="flex flex-col items-center gap-2"
+    className="flex flex-col items-center gap-1.5"
   >
-    <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl backdrop-blur-3xl bg-black/80 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+    <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/10 bg-black/80 shadow-[0_8px_20px_rgba(0,0,0,0.35)] backdrop-blur-3xl">
       <Image
         src={icon}
         alt={label}
         width={32}
         height={32}
-        className="h-8 w-8"
+        className="h-7 w-7 object-contain grayscale contrast-125"
       />
     </div>
-    {/* <span className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/70">
+    {/* <span className="text-[9px] font-medium uppercase tracking-[0.22em] text-white/70">
       {label}
     </span> */}
   </motion.button>
@@ -463,43 +505,102 @@ const DockIcon = ({ label, icon, onPress }: DockLaunch) => (
 type HomeApp = (typeof HOME_APPS)[number];
 type HomeAppWithAction = HomeApp & { onLaunch: () => void };
 
-const HomeAppCard = ({ app }: { app: HomeAppWithAction }) => (
-  <motion.button
-    type="button"
-    layout
-    whileTap={{ scale: 0.97 }}
-    onClick={app.onLaunch}
-    className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-black/60 p-5 text-left text-white shadow-[0_18px_40px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
-  >
-    <div
-      className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${app.accent} opacity-80 transition-opacity group-hover:opacity-100`}
-    />
-    <div className="relative z-10 flex items-start justify-between gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
-        <Image
-          src={app.icon}
-          alt={app.title}
-          width={26}
-          height={26}
-          className="h-6 w-6"
-        />
-      </div>
-      <span className="rounded-full border border-white/40 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/80">
-        Launch
-      </span>
+const HomeMetric = ({ label, value }: { label: string; value: string }) => (
+  <div className="muneebos-dot-panel relative overflow-hidden rounded-[24px] border border-white/10 bg-black/65 px-4 py-3 text-white backdrop-blur-2xl">
+    <div className="relative z-10">
+      <p className="muneebos-dot-label text-[9px] text-white/50">{label}</p>
+      <p className="mt-2 text-lg font-semibold leading-none text-white/90">
+        {value}
+      </p>
     </div>
-    <div className="relative z-10 mt-6 space-y-2">
-      <h3 className="text-xl font-semibold leading-tight drop-shadow-sm">
-        {app.title}
-      </h3>
-      <p className="text-sm text-white/80">{app.description}</p>
-    </div>
-    <div className="relative z-10 mt-6 flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-white/75">
-      <span>Tap to open</span>
-      <span>↗</span>
-    </div>
-  </motion.button>
+  </div>
 );
+
+const HomeGlanceWidget = ({
+  time,
+  date,
+  dataSpeed,
+  quickSettings,
+  onRelock,
+}: {
+  time: string;
+  date: string;
+  dataSpeed: string;
+  quickSettings: QuickSettingState;
+  onRelock: () => void;
+}) => (
+  <motion.section
+    initial={{ opacity: 0, y: 16 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.42, ease: "easeOut" }}
+    className="grid grid-cols-[1.2fr_0.8fr] gap-3"
+  >
+    <div className="muneebos-dot-panel relative min-h-[164px] overflow-hidden rounded-[32px] border border-white/10 bg-black/65 px-5 py-5 text-white shadow-[0_18px_40px_rgba(0,0,0,0.36)] backdrop-blur-2xl">
+      <div className="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <p className="muneebos-dot-label text-[10px] text-white/55">
+            Muneeb OS
+          </p>
+          <p className="muneebos-dot-text mt-3 text-4xl font-bold leading-none">
+            {time}
+          </p>
+          <p className="muneebos-dot-label mt-3 text-[10px] leading-5 text-white/58">
+            {date}
+          </p>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="muneebos-dot-label text-[9px] text-white/45">
+            {quickSettings.wifi || quickSettings.data ? "Online" : "Offline"}
+          </span>
+          <button
+            type="button"
+            onClick={onRelock}
+            className="muneebos-dot-label rounded-full border border-white/15 bg-white/90 px-3 py-2 text-[9px] font-semibold text-black shadow-lg shadow-black/25"
+          >
+            Lock
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div className="grid gap-3">
+      <HomeMetric label="Battery" value={`${BATTERY_LEVEL}%`} />
+      <HomeMetric label="Net" value={`${dataSpeed}`} />
+    </div>
+  </motion.section>
+);
+
+const HomeAppTile = ({ app }: { app: HomeAppWithAction }) => {
+  const label =
+    app.id === "gfg" ? "GFG" : app.id === "music" ? "Music" : app.title;
+
+  return (
+    <motion.button
+      type="button"
+      layout
+      whileTap={{ scale: 0.92 }}
+      onClick={app.onLaunch}
+      aria-label={`Open ${app.title}`}
+      className="group flex min-w-0 flex-col items-center gap-2 text-center text-white"
+    >
+      <div className="relative flex h-[58px] w-[58px] items-center justify-center rounded-[22px] border border-white/10 bg-black/78 shadow-[0_12px_24px_rgba(0,0,0,0.4)] backdrop-blur-2xl transition-colors group-active:bg-white/16">
+        <div className="absolute inset-2 rounded-[16px] border border-white/5" />
+        <div className="relative z-10 flex h-8 w-8 items-center justify-center rounded-xl bg-white/92">
+          <Image
+            src={app.icon}
+            alt={app.title}
+            width={26}
+            height={26}
+            className="h-5 w-5 object-contain grayscale contrast-125"
+          />
+        </div>
+      </div>
+      <span className="max-w-[72px] text-[11px] font-medium leading-tight text-white/82">
+        {label}
+      </span>
+    </motion.button>
+  );
+};
 
 const QuickReactionGame = () => {
   type GameState = "idle" | "waiting" | "ready" | "result" | "too-soon";
@@ -680,11 +781,15 @@ const AppOverlay = ({
   title,
   icon,
   onClose,
+  onHome,
+  onRecents,
   children,
 }: {
   title: string;
   icon: string;
   onClose: () => void;
+  onHome: () => void;
+  onRecents: () => void;
   children: ReactNode;
 }) => (
   <motion.div
@@ -726,6 +831,224 @@ const AppOverlay = ({
       </motion.button>
     </motion.header>
     <div className="flex-1 overflow-hidden">{children}</div>
+    <div
+      className="absolute inset-x-0 bottom-0 z-20 flex justify-center"
+      style={{
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.55rem)",
+      }}
+    >
+      <HomeGestureIndicator onHome={onHome} onRecents={onRecents} />
+    </div>
+  </motion.div>
+);
+
+const HomeGestureIndicator = ({
+  onHome,
+  onRecents,
+  className = "",
+}: {
+  onHome: () => void;
+  onRecents: () => void;
+  className?: string;
+}) => {
+  const startYRef = useRef(0);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recentsTriggeredRef = useRef(false);
+
+  const clearHoldTimer = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    startYRef.current = event.clientY;
+    recentsTriggeredRef.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+
+    clearHoldTimer();
+    holdTimerRef.current = setTimeout(() => {
+      recentsTriggeredRef.current = true;
+      vibrateDevice([0, 18, 20, 18]);
+      onRecents();
+    }, 520);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const upwardTravel = startYRef.current - event.clientY;
+    if (upwardTravel > 44 && !recentsTriggeredRef.current) {
+      clearHoldTimer();
+      vibrateDevice([0, 16]);
+      onHome();
+    }
+  };
+
+  const handlePointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const upwardTravel = startYRef.current - event.clientY;
+    clearHoldTimer();
+
+    if (!recentsTriggeredRef.current && upwardTravel < 18) {
+      onHome();
+    }
+  };
+
+  const handleClick = () => {
+    if (!recentsTriggeredRef.current) {
+      onHome();
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      aria-label="Home gesture"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={clearHoldTimer}
+      onClick={handleClick}
+      className={`flex h-8 w-28 items-center justify-center rounded-full ${className}`}
+    >
+      <span className="h-1.5 w-24 rounded-full bg-white/72 shadow-[0_6px_18px_rgba(0,0,0,0.55)]" />
+    </button>
+  );
+};
+
+const RecentAppsOverlay = ({
+  apps,
+  onRestore,
+  onDismiss,
+  onClose,
+  onClear,
+}: {
+  apps: MobileAppId[];
+  onRestore: (app: MobileAppId) => void;
+  onDismiss: (app: MobileAppId) => void;
+  onClose: () => void;
+  onClear: () => void;
+}) => (
+  <motion.div
+    className="fixed inset-0 z-[5000] flex flex-col overflow-hidden bg-[#050505] text-white"
+    initial={{ opacity: 0, y: 24 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: 24 }}
+    transition={{ duration: 0.22, ease: "easeOut" }}
+  >
+    <div className="absolute inset-0 opacity-10" style={wallpaperBaseStyle} />
+    <div className="absolute inset-0 bg-[#050505]/95" />
+    <div className="muneebos-dot-panel pointer-events-none absolute inset-0 opacity-35" />
+
+    <header
+      className="relative z-10 flex items-center justify-between px-5 pb-4"
+      style={{
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+      }}
+    >
+      <div>
+        <p className="muneebos-dot-label text-[10px] text-white/42">System</p>
+        <h2 className="mt-1 text-2xl font-semibold text-white/92">Recents</h2>
+      </div>
+      <button
+        type="button"
+        onClick={onClear}
+        className="muneebos-dot-label rounded-full border border-white/10 bg-white/8 px-3 py-2 text-[9px] text-white/56"
+        disabled={!apps.length}
+      >
+        Clear
+      </button>
+    </header>
+
+    <div className="relative z-10 flex min-h-0 flex-1 items-center overflow-x-auto px-5 pb-24">
+      {apps.length ? (
+        <div className="flex gap-4">
+          {apps.map((app) => {
+            const meta = MOBILE_APP_META[app];
+
+            return (
+              <motion.article
+                key={app}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.28}
+                onDragEnd={(_, info) => {
+                  if (Math.abs(info.offset.x) > 82) {
+                    onDismiss(app);
+                  }
+                }}
+                className="w-[245px] shrink-0 overflow-hidden rounded-[30px] border border-white/10 bg-black/78 shadow-[0_20px_46px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+              >
+                <button
+                  type="button"
+                  aria-label={`Restore ${meta.title}`}
+                  onClick={() => onRestore(app)}
+                  className="block w-full text-left"
+                >
+                  <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90">
+                      <Image
+                        src={meta.icon}
+                        alt=""
+                        width={26}
+                        height={26}
+                        className="h-6 w-6 object-contain grayscale contrast-125"
+                      />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-white/90">
+                        {meta.title}
+                      </span>
+                      <span className="block truncate text-xs text-white/45">
+                        {meta.subtitle}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="muneebos-dot-panel relative h-72 overflow-hidden bg-black/76 px-4 py-4">
+                    <div className="relative z-10 flex h-full flex-col justify-between">
+                      <p className="muneebos-dot-label text-[9px] text-white/36">
+                        Live preview
+                      </p>
+                      <div>
+                        <p className="text-lg font-semibold text-white/88">
+                          {meta.title}
+                        </p>
+                        <p className="mt-2 text-sm leading-5 text-white/52">
+                          Tap to return, swipe sideways to close.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Close ${meta.title}`}
+                  onClick={() => onDismiss(app)}
+                  className="muneebos-dot-label w-full border-t border-white/10 px-4 py-3 text-center text-[9px] text-white/52"
+                >
+                  Close app
+                </button>
+              </motion.article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mx-auto text-center">
+          <p className="text-lg font-semibold text-white/80">No recent apps</p>
+          <p className="mt-2 text-sm text-white/45">
+            Open an app and it will appear here.
+          </p>
+        </div>
+      )}
+    </div>
+
+    <div
+      className="relative z-20 flex justify-center"
+      style={{
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.55rem)",
+      }}
+    >
+      <HomeGestureIndicator onHome={onClose} onRecents={onClose} />
+    </div>
   </motion.div>
 );
 
@@ -1476,7 +1799,7 @@ const LockScreen = ({
               initial={isInitialRender ? { y: 40, opacity: 0 } : false}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="col-span-2 rounded-3xl bg-black/80 px-6 py-5 text-center backdrop-blur-2xl"
+              className="muneebos-dot-panel col-span-2 overflow-hidden rounded-3xl border border-white/10 bg-black/80 px-6 py-5 text-center backdrop-blur-2xl"
             >
               <TimeDisplay
                 time={formattedTime}
@@ -1492,7 +1815,7 @@ const LockScreen = ({
               initial={isInitialRender ? { y: 40, opacity: 0 } : false}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.55, ease: "easeOut", delay: 0.05 }}
-              className="flex items-center justify-center rounded-2xl bg-black/80 p-2 backdrop-blur-2xl"
+              className="flex items-center justify-center rounded-2xl border border-white/10 bg-black/80 p-2 backdrop-blur-2xl"
             >
               <Image
                 src="/avatar.jpg"
@@ -1552,12 +1875,37 @@ const LockScreen = ({
                     }
                   : undefined
               }
-              onTouchStart={onFingerprintStart}
-              onTouchEnd={onFingerprintEnd}
-              onTouchCancel={onFingerprintEnd}
-              onMouseDown={onFingerprintStart}
-              onMouseUp={onFingerprintEnd}
-              onMouseLeave={onFingerprintEnd}
+              onPointerDown={(event) => event.stopPropagation()}
+              onPointerMove={(event) => event.stopPropagation()}
+              onPointerUp={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onFingerprintStart();
+              }}
+              onTouchStart={(event) => {
+                event.stopPropagation();
+                onFingerprintStart();
+              }}
+              onTouchEnd={(event) => {
+                event.stopPropagation();
+                onFingerprintEnd();
+              }}
+              onTouchCancel={(event) => {
+                event.stopPropagation();
+                onFingerprintEnd();
+              }}
+              onMouseDown={(event) => {
+                event.stopPropagation();
+                onFingerprintStart();
+              }}
+              onMouseUp={(event) => {
+                event.stopPropagation();
+                onFingerprintEnd();
+              }}
+              onMouseLeave={(event) => {
+                event.stopPropagation();
+                onFingerprintEnd();
+              }}
             >
               <FingerprintIcon isActive={isUnlocking} />
             </motion.div>
@@ -1587,9 +1935,9 @@ const LockScreen = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.9 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-sm text-white"
+            className="muneebos-dot-label text-[11px] text-white/75"
           >
-            Hold to unlock
+            Tap or hold to unlock
           </motion.p>
         </div>
       </div>
@@ -1629,7 +1977,7 @@ const TimeDisplay = ({
     initial={isInitial ? { y: 40, opacity: 0 } : false}
     animate={{ y: 0, opacity: 1 }}
     transition={{ duration: 0.6, ease: "easeOut" }}
-    className="text-5xl font-bold tracking-tight drop-shadow-lg md:text-6xl"
+    className="muneebos-dot-text text-5xl font-bold leading-none md:text-6xl"
   >
     {time}
   </motion.h2>
@@ -1646,7 +1994,7 @@ const DateDisplay = ({
     initial={isInitial ? { y: 40, opacity: 0 } : false}
     animate={{ y: 0, opacity: 1 }}
     transition={{ duration: 0.65, ease: "easeOut", delay: 0.05 }}
-    className="mt-2 text-sm font-medium uppercase tracking-[0.3em] text-white/70"
+    className="muneebos-dot-label mt-3 text-[11px] font-medium text-white/70"
   >
     {date}
   </motion.p>
@@ -1743,15 +2091,12 @@ const SwipeCard = ({
   idx?: number;
 }) => {
   const index = idx ?? 0;
-  const isStacked = index > 1;
-  const stackDepth = Math.max(0, index - 1);
-  const scale = isStacked ? Math.max(0.88, 1 - stackDepth * 0.04) : 1;
-  const initialY = index === 0 ? -36 : index === 1 ? -18 : 24;
+  const initialY = index === 0 ? -28 : -12;
 
   const cardStyle: CSSProperties = {
-    marginTop: index === 0 ? 12 : index === 1 ? 10 : -18,
-    marginLeft: index <= 1 ? 4 : 0,
-    marginRight: index <= 1 ? 4 : 0,
+    marginTop: index === 0 ? 12 : 10,
+    marginLeft: 4,
+    marginRight: 4,
     zIndex: 60 - index,
   };
 
@@ -1784,11 +2129,11 @@ const SwipeCard = ({
           onDismiss();
         }
       }}
-      initial={{ opacity: 0, y: initialY, scale }}
+      initial={{ opacity: 0, y: initialY, scale: 1 }}
       animate={{
         opacity: 1,
-        y: isStacked ? -stackDepth * 6 : 0,
-        scale,
+        y: 0,
+        scale: 1,
       }}
       exit={{ opacity: 0, x: 120, transition: { duration: 0.25 } }}
       style={cardStyle}
@@ -1823,8 +2168,11 @@ const SwipeCard = ({
 type HomeScreenProps = {
   statusTime: string;
   dataSpeed: string;
+  quickSettings: QuickSettingState;
+  notificationCount: number;
   onRelock: () => void;
   onOpenApp: (app: MobileAppId) => void;
+  onOpenRecents: () => void;
   onOpenLinkedIn: () => void;
   wallpaperStyle: CSSProperties;
   onOpenNotifications: () => void;
@@ -1837,15 +2185,29 @@ type DockLaunch = {
   onPress: () => void;
 };
 
+type DrawerLaunch = {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  onPress: () => void;
+};
+
 const HomeScreen = ({
   statusTime,
   dataSpeed,
+  quickSettings,
+  notificationCount,
   onRelock,
   onOpenApp,
+  onOpenRecents,
   onOpenLinkedIn,
   wallpaperStyle,
   onOpenNotifications,
 }: HomeScreenProps) => {
+  const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false);
+  const [appSearch, setAppSearch] = useState("");
+
   const dockItems: DockLaunch[] = useMemo(
     () => [
       {
@@ -1876,6 +2238,120 @@ const HomeScreen = ({
     [onOpenApp, onOpenLinkedIn]
   );
 
+  const drawerApps: DrawerLaunch[] = useMemo(
+    () => [
+      {
+        id: "chrome",
+        title: "Chrome",
+        subtitle: "Projects, demos, and links",
+        icon: "/chrome.png",
+        onPress: () => onOpenApp("chrome"),
+      },
+      {
+        id: "contact",
+        title: "Contacts",
+        subtitle: "Mail, phone, and socials",
+        icon: "/contact.png",
+        onPress: () => onOpenApp("contact"),
+      },
+      {
+        id: "camera",
+        title: "Camera",
+        subtitle: "Capture Studio",
+        icon: "/camera.png",
+        onPress: () => onOpenApp("camera"),
+      },
+      {
+        id: "gfg",
+        title: "GeeksforGeeks",
+        subtitle: "Coding profile",
+        icon: "/internet_explorer.png",
+        onPress: () => onOpenApp("gfg"),
+      },
+      {
+        id: "github",
+        title: "GitHub",
+        subtitle: "Repositories and activity",
+        icon: "/torch.png",
+        onPress: () => {
+          vibrateDevice([0, 18]);
+          if (typeof window !== "undefined") {
+            window.open(
+              "https://github.com/AbdulMuneebSyed",
+              "_blank",
+              "noopener,noreferrer"
+            );
+          }
+        },
+      },
+      {
+        id: "linkedin",
+        title: "LinkedIn",
+        subtitle: "Professional profile",
+        icon: "/linkedin.png",
+        onPress: onOpenLinkedIn,
+      },
+      {
+        id: "resume",
+        title: "Resume",
+        subtitle: "PDF viewer",
+        icon: "/pdf.png",
+        onPress: () => onOpenApp("resume"),
+      },
+      {
+        id: "music",
+        title: "Music",
+        subtitle: "Mini player",
+        icon: "/games.png",
+        onPress: () => onOpenApp("music"),
+      },
+      {
+        id: "reaction",
+        title: "Reaction Dash",
+        subtitle: "Tap speed game",
+        icon: "/games.png",
+        onPress: () => onOpenApp("reaction"),
+      },
+      {
+        id: "numbers",
+        title: "Number Sprint",
+        subtitle: "Sequence challenge",
+        icon: "/calc.png",
+        onPress: () => onOpenApp("numbers"),
+      },
+    ],
+    [onOpenApp, onOpenLinkedIn]
+  );
+
+  const filteredDrawerApps = useMemo(() => {
+    const query = appSearch.trim().toLowerCase();
+    if (!query) return drawerApps;
+
+    return drawerApps.filter((app) => {
+      return `${app.title} ${app.subtitle} ${app.id}`
+        .toLowerCase()
+        .includes(query);
+    });
+  }, [appSearch, drawerApps]);
+
+  const handleOpenDrawer = useCallback(() => {
+    vibrateDevice([0, 16]);
+    setIsAppDrawerOpen(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setIsAppDrawerOpen(false);
+    setAppSearch("");
+  }, []);
+
+  const handleDrawerLaunch = useCallback(
+    (app: DrawerLaunch) => {
+      app.onPress();
+      handleCloseDrawer();
+    },
+    [handleCloseDrawer]
+  );
+
   const homeApps = useMemo(
     () =>
       HOME_APPS.map((app) => ({
@@ -1894,6 +2370,8 @@ const HomeScreen = ({
       })),
     [onOpenApp]
   );
+
+  const homeDate = formatter.fullDate.format(new Date());
 
   const viewportFillStyle = useMemo(
     () => ({
@@ -1930,41 +2408,87 @@ const HomeScreen = ({
           className="flex-1 overflow-y-auto px-4 pt-4 text-white"
           style={contentPaddingStyle}
         >
-          <div className="flex min-h-0 flex-col gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
+          <div className="flex min-h-0 flex-col gap-5">
+            <HomeGlanceWidget
+              time={statusTime}
+              date={homeDate}
+              dataSpeed={dataSpeed}
+              quickSettings={quickSettings}
+              onRelock={onRelock}
+            />
+
+            <motion.section
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="flex items-center justify-between rounded-3xl border border-white/10 bg-black/55 px-5 py-4 backdrop-blur-2xl"
+              transition={{ delay: 0.06, duration: 0.42, ease: "easeOut" }}
+              className="muneebos-dot-panel relative overflow-hidden rounded-[32px] border border-white/10 bg-black/58 px-5 py-4 text-white shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-2xl"
             >
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.35em] text-white/60">
-                  Favorites
-                </p>
-                <h2 className="mt-1 text-lg font-semibold leading-tight text-white/90">
-                  Launch your daily essentials.
-                </h2>
+              <div className="relative z-10 flex items-start justify-between gap-4">
+                <div>
+                  <p className="muneebos-dot-label text-[10px] text-white/50">
+                    Today
+                  </p>
+                  <h2 className="mt-2 text-lg font-semibold leading-tight text-white/92">
+                    {quickSettings.focus
+                      ? "Focus mode active."
+                      : "Portfolio workspace ready."}
+                  </h2>
+                </div>
+                <div className="flex h-14 w-14 shrink-0 items-end justify-center gap-1.5 rounded-[22px] border border-white/10 bg-white/8 px-3 py-3">
+                  {[18, 30, 24, 38].map((height, index) => (
+                    <span
+                      key={height}
+                      className="w-1.5 rounded-full bg-white/75"
+                      style={{
+                        height,
+                        opacity: 0.42 + index * 0.14,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.94 }}
-                onClick={onRelock}
-                className="rounded-full border border-white/15 bg-white/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-black shadow-lg shadow-black/25"
-              >
-                Lock
-              </motion.button>
-            </motion.div>
+              <div className="relative z-10 mt-4 grid grid-cols-3 divide-x divide-white/10 border-t border-white/10 pt-3">
+                {[
+                  ["Apps", `${homeApps.length}`],
+                  ["Focus", quickSettings.focus ? "On" : "Off"],
+                  ["Alerts", `${notificationCount}`],
+                ].map(([label, value]) => (
+                  <div key={label} className="px-2 first:pl-0 last:pr-0">
+                    <p className="muneebos-dot-label text-[8px] text-white/38">
+                      {label}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold leading-none text-white/82">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.section>
 
             <motion.div
               layout
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05, duration: 0.42, ease: "easeOut" }}
-              className="grid flex-1 grid-cols-2 grid-rows-2 gap-4"
+              transition={{ delay: 0.1, duration: 0.42, ease: "easeOut" }}
+              className="px-1"
             >
-              {homeApps.map((app) => (
-                <HomeAppCard key={app.id} app={app} />
-              ))}
+              <div className="mb-3 flex items-center justify-between">
+                <p className="muneebos-dot-label text-[10px] text-white/55">
+                  Apps
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOpenDrawer}
+                  className="muneebos-dot-label rounded-full border border-white/10 bg-black/35 px-3 py-1.5 text-[9px] text-white/65 backdrop-blur-xl"
+                >
+                  All
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                {homeApps.map((app) => (
+                  <HomeAppTile key={app.id} app={app} />
+                ))}
+              </div>
             </motion.div>
           </div>
         </div>
@@ -1973,12 +2497,162 @@ const HomeScreen = ({
           className="pointer-events-none relative flex justify-center"
           style={dockPaddingStyle}
         >
-          <div className="pointer-events-auto flex w-[90%] max-w-sm items-end justify-between rounded-[32px] border border-white/10 bg-black/55 px-6 py-3 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
-            {dockItems.map((item) => (
-              <DockIcon key={item.id} {...item} />
-            ))}
+          <div className="pointer-events-auto flex w-full flex-col items-center gap-1">
+            <div className="muneebos-dot-panel relative flex w-[90%] max-w-sm items-end justify-between overflow-hidden rounded-[32px] border border-white/10 bg-black/60 px-6 py-3 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+              {dockItems.map((item) => (
+                <DockIcon key={item.id} {...item} />
+              ))}
+            </div>
+            <HomeGestureIndicator
+              onHome={onOpenRecents}
+              onRecents={onOpenRecents}
+            />
           </div>
         </div>
+
+        <AnimatePresence>
+          {isAppDrawerOpen && (
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="All apps"
+              className="absolute inset-0 z-[220] flex flex-col overflow-hidden bg-black/92 text-white backdrop-blur-2xl"
+              initial={{ y: "100%", opacity: 0.88 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0.92 }}
+              transition={{ type: "spring", stiffness: 300, damping: 36 }}
+            >
+              <div
+                className="absolute inset-0 opacity-35"
+                style={wallpaperBaseStyle}
+              />
+              <div className="absolute inset-0 bg-black/74" />
+              <div className="muneebos-dot-panel pointer-events-none absolute inset-0 opacity-55" />
+
+              <div
+                className="relative z-10 flex items-center justify-between px-5 pb-3"
+                style={{
+                  paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleCloseDrawer}
+                  className="muneebos-dot-label text-[10px] text-white/50"
+                >
+                  Home
+                </button>
+                <p className="muneebos-dot-label text-[10px] text-white/36">
+                  {filteredDrawerApps.length} apps
+                </p>
+              </div>
+
+              <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-28 pt-2">
+                {!appSearch.trim() && (
+                  <section className="mb-7">
+                    <p className="muneebos-dot-label mb-3 text-[10px] text-white/42">
+                      Pinned
+                    </p>
+                    <div className="grid grid-cols-4 gap-x-5 gap-y-5">
+                      {drawerApps.slice(0, 4).map((app) => (
+                        <motion.button
+                          key={app.id}
+                          type="button"
+                          whileTap={{ scale: 0.92 }}
+                          onClick={() => handleDrawerLaunch(app)}
+                          className="flex min-w-0 flex-col items-center gap-2 text-center"
+                        >
+                          <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-white/10 bg-white/90 shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
+                            <Image
+                              src={app.icon}
+                              alt=""
+                              width={28}
+                              height={28}
+                              className="h-6 w-6 object-contain grayscale contrast-125"
+                            />
+                          </span>
+                          <span className="max-w-[74px] text-[11px] font-medium leading-tight text-white/78">
+                            {app.title}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                <section>
+                  <p className="muneebos-dot-label mb-3 text-[10px] text-white/42">
+                    {appSearch.trim() ? "Results" : "All apps"}
+                  </p>
+                  <div className="grid grid-cols-4 gap-x-5 gap-y-6">
+                    <AnimatePresence initial={false}>
+                      {filteredDrawerApps.map((app) => (
+                        <motion.button
+                          key={app.id}
+                          type="button"
+                          layout
+                          initial={{ opacity: 0, scale: 0.92 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.92 }}
+                          whileTap={{ scale: 0.92 }}
+                          onClick={() => handleDrawerLaunch(app)}
+                          className="flex min-w-0 flex-col items-center gap-2 text-center text-white"
+                        >
+                          <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-white/10 bg-white/90 shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
+                            <Image
+                              src={app.icon}
+                              alt=""
+                              width={28}
+                              height={28}
+                              className="h-6 w-6 object-contain grayscale contrast-125"
+                            />
+                          </span>
+                          <span className="max-w-[74px] text-[11px] font-medium leading-tight text-white/78">
+                            {app.title}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                  {!filteredDrawerApps.length && (
+                    <div className="mt-10 text-center text-sm text-white/45">
+                      No apps found.
+                    </div>
+                  )}
+                </section>
+              </div>
+
+              <div
+                className="relative z-20 px-5"
+                style={{
+                  paddingBottom:
+                    "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+                }}
+              >
+                <label className="flex items-center gap-3 rounded-full border border-white/10 bg-white/12 px-4 py-3 text-white shadow-[0_16px_36px_rgba(0,0,0,0.38)] backdrop-blur-3xl">
+                  <Search className="h-4 w-4 text-white/45" />
+                  <input
+                    value={appSearch}
+                    onChange={(event) => setAppSearch(event.target.value)}
+                    placeholder="Search apps"
+                    className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                    autoFocus
+                  />
+                  {appSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setAppSearch("")}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/55"
+                      aria-label="Clear app search"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </label>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -1992,6 +2666,7 @@ type NotificationPanelProps = {
   dataSpeed: string;
   quickSettings: QuickSettingState;
   onToggleQuickSetting: (id: QuickSettingId) => void;
+  onDismissNotification: (id: string) => void;
   panelHeight: number;
   panelHandleHeight?: number;
 };
@@ -2004,13 +2679,14 @@ const NotificationPanel = ({
   dataSpeed,
   quickSettings,
   onToggleQuickSetting,
+  onDismissNotification,
   panelHeight,
   panelHandleHeight,
 }: NotificationPanelProps) => {
   const handleHeight = panelHandleHeight ?? PANEL_HANDLE_HEIGHT;
   const notificationsMaxHeight = Math.max(
-    180,
-    panelHeight - (handleHeight + 200)
+    160,
+    panelHeight - (handleHeight + 230)
   );
   const openThreshold = panelHeight * 0.3;
   const closeThreshold = panelHeight * 0.25;
@@ -2048,30 +2724,30 @@ const NotificationPanel = ({
         damping: 32,
         mass: 0.9,
       }}
-      className={`absolute inset-x-0 top-0 z-40 mx-auto opacity-${
-        isOpen ? 100 : 0
-      } w-full max-w-[460px] rounded-b-3xl`}
+      className={`absolute inset-x-0 top-0 z-40 mx-auto w-full max-w-[460px] rounded-b-3xl ${
+        isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+      }`}
       style={{ height: panelHeight, maxHeight: panelHeight }}
     >
       <div className="relative h-full overflow-hidden rounded-b-4xl border border-white/10 bg-black/80 text-white backdrop-blur-3xl">
         <TopStatusBar time={statusTime} dataSpeed={dataSpeed} />
         <div
-          className={`px-5 pt-5 ${isOpen ? "block" : "hidden"}`}
+          className={`px-4 pt-4 ${isOpen ? "block" : "hidden"}`}
           style={{
             paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
           }}
         >
-          <div className="space-y-6">
+          <div className="space-y-5">
             <section>
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/65">
                   Quick Settings
                 </span>
                 <span className="text-[10px] font-semibold uppercase tracking-[0.32em] text-white/40">
-                  Tap to toggle
+                  {quickSettings.focus ? "Focus active" : "Tap to toggle"}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3 grid grid-cols-2 gap-2.5">
                 {QUICK_SETTING_CONFIGS.map((config) => {
                   const Icon = config.icon;
                   const isActive = quickSettings[config.id];
@@ -2083,7 +2759,7 @@ const NotificationPanel = ({
                       whileTap={{ scale: 0.94 }}
                       onClick={() => onToggleQuickSetting(config.id)}
                       aria-pressed={isActive}
-                      className={`group relative flex flex-col justify-between rounded-3xl border px-4 py-4 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 ${
+                      className={`group relative flex min-h-[112px] flex-col justify-between rounded-[26px] border px-3.5 py-3.5 text-left transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 ${
                         isActive
                           ? `border-transparent bg-white/80 text-black shadow-[0_16px_35px_rgba(15,118,110,0.32)]`
                           : "border-white/12 bg-white/5 text-white/75 hover:border-white/25 hover:text-white"
@@ -2094,7 +2770,7 @@ const NotificationPanel = ({
                           <span className="text-[10px] font-semibold uppercase tracking-[0.34em]">
                             {config.label}
                           </span>
-                          <p className="mt-1 text-base font-semibold">
+                          <p className="mt-1 text-sm font-semibold">
                             {isActive ? "Enabled" : "Disabled"}
                           </p>
                         </div>
@@ -2105,7 +2781,7 @@ const NotificationPanel = ({
                             stiffness: 320,
                             damping: 28,
                           }}
-                          className={`flex h-10 w-10 items-center justify-center rounded-2xl border text-white ${
+                          className={`flex h-9 w-9 items-center justify-center rounded-2xl border text-white ${
                             isActive
                               ? "border-black/30 bg-black"
                               : "border-white/10 bg-black/40"
@@ -2121,7 +2797,7 @@ const NotificationPanel = ({
                           stiffness: 260,
                           damping: 24,
                         }}
-                        className={`mt-5 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] ${
+                        className={`mt-4 inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.22em] ${
                           isActive
                             ? "bg-black text-white"
                             : "border border-white/15 bg-black/40 text-white/70"
@@ -2136,35 +2812,68 @@ const NotificationPanel = ({
             </section>
 
             <section>
-              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                Notifications
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
+                  Notifications
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/35">
+                  {notifications.length
+                    ? `${notifications.length} active`
+                    : "All clear"}
+                </span>
+              </div>
 
               <div
-                className="mt-4 space-y-3 overflow-y-auto pr-1"
+                className="mt-3 space-y-2.5 overflow-y-auto pr-1"
                 style={{ maxHeight: notificationsMaxHeight }}
               >
-                {notifications.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-xl"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-semibold">{item.title}</h4>
-                      <span className="text-xs text-white/60">{item.time}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-white/70">
-                      {item.description}
-                    </p>
-                    <div
-                      className={`mt-3 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-black/85 ${item.accent}`}
+                <AnimatePresence initial={false}>
+                  {notifications.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{
+                        opacity: quickSettings.focus ? 0.58 : 1,
+                        y: 0,
+                      }}
+                      exit={{ opacity: 0, x: 24, scale: 0.96 }}
+                      className="rounded-[22px] border border-white/10 bg-white/5 p-3.5 text-white backdrop-blur-xl"
                     >
-                      Activity
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-semibold">
+                            {item.title}
+                          </h4>
+                          <span className="text-xs text-white/45">
+                            {item.time}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onDismissNotification(item.id)}
+                          className="muneebos-dot-label rounded-full border border-white/10 bg-black/35 px-2.5 py-1 text-[9px] text-white/55"
+                          aria-label={`Dismiss ${item.title}`}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <p className="mt-1.5 text-[13px] leading-5 text-white/70">
+                        {item.description}
+                      </p>
+                      <div
+                        className={`mt-3 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-black/85 ${item.accent}`}
+                      >
+                        {quickSettings.focus ? "Silenced" : "Activity"}
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {!notifications.length && (
+                  <div className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-6 text-center text-sm text-white/45">
+                    Nothing needs your attention.
+                  </div>
+                )}
               </div>
             </section>
           </div>
@@ -2193,6 +2902,8 @@ export const MuneebOS = () => {
     FloatingNotification[]
   >([]);
   const [activeApp, setActiveApp] = useState<MobileAppId | null>(null);
+  const [recentApps, setRecentApps] = useState<MobileAppId[]>([]);
+  const [isRecentsOpen, setIsRecentsOpen] = useState(false);
   const scheduledSocialNotificationsRef = useRef<
     ReturnType<typeof setTimeout>[]
   >([]);
@@ -2204,6 +2915,8 @@ export const MuneebOS = () => {
   const [quickSettings, setQuickSettings] = useState<QuickSettingState>(
     QUICK_SETTING_DEFAULT_STATE
   );
+  const [notifications, setNotifications] =
+    useState<NotificationItem[]>(NOTIFICATIONS);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2263,6 +2976,11 @@ export const MuneebOS = () => {
       return next;
     });
     vibrateDevice([0, 28]);
+  }, []);
+
+  const handleDismissNotification = useCallback((id: string) => {
+    vibrateDevice([0, 14]);
+    setNotifications((previous) => previous.filter((item) => item.id !== id));
   }, []);
 
   useEffect(() => {
@@ -2368,6 +3086,10 @@ export const MuneebOS = () => {
     [currentTime]
   );
 
+  const displayedDataSpeed = useMemo(() => {
+    return quickSettings.wifi || quickSettings.data ? dataSpeed : "0.0";
+  }, [dataSpeed, quickSettings.data, quickSettings.wifi]);
+
   const formattedTime = useMemo(
     () => formatter.largeTime.format(currentTime),
     [currentTime]
@@ -2437,9 +3159,66 @@ export const MuneebOS = () => {
   const handleOpenApp = useCallback((app: MobileAppId) => {
     vibrateDevice([0, 24]);
     setActiveApp(app);
+    setIsRecentsOpen(false);
+    setRecentApps((previous) => [
+      app,
+      ...previous.filter((item) => item !== app),
+    ]);
+
+    if (app === "music") {
+      setNotifications((previous) => {
+        const nextNotification: NotificationItem = {
+          id: "notif-now-playing",
+          title: "Now playing",
+          description: "Music is ready in the mini player.",
+          time: "now",
+          accent: "bg-white/85",
+        };
+
+        return [
+          nextNotification,
+          ...previous.filter((item) => item.id !== nextNotification.id),
+        ];
+      });
+    }
   }, []);
 
   const handleCloseApp = useCallback(() => {
+    setActiveApp(null);
+  }, []);
+
+  const handleGoHome = useCallback(() => {
+    vibrateDevice([0, 14]);
+    setIsRecentsOpen(false);
+    setIsNotificationOpen(false);
+    setActiveApp(null);
+  }, []);
+
+  const handleOpenRecents = useCallback(() => {
+    vibrateDevice([0, 18]);
+    setIsNotificationOpen(false);
+    setIsRecentsOpen(true);
+  }, []);
+
+  const handleRestoreRecentApp = useCallback((app: MobileAppId) => {
+    vibrateDevice([0, 18]);
+    setRecentApps((previous) => [
+      app,
+      ...previous.filter((item) => item !== app),
+    ]);
+    setActiveApp(app);
+    setIsRecentsOpen(false);
+  }, []);
+
+  const handleDismissRecentApp = useCallback((app: MobileAppId) => {
+    vibrateDevice([0, 14]);
+    setRecentApps((previous) => previous.filter((item) => item !== app));
+    setActiveApp((previous) => (previous === app ? null : previous));
+  }, []);
+
+  const handleClearRecentApps = useCallback(() => {
+    vibrateDevice([0, 16]);
+    setRecentApps([]);
     setActiveApp(null);
   }, []);
 
@@ -2625,11 +3404,12 @@ export const MuneebOS = () => {
             <NotificationPanel
               isOpen={isNotificationOpen}
               onToggle={handleNotificationToggle}
-              notifications={NOTIFICATIONS}
+              notifications={notifications}
               statusTime={statusTime}
-              dataSpeed={dataSpeed}
+              dataSpeed={displayedDataSpeed}
               quickSettings={quickSettings}
               onToggleQuickSetting={handleToggleQuickSetting}
+              onDismissNotification={handleDismissNotification}
               panelHeight={panelHeight}
               panelHandleHeight={panelHandleHeight}
             />
@@ -2652,7 +3432,7 @@ export const MuneebOS = () => {
                       statusTime={statusTime}
                       formattedTime={formattedTime}
                       formattedDate={formattedDate}
-                      dataSpeed={dataSpeed}
+                      dataSpeed={displayedDataSpeed}
                       cards={visibleCards}
                       ripples={ripples}
                       isLocked={isLocked}
@@ -2675,9 +3455,12 @@ export const MuneebOS = () => {
                   >
                     <HomeScreen
                       statusTime={statusTime}
-                      dataSpeed={dataSpeed}
+                      dataSpeed={displayedDataSpeed}
+                      quickSettings={quickSettings}
+                      notificationCount={notifications.length}
                       onRelock={handleRelock}
                       onOpenApp={handleOpenApp}
+                      onOpenRecents={handleOpenRecents}
                       onOpenLinkedIn={handleLinkedInOpen}
                       wallpaperStyle={wallpaperStyle}
                       onOpenNotifications={handleNotificationButtonPress}
@@ -2696,9 +3479,22 @@ export const MuneebOS = () => {
             title={activeOverlay.title}
             icon={activeOverlay.icon}
             onClose={handleCloseApp}
+            onHome={handleGoHome}
+            onRecents={handleOpenRecents}
           >
             {activeOverlay.node}
           </AppOverlay>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isRecentsOpen && (
+          <RecentAppsOverlay
+            apps={recentApps}
+            onRestore={handleRestoreRecentApp}
+            onDismiss={handleDismissRecentApp}
+            onClose={handleGoHome}
+            onClear={handleClearRecentApps}
+          />
         )}
       </AnimatePresence>
     </div>

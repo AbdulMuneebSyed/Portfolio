@@ -1,39 +1,36 @@
 "use client";
 import { Desktop } from "@/components/desktop";
+import { LoginScreen } from "@/components/login-screen";
 import { MuneebOS } from "@/components/muneebOS";
-import React, { useEffect } from "react";
+import React from "react";
 
 export default function Home() {
-  const [isMobile, setIsMobile] = React.useState(false);
-  useEffect(() => {
-    const checkScreenSize = () => {
-      const width = window.innerWidth;
-      const newIsMobile = width < 1024; // Less than lg breakpoint
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState<boolean | null>(null);
 
-      // If switching to mobile, disable sound to prevent startup sound
-      // if (newIsMobile && !isMobile) {
-      //   setSoundDisabled(true);
-      // }
-
-      setIsMobile(newIsMobile);
+  React.useEffect(() => {
+    const checkViewport = () => {
+      setIsMobile(window.innerWidth < 1024);
     };
 
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
-  }, [isMobile]);
+    checkViewport();
+    window.addEventListener("resize", checkViewport);
+    return () => window.removeEventListener("resize", checkViewport);
+  }, []);
+
   return (
     <div className="!h-dvh !w-dvw overflow-clip">
-      {!isMobile ? (
-        <main className="!h-dvh !w-dvw  hidden md:block  overflow-clip">
+      <main className="!h-dvh !w-dvw overflow-clip">
+        {isMobile === null ? (
+          <div className="h-dvh w-dvw bg-black" />
+        ) : isMobile ? (
+          <MuneebOS />
+        ) : isLoggedIn ? (
           <Desktop />
-        </main>
-      ) : (
-        <main className="!h-dvh !w-dvw md:hidden overflow-hidden flex items-center justify-center bg-black text-white p-4 text-center">
-          {/* <MuneebOS /> */}
-          MOBILE VIEW IS NOT SUPPORTED YET. PLEASE VISIT ON A DESKTOP DEVICE.
-        </main>
-      )}
+        ) : (
+          <LoginScreen onLogin={() => setIsLoggedIn(true)} />
+        )}
+      </main>
     </div>
   );
 }

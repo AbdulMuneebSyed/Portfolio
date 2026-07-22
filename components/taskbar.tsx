@@ -210,17 +210,15 @@ export function Taskbar() {
 
       {/* Taskbar */}
       <div
-        className="fixed bottom-0 left-0 right-0 h-10 flex items-center px-2 gap-2 z-[9999]"
+        className="taskbar-glass fixed bottom-0 left-0 right-0 z-[9999] flex h-10 items-center gap-2 px-2"
         style={{
-          background: `rgba(0, 0, 0, ${(100 - taskbarTransparency) / 100})`,
-          backdropFilter: taskbarTransparency > 20 ? "blur(10px)" : "none",
-          border: "1px solid rgba(255, 255, 255, 0.2)",
+          opacity: Math.max(0.62, taskbarTransparency / 100),
         }}
         onClick={handleGlobalClick}
       >
         {/* Start Button */}
         <button
-          className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg border-2 border-white/30`}
+          className="win7-start-orb relative flex size-12 items-center justify-center rounded-full border-2 border-white/35 shadow-lg transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95"
           onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
           aria-label="Start Menu"
           style={{
@@ -243,16 +241,24 @@ export function Taskbar() {
               onMouseEnter={() => handleMouseEnter(window.id)}
               onMouseLeave={handleMouseLeave}
             >
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 id={`taskbar-item-${window.id}`}
-                className={`h-10 px-4 rounded flex items-center gap-2 transition-all relative ${
+                className={`win7-taskbar-item relative flex h-9 min-w-[48px] items-center gap-2 rounded px-3 transition-all ${
                   window.isActive
-                    ? "bg-white/20 shadow-inner"
+                    ? "win7-taskbar-item-active shadow-inner"
                     : window.isMinimized
-                    ? "bg-white/5 opacity-70"
-                    : "hover:bg-white/10"
+                    ? "opacity-70"
+                    : ""
                 }`}
                 onClick={() => handleTaskbarItemClick(window.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleTaskbarItemClick(window.id);
+                  }
+                }}
                 onContextMenu={(e) => handleTaskbarItemRightClick(e, window.id)}
               >
                 {typeof window.icon === "string" ? (
@@ -262,7 +268,7 @@ export function Taskbar() {
                       alt={window.title}
                       width={16}
                       height={16}
-                      className="w-4 h-4"
+                      className="size-4 drop-shadow"
                     />
                   ) : (
                     <span className="text-lg">{window.icon}</span>
@@ -275,27 +281,27 @@ export function Taskbar() {
                     alt={window.title}
                     width={16}
                     height={16}
-                    className="w-4 h-4"
+                    className="size-4 drop-shadow"
                   />
                 ) : (
-                  <window.icon className="w-4 h-4" />
+                  <window.icon className="size-4" />
                 )}
-                <span className="text-sm text-white font-medium max-w-[120px] truncate">
+                <span className="max-w-[120px] truncate text-sm font-medium text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.85)]">
                   {window.title}
                 </span>
 
                 {/* Close button on hover - inside the button */}
                 <button
-                  className="ml-2 w-4 h-4 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                  className="ml-1 flex size-4 shrink-0 items-center justify-center rounded-sm bg-[#b33227] opacity-0 shadow-[0_1px_0_rgba(255,255,255,0.25)_inset] transition-opacity hover:bg-[#d83b2f] group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation();
                     closeWindow(window.id);
                   }}
                   aria-label="Close window"
                 >
-                  <X className="w-2.5 h-2.5 text-white" />
+                  <X className="size-2.5 text-white" />
                 </button>
-              </button>
+              </div>
 
               {/* Enhanced Aero Peek Preview */}
               <AnimatePresence>

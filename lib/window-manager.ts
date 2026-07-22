@@ -1,20 +1,11 @@
 import { create } from "zustand";
 import type { WindowState, DesktopIcon } from "./types";
-import Image from "next/image";
-import foldericon from "../public/folder.png";
-import computericon from "../public/thispc.png";
-import recyclebinicon from "../public/rycyclebin.png";
-import resumeicon from "../public/pdf.png";
-import linkedinicon from "../public/linkedin.png";
-import gamesicon from "../public/games.png";
-import ieicon from "../public/internet_explorer.png";
-import settingsicon from "../public/settings.png";
-import feedbackicon from "../public/contact.png"; // Using contact icon for feedback
-import calcicon from "../public/calc.png";
+import { getApp, getDesktopIconsFromRegistry } from "./app-registry";
 
 interface WindowManagerState {
   windows: WindowState[];
   nextZIndex: number;
+  nextProcessId: number;
   activeWindowId: string | null;
   desktopIcons: DesktopIcon[];
   isShutdown: boolean;
@@ -46,61 +37,56 @@ interface WindowManagerState {
   saveState: () => void;
 }
 
-const DEFAULT_ICONS: DesktopIcon[] = [
-  {
-    id: "computer",
-    title: "Computer",
-    icon: computericon,
-    component: "ComputerExplorer",
-    position: { x: 20, y: 20 },
-  },
-  {
-    id: "resume",
-    title: "Resume",
-    icon: resumeicon,
-    component: "ResumeWindow",
-    position: { x: 20, y: 120 },
-  },
-  {
-    id: "linkedin",
-    title: "LinkedIn",
-    icon: linkedinicon,
-    component: "PlaceholderWindow", // Not used since it opens in new tab
-    position: { x: 20, y: 220 },
-  },
-  {
-    id: "recycle",
-    title: "Recycle Bin",
-    icon: recyclebinicon,
-    component: "RecycleBin",
-    position: { x: 20, y: 320 },
-  },
-  {
-    id: "ie",
-    title: "Internet Explorer",
-    icon: ieicon,
-    component: "InternetExplorer",
-    position: { x: 20, y: 420 },
-  },
-  {
-    id: "feedback",
-    title: "Reviews & Bugs",
-    icon: feedbackicon,
-    component: "FeedbackWindow",
-    position: { x: 120, y: 20 },
-  },
-  {
-    id: "settings",
-    title: "Control Panel",
-    icon: settingsicon,
-    component: "SettingsWindow",
-    position: { x: 120, y: 120 },
-  },
-];
+const DESKTOP_LAYOUT_VERSION = 3;
+const DEFAULT_ICONS: DesktopIcon[] = getDesktopIconsFromRegistry();
+
+function estimateMemoryMb(component: string, id: string) {
+  const seed = `${component}:${id}`
+    .split("")
+    .reduce((total, char) => total + char.charCodeAt(0), 0);
+  return 42 + (seed % 96);
+}
+
+function serializeWindows(windows: WindowState[]) {
+  return windows.map((window) => ({
+    id: window.id,
+    processId: window.processId,
+    appId: window.appId,
+    title: window.title,
+    icon: window.icon,
+    component: window.component,
+    status: window.status,
+    startedAt: window.startedAt,
+    lastActiveAt: window.lastActiveAt,
+    memoryMb: window.memoryMb,
+    isMinimized: window.isMinimized,
+    isMaximized: window.isMaximized,
+    position: window.position,
+    size: window.size,
+    disableMaximize: window.disableMaximize,
+    metadata: window.metadata,
+  }));
+}
+
+function mergeSavedDesktopIcons(savedIcons: DesktopIcon[]) {
+  const savedById = new Map(savedIcons.map((icon) => [icon.id, icon]));
+  const defaultIds = new Set(DEFAULT_ICONS.map((icon) => icon.id));
+
+  const mergedDefaults = DEFAULT_ICONS.map((defaultIcon) => {
+    const savedIcon = savedById.get(defaultIcon.id);
+    return savedIcon?.position
+      ? { ...defaultIcon, position: savedIcon.position }
+      : defaultIcon;
+  });
+
+  const customIcons = savedIcons.filter((icon) => !defaultIds.has(icon.id));
+  return [...mergedDefaults, ...customIcons];
+}
 
 export const useWindowManager = create<WindowManagerState>((set, get) => ({
   windows: [],
   nextZIndex: 100,
+  nextProcessId: 1000,
   activeWindowId: null,
   desktopIcons: DEFAULT_ICONS,
   isShutdown: false,
@@ -114,8 +100,28 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
+        const savedIcons = Array.isArray(parsed.desktopIcons)
+          && parsed.desktopLayoutVersion === DESKTOP_LAYOUT_VERSION
+          ? parsed.desktopIcons
+          : DEFAULT_ICONS;
+        const savedWindows = Array.isArray(parsed.windows)
+          ? (parsed.windows as WindowState[])
+          : [];
+        const nextProcessId = savedWindows.reduce(
+          (nextId, window) => Math.max(nextId, (window.processId ?? 999) + 1),
+          parsed.nextProcessId ?? 1000,
+        );
         set({
-          desktopIcons: parsed.desktopIcons || DEFAULT_ICONS,
+          desktopIcons: mergeSavedDesktopIcons(savedIcons),
+          windows: savedWindows.map((window, index) => ({
+            ...window,
+            isActive: false,
+            zIndex: 100 + index,
+            status: window.isMinimized ? "minimized" : "running",
+          })),
+          nextZIndex: 100 + savedWindows.length,
+          nextProcessId,
+          activeWindowId: null,
           isShutdown: parsed.isShutdown || false,
           wallpaper: parsed.wallpaper || get().wallpaper,
           taskbarTransparency: parsed.taskbarTransparency ?? 85,
@@ -133,6 +139,9 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     const state = get();
     const stateToSave = {
       desktopIcons: state.desktopIcons,
+      desktopLayoutVersion: DESKTOP_LAYOUT_VERSION,
+      windows: serializeWindows(state.windows),
+      nextProcessId: state.nextProcessId,
       isShutdown: state.isShutdown,
       wallpaper: state.wallpaper,
       taskbarTransparency: state.taskbarTransparency,
@@ -176,7 +185,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     get().saveState();
   },
 
-  openWindow: (window) =>
+  openWindow: (window) => {
     set((state) => {
       // Check if window already exists
       const existingWindow = state.windows.find((w) => w.id === window.id);
@@ -189,6 +198,8 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
                   ...w,
                   isMinimized: false,
                   isActive: true,
+                  status: "running",
+                  lastActiveAt: new Date().toISOString(),
                   zIndex: state.nextZIndex,
                 }
               : { ...w, isActive: false },
@@ -198,39 +209,62 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
         };
       }
 
+      const app = getApp(window.id);
+      const now = new Date().toISOString();
       // Create new window
       return {
         windows: [
           ...state.windows.map((w) => ({ ...w, isActive: false })),
-          { ...window, zIndex: state.nextZIndex, isActive: true },
+          {
+            ...window,
+            appId: app?.id ?? window.id,
+            processId: state.nextProcessId,
+            status: "running",
+            startedAt: now,
+            lastActiveAt: now,
+            memoryMb: estimateMemoryMb(window.component, window.id),
+            zIndex: state.nextZIndex,
+            isActive: true,
+          },
         ],
         nextZIndex: state.nextZIndex + 1,
+        nextProcessId: state.nextProcessId + 1,
         activeWindowId: window.id,
       };
-    }),
+    });
+    get().saveState();
+  },
 
-  closeWindow: (id) =>
+  closeWindow: (id) => {
     set((state) => ({
       windows: state.windows.filter((w) => w.id !== id),
       activeWindowId: state.activeWindowId === id ? null : state.activeWindowId,
-    })),
+    }));
+    get().saveState();
+  },
 
-  minimizeWindow: (id) =>
+  minimizeWindow: (id) => {
     set((state) => ({
       windows: state.windows.map((w) =>
-        w.id === id ? { ...w, isMinimized: true, isActive: false } : w,
+        w.id === id
+          ? { ...w, isMinimized: true, isActive: false, status: "minimized" }
+          : w,
       ),
       activeWindowId: state.activeWindowId === id ? null : state.activeWindowId,
-    })),
+    }));
+    get().saveState();
+  },
 
-  maximizeWindow: (id) =>
+  maximizeWindow: (id) => {
     set((state) => ({
       windows: state.windows.map((w) =>
         w.id === id ? { ...w, isMaximized: !w.isMaximized } : w,
       ),
-    })),
+    }));
+    get().saveState();
+  },
 
-  restoreWindow: (id) =>
+  restoreWindow: (id) => {
     set((state) => ({
       windows: state.windows.map((w) =>
         w.id === id
@@ -238,32 +272,48 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
               ...w,
               isMinimized: false,
               isActive: true,
+              status: "running",
+              lastActiveAt: new Date().toISOString(),
               zIndex: state.nextZIndex,
             }
           : { ...w, isActive: false },
       ),
       nextZIndex: state.nextZIndex + 1,
       activeWindowId: id,
-    })),
+    }));
+    get().saveState();
+  },
 
-  setActiveWindow: (id) =>
+  setActiveWindow: (id) => {
     set((state) => ({
       windows: state.windows.map((w) =>
         w.id === id
-          ? { ...w, isActive: true, zIndex: state.nextZIndex }
+          ? {
+              ...w,
+              isActive: true,
+              status: w.isMinimized ? "minimized" : "running",
+              lastActiveAt: new Date().toISOString(),
+              zIndex: state.nextZIndex,
+            }
           : { ...w, isActive: false },
       ),
       nextZIndex: state.nextZIndex + 1,
       activeWindowId: id,
-    })),
+    }));
+    get().saveState();
+  },
 
-  updateWindowPosition: (id, position) =>
+  updateWindowPosition: (id, position) => {
     set((state) => ({
       windows: state.windows.map((w) => (w.id === id ? { ...w, position } : w)),
-    })),
+    }));
+    get().saveState();
+  },
 
-  updateWindowSize: (id, size) =>
+  updateWindowSize: (id, size) => {
     set((state) => ({
       windows: state.windows.map((w) => (w.id === id ? { ...w, size } : w)),
-    })),
+    }));
+    get().saveState();
+  },
 }));

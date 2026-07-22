@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="folder" x1="9" x2="56" y1="15" y2="53" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f9d36b"/>
+      <stop offset="1" stop-color="#d99a20"/>
+    </linearGradient>
+  </defs>
+  <path d="M8 19c0-3 2-5 5-5h14l5 6h19c3 0 5 2 5 5v4H8z" fill="#f3bd46"/>
+  <rect x="8" y="24" width="48" height="30" rx="5" fill="url(#folder)"/>
+  <rect x="16" y="31" width="32" height="17" rx="3" fill="#fff7d5" opacity=".95"/>
+  <path d="M22 38h20M22 43h13" stroke="#4c5967" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="47" cy="46" r="8" fill="#1f5f99"/>
+  <path d="M44 46l2 2 5-5" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
