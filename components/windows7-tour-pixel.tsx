@@ -49,8 +49,8 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
     return poses[stepIndex % poses.length];
   };
 
-  // Generate the HTML content for a step
-  // "isFinal" keeps the last step with the character below the text
+  // Generate the HTML content for a step.
+  // The character sits outside the speech panel so the bubble reads cleanly.
   const generateStepContent = (
     text: string,
     index: number,
@@ -59,13 +59,14 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
     const imageSrc = getCharacterImage(text);
     const style = getCharacterStyle(index);
 
-    // For all other steps, place the character to the left of the text
     return `
-      <div class="pixel-step-row">
-        <div class="pixel-character-container" style="${style}">
+      <div class="pixel-tour-layout ${isFinal ? "pixel-tour-layout-final" : ""}">
+        <div class="pixel-character-container pixel-character-outside" style="${style}">
           <img src="${imageSrc}" class="pixel-character-img" alt="Guide Character" />
         </div>
-        <div class="pixel-step-text">${text}</div>
+        <div class="pixel-speech-panel">
+          <div class="pixel-step-text">${text}</div>
+        </div>
       </div>
     `;
   };

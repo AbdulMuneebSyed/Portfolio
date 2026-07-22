@@ -2,28 +2,14 @@
 
 import { useState } from "react";
 import { useWindowManager } from "@/lib/window-manager";
-import calc from "../public/calc.png";
+import type { AppRegistryEntry } from "@/lib/types";
+import { getLaunchableApps, searchApps } from "@/lib/app-registry";
 import {
-  Search,
-  ArrowRight,
-  Folder,
   FileText,
   ImageIcon,
   Music,
-  Download,
-  Settings,
-  LogOut,
   Power,
   ChevronRight,
-  User,
-  HardDrive,
-  Wifi,
-  Shield,
-  Printer,
-  HelpCircle,
-  Calculator,
-  Mail,
-  Presentation,
 } from "lucide-react";
 import Image from "next/image";
 import avatar from "../public/avatar.jpg";
@@ -33,37 +19,33 @@ interface StartMenuProps {
 }
 
 export function StartMenu({ onClose }: StartMenuProps) {
-  const { openWindow, desktopIcons, shutdown } = useWindowManager();
+  const { openWindow, shutdown } = useWindowManager();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllPrograms, setShowAllPrograms] = useState(false);
+  const searchResults = searchApps(searchQuery).slice(0, 8);
+  const allPrograms = getLaunchableApps();
 
-  const handleOpenApp = (iconId: string) => {
-    const icon = desktopIcons.find((i) => i.id === iconId);
-    if (icon) {
-      openWindow({
-        id: icon.id,
-        title: icon.title,
-        icon: typeof icon.icon === "string" ? icon.icon : icon.icon.src,
-        component: icon.component,
-        isMinimized: false,
-        isMaximized: false,
-        position: { x: 100 + Math.random() * 200, y: 50 + Math.random() * 100 },
-        size: { width: 800, height: 600 },
-      });
+  const handleOpenRegistryApp = (app: AppRegistryEntry) => {
+    if (app.externalUrl) {
+      window.open(app.externalUrl, "_blank", "noopener,noreferrer");
       onClose();
+      return;
     }
-  };
 
-  const handleOpenPinnedApp = (app: any) => {
     openWindow({
       id: app.id,
       title: app.title,
-      icon: app.icon,
+      icon: typeof app.icon === "string" ? app.icon : app.icon.src,
       component: app.component,
       isMinimized: false,
       isMaximized: false,
-      position: { x: 100 + Math.random() * 200, y: 50 + Math.random() * 100 },
-      size: { width: 400, height: 550 },
+      position:
+        app.defaultPosition ?? {
+          x: 100 + Math.random() * 200,
+          y: 50 + Math.random() * 100,
+        },
+      size: app.defaultSize,
+      metadata: app.metadata,
     });
     onClose();
   };
@@ -88,15 +70,9 @@ export function StartMenu({ onClose }: StartMenuProps) {
     onClose();
   };
 
-  const pinnedApps = [
-    {
-      id: "calculator",
-      title: "Calculator",
-      icon: calc,
-      component: "Calculator",
-      iconBg: "#4A90E2",
-    },
-  ];
+  const pinnedApps = allPrograms.filter((app) =>
+    ["terminal", "task-manager", "calculator"].includes(app.id)
+  );
 
   const rightPanelItems = [
     {
@@ -118,7 +94,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
     <>
       <div className="fixed inset-0 z-[9998]" onClick={onClose} />
       <motion.div
-        className="fixed bottom-10 left-1 w-[280px] sm:w-[350px] md:w-[420px] h-[400px] sm:h-[500px] md:h-[580px] bg-white rounded-t-lg overflow-visible z-[9999] flex shadow-2xl border bg-gradient-to-b from-[#4F8CB8] to-[#326EA0] p-2 sm:p-3 md:p-4 pl-1 pb-1 border-gray-400"
+        className="fixed bottom-10 left-1 z-[9999] flex h-[500px] w-[410px] overflow-visible rounded-t-lg border border-[#6d8fb0] bg-gradient-to-b from-[#8ec4ec]/95 via-[#3d7cae]/95 to-[#255f94]/95 p-[7px] pb-[5px] pl-[5px] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_1px_0_rgba(255,255,255,0.75)_inset] backdrop-blur-md"
         initial={{
           y: 20,
           opacity: 0,
@@ -140,13 +116,13 @@ export function StartMenu({ onClose }: StartMenuProps) {
           duration: 0.2,
         }}
       >
-        <div className="flex-1 rounded-lg bg-white p-0 flex flex-col">
-          <div className="flex-1 p-2">
+        <div className="flex h-full w-[262px] min-w-0 flex-col rounded-md border border-white/70 bg-white p-0 shadow-[0_1px_6px_rgba(0,0,0,0.18)]">
+          <div className="min-h-0 flex-1 overflow-hidden p-2">
             {pinnedApps.map((app, index) => (
               <motion.button
                 key={app.id}
-                className="w-full flex items-center gap-2 sm:gap-3 hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 transition-all text-left rounded-sm group border border-transparent hover:border-blue-300"
-                onClick={() => handleOpenPinnedApp(app)}
+                className="group flex h-[58px] w-full items-center gap-2 rounded-sm border border-transparent px-1 text-left transition-all hover:border-[#7da2ce] hover:bg-gradient-to-r hover:from-[#e8f4ff] hover:to-[#c9e7ff]"
+                onClick={() => handleOpenRegistryApp(app)}
                 initial={{ x: -50, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{
@@ -161,28 +137,29 @@ export function StartMenu({ onClose }: StartMenuProps) {
                   alt={app.title}
                   width={32}
                   height={32}
-                  className="sm:w-[40px] sm:h-[40px] object-contain md:w-[52px] md:h-[52px]"
+                  className="size-10 shrink-0 object-contain"
                 />
-                <div className="flex-1">
-                  <span className="text-xs sm:text-sm font-medium text-gray-900 block">
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold text-gray-900">
                     {app.title}
                   </span>
+                  <span className="block truncate text-[11px] leading-4 text-slate-500">
+                    {app.description}
+                  </span>
                 </div>
-                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight className="size-3.5 shrink-0 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100" />
               </motion.button>
             ))}
 
-            <div className="h-px bg-gray-300 my-4 mx-2" />
+            <div className="mx-2 my-3 h-px bg-gray-300" />
           </div>
-          <div className="border-t border-gray-200 p-2 relative">
+          <div className="relative border-t border-gray-200 p-2">
             <div
               className="relative"
               onMouseEnter={() => {
-                console.log("Mouse entered All Programs");
                 setShowAllPrograms(true);
               }}
               onMouseLeave={() => {
-                console.log("Mouse left All Programs");
                 setShowAllPrograms(false);
               }}
             >
@@ -208,39 +185,29 @@ export function StartMenu({ onClose }: StartMenuProps) {
                   className="absolute left-full bottom-0 w-[250px] sm:w-[280px] md:w-[300px] h-fit bg-white border border-gray-400 shadow-2xl rounded-tr-lg overflow-hidden z-[10000]"
                   style={{ marginLeft: "1px" }}
                 >
-                  <div className="p-2 max-h-full overflow-y-auto">
+                  <div className="max-h-[330px] overflow-y-auto p-2">
                     <div className="text-xs font-semibold text-gray-600 mb-2 px-1">
                       All Programs
                     </div>
-                    {desktopIcons && desktopIcons.length > 0 ? (
-                      desktopIcons.map((icon) => (
+                    {allPrograms.length > 0 ? (
+                      allPrograms.map((app) => (
                         <button
-                          key={icon.id}
+                          key={app.id}
                           className="w-full flex items-center gap-2 px-2 py-1 rounded hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 transition-all text-left border border-transparent hover:border-blue-300"
-                          onClick={() => {
-                            if (icon.id === "linkedin") {
-                              window.open(
-                                "https://www.linkedin.com/in/syed-abdul-muneeb/",
-                                "_blank"
-                              );
-                              onClose();
-                            } else {
-                              handleOpenApp(icon.id);
-                            }
-                          }}
+                          onClick={() => handleOpenRegistryApp(app)}
                         >
                           <Image
                             src={
-                              typeof icon.icon === "string"
-                                ? icon.icon
-                                : icon.icon.src
+                              typeof app.icon === "string"
+                                ? app.icon
+                                : app.icon.src
                             }
-                            alt={icon.title}
+                            alt={app.title}
                             width={16}
                             height={16}
                           />
                           <span className="text-sm text-gray-900">
-                            {icon.title}
+                            {app.title}
                           </span>
                         </button>
                       ))
@@ -255,34 +222,76 @@ export function StartMenu({ onClose }: StartMenuProps) {
             </div>
           </div>
 
-          <div className="p-1 sm:p-2 border-t border-gray-200">
+          <div className="border-t border-gray-200 p-2">
             <div className="relative">
               <input
                 type="text"
                 placeholder="Search programs and files"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-2 pr-6 sm:pr-8 py-1 sm:py-1.5 text-xs sm:text-sm border border-gray-400 rounded-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && searchResults[0]) {
+                    event.preventDefault();
+                    handleOpenRegistryApp(searchResults[0]);
+                  }
+                }}
+                className="h-8 w-full rounded-sm border border-gray-400 px-2 text-[13px] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-200"
               />
+              {searchQuery.trim() && (
+                <div className="absolute bottom-full left-0 mb-1 max-h-56 w-full overflow-auto rounded-sm border border-gray-400 bg-white shadow-xl">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((app) => (
+                      <button
+                        key={app.id}
+                        className="flex w-full items-center gap-2 px-2 py-2 text-left hover:bg-[#dbeeff]"
+                        onClick={() => handleOpenRegistryApp(app)}
+                      >
+                        <Image
+                          src={
+                            typeof app.icon === "string"
+                              ? app.icon
+                              : app.icon.src
+                          }
+                          alt={app.title}
+                          width={18}
+                          height={18}
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-gray-900">
+                            {app.title}
+                          </span>
+                          <span className="block truncate text-[11px] text-gray-500">
+                            {app.category}
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-2 py-3 text-xs text-gray-500">
+                      No apps found
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="w-[120px] sm:w-[150px] md:w-[180px] pt-6 sm:pt-8 md:pt-10 relative bg-gradient-to-b from-[#4F8CB8] to-[#326EA0] p-1 sm:p-2 flex flex-col justify-between">
-          <div className="rounded-xl absolute -top-10 sm:-top-12 md:-top-16 left-1/2 bg-gradient-to-b from-[#4F8CB8] to-[#326EA0] p-1 -translate-x-1/2">
+        <div className="relative flex h-full w-[138px] shrink-0 flex-col justify-between bg-gradient-to-b from-[#6ea6d2]/35 via-[#2f73a8]/35 to-[#174d80]/35 p-2 pt-12 shadow-[1px_0_0_rgba(255,255,255,0.22)_inset]">
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-xl bg-gradient-to-b from-[#4F8CB8] to-[#326EA0] p-1">
             <Image
               src={avatar}
               alt="User Avatar"
-              width={50}
-              height={50}
-              className="sm:w-[60px] sm:h-[60px] md:w-[80px] md:h-[80px] rounded-lg shadow-lg"
+              width={64}
+              height={64}
+              className="size-16 rounded-lg object-cover shadow-lg"
               priority
             />
           </div>
-          <div className="mb-2 sm:mb-3 md:mb-4">
-            <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-2 bg-black/10 rounded-sm border border-white/20">
+          <div className="mb-3">
+            <div className="flex items-center gap-1 rounded-sm border border-white/25 bg-white/10 p-2 shadow-[0_1px_0_rgba(255,255,255,0.18)_inset]">
               <div>
-                <div className="text-xs sm:text-sm font-semibold text-white">
+                <div className="text-[13px] font-semibold leading-5 text-white">
                   Syed Abdul Muneeb
                 </div>
               </div>
@@ -292,25 +301,25 @@ export function StartMenu({ onClose }: StartMenuProps) {
             {rightPanelItems.map((item) => (
               <button
                 key={item.title}
-                className="w-full flex items-center justify-between px-1 sm:px-2 py-1 sm:py-1.5 text-left hover:bg-white/10 transition-colors rounded-sm group"
+                className="group flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-white/95 transition-colors hover:bg-white/15"
                 onClick={() => handleRightPanelItemClick(item)}
               >
                 <div className="flex items-center gap-1 sm:gap-2">
-                  <item.icon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                  <span className="text-xs sm:text-sm text-white">
+                  <item.icon className="size-4 text-white" />
+                  <span className="text-[13px] text-white">
                     {item.title}
                   </span>
                 </div>
               </button>
             ))}
           </div>
-          <div className="flex justify-center items-center mt-2 sm:mt-3 md:mt-4">
+          <div className="mt-3 flex items-center justify-center">
             <button
-              className="w-full flex items-center justify-center px-2 sm:px-3 py-1.5 sm:py-2 rounded-sm bg-gradient-to-b from-[#4F8CB8] to-[#326EA0] hover:from-[#5A96C2] hover:to-[#3A7BB0] transition-all shadow-md border border-[#326EA0]"
+              className="flex w-full items-center justify-center rounded-sm border border-[#184b76] bg-gradient-to-b from-[#8fc6ec] via-[#4f91c3] to-[#2f6f9e] px-2 py-1.5 shadow-[0_1px_0_rgba(255,255,255,0.5)_inset,0_1px_4px_rgba(0,0,0,0.35)] transition-all hover:from-[#a7d8f4] hover:via-[#5da3d5] hover:to-[#337bac]"
               onClick={handleShutdownClick}
             >
-              <Power className="w-3 h-3 sm:w-4 sm:h-4 text-white mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm font-medium text-white">
+              <Power className="mr-1.5 size-4 text-white" />
+              <span className="text-[13px] font-medium text-white">
                 Shut down
               </span>
             </button>

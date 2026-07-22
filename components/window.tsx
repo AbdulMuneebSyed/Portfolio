@@ -205,7 +205,7 @@ export function Window({ window, children }: WindowProps) {
             }
       }
       exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-      className={`absolute rounded-lg overflow-hidden flex flex-col ${
+      className={`absolute rounded-md overflow-hidden flex flex-col ${
         aeroEffects ? "aero-glass" : "bg-white border border-gray-300"
       }`}
       style={{
@@ -216,23 +216,20 @@ export function Window({ window, children }: WindowProps) {
               minimizeTarget.y - window.position.y
             }px`
           : "center",
-        backdropFilter: aeroEffects ? "blur(20px)" : "none",
-        background: aeroEffects
-          ? "rgba(255, 255, 255, 0.1)"
-          : "rgba(255, 255, 255, 1)",
+        backdropFilter: aeroEffects ? "blur(22px) saturate(1.55)" : "none",
       }}
     >
       {/* Title Bar */}
       <div
         className={`${
           window.isActive ? "aero-titlebar-active" : "aero-titlebar-inactive"
-        } px-3 py-4 flex items-center relative justify-between cursor-move select-none`}
+        } h-8 px-2 flex items-center relative justify-between cursor-move select-none`}
         onMouseDown={(e) => {
           setActiveWindow(window.id);
           handleMouseDown(e);
         }}
       >
-        {/* <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2 pr-32">
           <Image
             src={
               typeof window.icon === "string" ? window.icon : window.icon.src
@@ -240,41 +237,42 @@ export function Window({ window, children }: WindowProps) {
             alt={window.title}
             width={16}
             height={16}
+            className="size-4 shrink-0 drop-shadow-sm"
           />
-          <span className="text-sm font-medium text-[#000]">
+          <span className="truncate text-xs font-semibold text-[#081827] drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]">
             {window.title}
           </span>
-        </div> */}
-        <div className="flex items-center gap-1 rounded-b-lg text-white overflow-hidden bg-slate-400/90 fixed right-2 top-0">
+        </div>
+        <div className="absolute right-2 top-0 flex items-center overflow-hidden rounded-b-md border border-t-0 border-white/35 bg-slate-500/50 text-white shadow-md">
           <button
-            className="aero-button w-8 h-6 flex items-center text-white justify-center rounded hover:bg-white/30"
+            className="aero-button flex h-5 w-8 items-center justify-center border-y-0 border-l-0 border-r-white/20 text-white hover:bg-white/30"
             onClick={() => minimizeWindow(window.id)}
             aria-label="Minimize"
           >
-            <Minus className="w-4 h-4 text-[#fff]" />
+            <Minus className="size-3.5 text-[#fff]" />
           </button>
           {!window.disableMaximize && (
             <button
-              className="aero-button w-8 h-6 flex items-center text-white justify-center rounded hover:bg-white/30"
+              className="aero-button flex h-5 w-8 items-center justify-center border-y-0 border-l-0 border-r-white/20 text-white hover:bg-white/30"
               onClick={() => maximizeWindow(window.id)}
               aria-label="Maximize"
             >
-              <Square className="w-3.5 h-3.5 text-[#f6f2f2]" />
+              <Square className="size-3 text-[#f6f2f2]" />
             </button>
           )}
           <button
-            className="aero-button text-white w-12 h-6 flex items-center bg-red-700 justify-center rounded hover:bg-red-500/80 hover:text-white"
+            className="aero-button flex h-5 w-12 items-center justify-center border-y-0 border-r-0 bg-gradient-to-b from-[#ee9488] via-[#c84232] to-[#8d170d] text-white hover:from-[#ffb2a8] hover:via-[#e64a3b] hover:to-[#a91b10] hover:text-white"
             onClick={() => closeWindow(window.id)}
             aria-label="Close"
           >
-            <X className="w-4 h-4" />
+            <X className="size-3.5" />
           </button>
         </div>
       </div>
 
       {/* Window Content */}
       <div
-        className="flex-1 bg-white overflow-auto"
+        className="m-1 mt-0 flex-1 overflow-auto rounded-sm border border-[#7d9fbd] bg-white shadow-[0_1px_0_rgba(255,255,255,0.72)]"
         onMouseDown={() => setActiveWindow(window.id)}
       >
         {children}
