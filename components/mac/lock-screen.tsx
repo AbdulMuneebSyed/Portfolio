@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { BatteryCharging, BatteryFull, Keyboard, Wifi } from "lucide-react";
 import avatar from "../../public/avatar-256.jpg";
 import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 import { useWindowManager } from "@/lib/window-manager";
@@ -17,6 +17,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const hasUnlockedRef = useRef(false);
   const savedWallpaper = useWindowManager((state) => state.wallpaper);
+  const battery = useBatteryStatus();
 
   useEffect(() => {
     setNow(new Date());
@@ -45,10 +46,13 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
     : "";
   const date =
     now?.toLocaleDateString("en-GB", {
-      weekday: "long",
-      month: "long",
+      weekday: "short",
       day: "numeric",
+      month: "short",
     }) ?? "";
+
+  // Translucent white so the wallpaper tints the text, like macOS vibrancy.
+  const vibrantText = "text-white/70 [text-shadow:0_1px_8px_rgba(0,0,0,0.08)]";
 
   return (
     <motion.div
@@ -62,39 +66,104 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
       }}
       onClick={unlock}
     >
-      <div className="absolute inset-0 bg-black/10" />
-
-      <div className="relative z-10 mt-[9vh] text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]">
-        <div className="text-[22px] font-semibold text-white/85">{date}</div>
-        <div className="text-[112px] font-bold leading-[1.05] tracking-[-0.02em] text-white/90">
-          {time}
-        </div>
+      {/* Status icons, top-right */}
+      <div className="absolute right-4 top-0 z-10 flex h-[30px] items-center gap-4 text-[13px] font-medium text-white">
+        <span className="flex items-center gap-1.5">
+          ABC <Keyboard className="size-[15px]" strokeWidth={1.75} />
+        </span>
+        {battery?.charging ? (
+          <BatteryCharging className="size-[19px]" strokeWidth={1.75} />
+        ) : (
+          <BatteryFull className="size-[19px]" strokeWidth={1.75} />
+        )}
+        <Wifi className="size-4" strokeWidth={2.25} />
       </div>
 
-      <div className="relative z-10 mt-auto mb-[12vh] flex flex-col items-center gap-3">
-        <Image
-          src={avatar}
-          alt="Syed Abdul Muneeb"
-          width={88}
-          height={88}
-          priority
-          className="size-[88px] rounded-full object-cover shadow-[0_8px_30px_rgba(0,0,0,0.4)] ring-2 ring-white/40"
-        />
-        <div className="text-lg font-semibold drop-shadow">Syed Abdul Muneeb</div>
+      <div className="relative z-10 mt-[8.5vh] flex flex-col items-center text-center">
+        <div className={`text-[clamp(22px,3.3vh,34px)] font-semibold ${vibrantText}`}>
+          {date}
+        </div>
+        <div
+          className={`-mt-[0.5vh] text-[clamp(96px,15.5vh,156px)] font-bold leading-[1] tracking-[-0.025em] ${vibrantText}`}
+        >
+          {time}
+        </div>
+        {battery && (
+          <div className={`mt-[1.5vh] flex items-center gap-2 text-[clamp(16px,2.4vh,24px)] font-semibold ${vibrantText}`}>
+            {battery.charging ? (
+              <BatteryCharging className="size-[1.2em]" strokeWidth={2} />
+            ) : (
+              <BatteryFull className="size-[1.2em]" strokeWidth={2} />
+            )}
+            {battery.level}%
+          </div>
+        )}
+      </div>
+
+      <div className="relative z-10 mt-auto mb-[5.5vh] flex flex-col items-center">
         <button
           onClick={(e) => {
             e.stopPropagation();
             unlock();
           }}
-          className="flex items-center gap-2 rounded-full border border-white/30 bg-white/20 px-5 py-1.5 text-sm font-medium backdrop-blur-xl hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label="Unlock"
+          className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
-          Enter portfolio
-          <ArrowRight className="size-4" />
+          <Image
+            src={avatar}
+            alt="Syed Abdul Muneeb"
+            width={52}
+            height={52}
+            priority
+            className="size-[clamp(44px,5.4vh,56px)] rounded-full object-cover shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
+          />
         </button>
-        <div className="text-xs text-white/75">
-          Click anywhere or press Enter to unlock
+        <div className="mt-[1.4vh] text-[clamp(14px,1.8vh,18px)] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+          Syed Abdul Muneeb
+        </div>
+        <div className="mt-[1vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+          Click or press Enter to unlock
         </div>
       </div>
     </motion.div>
   );
+}
+
+type BatteryStatus = { level: number; charging: boolean };
+
+// Real battery level where the browser exposes it (Chromium); null elsewhere.
+function useBatteryStatus() {
+  const [status, setStatus] = useState<BatteryStatus | null>(null);
+
+  useEffect(() => {
+    const nav = navigator as Navigator & {
+      getBattery?: () => Promise<{
+        level: number;
+        charging: boolean;
+        addEventListener: (type: string, listener: () => void) => void;
+        removeEventListener: (type: string, listener: () => void) => void;
+      }>;
+    };
+    if (!nav.getBattery) return;
+
+    let cleanup = () => {};
+    nav.getBattery().then((battery) => {
+      const update = () =>
+        setStatus({
+          level: Math.round(battery.level * 100),
+          charging: battery.charging,
+        });
+      update();
+      battery.addEventListener("levelchange", update);
+      battery.addEventListener("chargingchange", update);
+      cleanup = () => {
+        battery.removeEventListener("levelchange", update);
+        battery.removeEventListener("chargingchange", update);
+      };
+    }).catch(() => {});
+
+    return () => cleanup();
+  }, []);
+
+  return status;
 }
