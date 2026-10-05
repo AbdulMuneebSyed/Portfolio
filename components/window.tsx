@@ -5,8 +5,8 @@ import type React from "react";
 import { useRef, useState, useEffect } from "react";
 import { useWindowManager } from "@/lib/window-manager";
 import type { WindowState } from "@/lib/types";
-import { X, Minus, Square } from "lucide-react";
-import Image from "next/image";
+import { X, Minus, Plus } from "lucide-react";
+import { DOCK_RESERVED_HEIGHT, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import { motion } from "framer-motion";
 
 interface WindowProps {
@@ -20,7 +20,6 @@ export function Window({ window, children }: WindowProps) {
     minimizeWindow,
     maximizeWindow,
     setActiveWindow,
-    aeroEffects,
     updateWindowPosition,
     updateWindowSize,
   } = useWindowManager();
@@ -43,9 +42,11 @@ export function Window({ window, children }: WindowProps) {
 
   useEffect(() => {
     if (window.isMinimized) {
-      const taskbarItem = document.getElementById(`taskbar-item-${window.id}`);
-      if (taskbarItem) {
-        const rect = taskbarItem.getBoundingClientRect();
+      const dockItem = document.getElementById(
+        `dock-item-${window.appId ?? window.id}`
+      );
+      if (dockItem) {
+        const rect = dockItem.getBoundingClientRect();
         setMinimizeTarget({
           x: rect.left + rect.width / 2,
           y: rect.top + rect.height / 2,
@@ -81,7 +82,7 @@ export function Window({ window, children }: WindowProps) {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
         const newX = e.clientX - dragOffset.x;
-        const newY = Math.max(0, e.clientY - dragOffset.y);
+        const newY = Math.max(MENU_BAR_HEIGHT, e.clientY - dragOffset.y);
         updateWindowPosition(window.id, { x: newX, y: newY });
       } else if (isResizing) {
         const deltaX = e.clientX - resizeStart.x;
@@ -148,172 +149,182 @@ export function Window({ window, children }: WindowProps) {
     updateWindowSize,
   ]);
 
-  // if (window.isMinimized) return null;
+  const viewportWidth =
+    typeof globalThis !== "undefined" ? globalThis.innerWidth : 1200;
+  const viewportHeight =
+    typeof globalThis !== "undefined" ? globalThis.innerHeight : 800;
 
   const style = window.isMaximized
-    ? { top: 0, left: 0, width: "100vw", height: "calc(100vh - 48px)" }
+    ? {
+        top: MENU_BAR_HEIGHT,
+        left: 0,
+        width: "100vw",
+        height: `calc(100vh - ${MENU_BAR_HEIGHT + DOCK_RESERVED_HEIGHT}px)`,
+      }
     : {
         top: Math.max(
-          0,
-          Math.min(
-            window.position.y,
-            (typeof globalThis !== "undefined" ? globalThis.innerHeight : 800) -
-              100
-          )
+          MENU_BAR_HEIGHT,
+          Math.min(window.position.y, viewportHeight - 100)
         ),
-        left: Math.max(
-          0,
-          Math.min(
-            window.position.x,
-            (typeof globalThis !== "undefined" ? globalThis.innerWidth : 1200) -
-              200
-          )
-        ),
-        width: Math.min(
-          window.size.width,
-          (typeof globalThis !== "undefined" ? globalThis.innerWidth : 1200) -
-            20
-        ),
+        left: Math.max(0, Math.min(window.position.x, viewportWidth - 200)),
+        width: Math.min(window.size.width, viewportWidth - 20),
         height: Math.min(
           window.size.height,
-          (typeof globalThis !== "undefined" ? globalThis.innerHeight : 800) -
-            60
+          viewportHeight - MENU_BAR_HEIGHT - 20
         ),
       };
+
+  const trafficLight =
+    "flex size-3 items-center justify-center rounded-full border";
 
   return (
     <motion.div
       ref={windowRef}
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={
-        window.isMinimized && minimizeTarget
+        window.isMinimized
           ? {
               opacity: 0,
-              scale: 0,
-              transition: {
-                duration: 0.4,
-                ease: [0.4, 0, 0.2, 1],
-                opacity: { duration: 0.3, delay: 0.1 },
-              },
+              scale: 0.1,
+              transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
               transitionEnd: { display: "none" },
             }
           : {
               opacity: 1,
               scale: 1,
               display: "flex",
-              transition: { duration: 0.3, ease: "easeOut" },
+              transition: { duration: 0.22, ease: "easeOut" },
             }
       }
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-      className={`absolute rounded-md overflow-hidden flex flex-col ${
-        aeroEffects ? "aero-glass" : "bg-white border border-gray-300"
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+      className={`absolute flex flex-col overflow-hidden bg-white ${
+        window.isMaximized ? "rounded-none" : "rounded-[10px]"
+      } ${
+        window.isActive
+          ? "shadow-[0_22px_70px_rgba(0,0,0,0.45),0_0_0_0.5px_rgba(0,0,0,0.35)]"
+          : "shadow-[0_10px_30px_rgba(0,0,0,0.25),0_0_0_0.5px_rgba(0,0,0,0.25)]"
       }`}
       style={{
         ...style,
         zIndex: window.zIndex,
         transformOrigin: minimizeTarget
-          ? `${minimizeTarget.x - window.position.x}px ${
-              minimizeTarget.y - window.position.y
+          ? `${minimizeTarget.x - Number(style.left)}px ${
+              minimizeTarget.y - Number(style.top)
             }px`
-          : "center",
-        backdropFilter: aeroEffects ? "blur(22px) saturate(1.55)" : "none",
+          : "center bottom",
       }}
     >
-      {/* Title Bar */}
+      {/* Title bar */}
       <div
-        className={`${
-          window.isActive ? "aero-titlebar-active" : "aero-titlebar-inactive"
-        } h-8 px-2 flex items-center relative justify-between cursor-move select-none`}
+        className={`relative flex h-9 shrink-0 select-none items-center border-b px-3 ${
+          window.isActive
+            ? "border-black/10 bg-gradient-to-b from-[#f6f6f6] to-[#e8e8e8]"
+            : "border-black/5 bg-[#f6f6f6]"
+        }`}
         onMouseDown={(e) => {
           setActiveWindow(window.id);
           handleMouseDown(e);
         }}
+        onDoubleClick={() => !window.disableMaximize && maximizeWindow(window.id)}
       >
-        <div className="flex min-w-0 items-center gap-2 pr-32">
-          <Image
-            src={
-              typeof window.icon === "string" ? window.icon : window.icon.src
-            }
-            alt={window.title}
-            width={16}
-            height={16}
-            className="size-4 shrink-0 drop-shadow-sm"
-          />
-          <span className="truncate text-xs font-semibold text-[#081827] drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]">
-            {window.title}
-          </span>
-        </div>
-        <div className="absolute right-2 top-0 flex items-center overflow-hidden rounded-b-md border border-t-0 border-white/35 bg-slate-500/50 text-white shadow-md">
+        <div
+          className="group flex items-center gap-2"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <button
-            className="aero-button flex h-5 w-8 items-center justify-center border-y-0 border-l-0 border-r-white/20 text-white hover:bg-white/30"
-            onClick={() => minimizeWindow(window.id)}
-            aria-label="Minimize"
-          >
-            <Minus className="size-3.5 text-[#fff]" />
-          </button>
-          {!window.disableMaximize && (
-            <button
-              className="aero-button flex h-5 w-8 items-center justify-center border-y-0 border-l-0 border-r-white/20 text-white hover:bg-white/30"
-              onClick={() => maximizeWindow(window.id)}
-              aria-label="Maximize"
-            >
-              <Square className="size-3 text-[#f6f2f2]" />
-            </button>
-          )}
-          <button
-            className="aero-button flex h-5 w-12 items-center justify-center border-y-0 border-r-0 bg-gradient-to-b from-[#ee9488] via-[#c84232] to-[#8d170d] text-white hover:from-[#ffb2a8] hover:via-[#e64a3b] hover:to-[#a91b10] hover:text-white"
-            onClick={() => closeWindow(window.id)}
+            className={`${trafficLight} ${
+              window.isActive
+                ? "border-[#e0443e] bg-[#ff5f57]"
+                : "border-black/10 bg-[#dcdcdc] group-hover:border-[#e0443e] group-hover:bg-[#ff5f57]"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeWindow(window.id);
+            }}
             aria-label="Close"
           >
-            <X className="size-3.5" />
+            <X className="size-2 text-[#4d0000] opacity-0 group-hover:opacity-100" strokeWidth={3} />
+          </button>
+          <button
+            className={`${trafficLight} ${
+              window.isActive
+                ? "border-[#dea123] bg-[#febc2e]"
+                : "border-black/10 bg-[#dcdcdc] group-hover:border-[#dea123] group-hover:bg-[#febc2e]"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              minimizeWindow(window.id);
+            }}
+            aria-label="Minimize"
+          >
+            <Minus className="size-2 text-[#5a3d00] opacity-0 group-hover:opacity-100" strokeWidth={3} />
+          </button>
+          <button
+            className={`${trafficLight} ${
+              window.disableMaximize
+                ? "border-black/10 bg-[#dcdcdc]"
+                : window.isActive
+                ? "border-[#1aab29] bg-[#28c840]"
+                : "border-black/10 bg-[#dcdcdc] group-hover:border-[#1aab29] group-hover:bg-[#28c840]"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!window.disableMaximize) maximizeWindow(window.id);
+            }}
+            disabled={window.disableMaximize}
+            aria-label="Zoom"
+          >
+            {!window.disableMaximize && (
+              <Plus className="size-2 text-[#00400a] opacity-0 group-hover:opacity-100" strokeWidth={3} />
+            )}
           </button>
         </div>
+        <span
+          className={`pointer-events-none absolute inset-x-24 truncate text-center text-[13px] font-semibold ${
+            window.isActive ? "text-[#3c3c3c]" : "text-[#9a9a9a]"
+          }`}
+        >
+          {window.title}
+        </span>
       </div>
 
-      {/* Window Content */}
+      {/* Content */}
       <div
-        className="m-1 mt-0 flex-1 overflow-auto rounded-sm border border-[#7d9fbd] bg-white shadow-[0_1px_0_rgba(255,255,255,0.72)]"
+        className="flex-1 overflow-auto bg-white"
         onMouseDown={() => setActiveWindow(window.id)}
       >
         {children}
       </div>
 
-      {/* Resize Handles */}
+      {/* Resize handles */}
       {!window.isMaximized && (
         <>
-          {/* Corner resize handles */}
           <div
-            className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute bottom-0 right-0 h-4 w-4 cursor-nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-right")}
           />
           <div
-            className="absolute top-0 right-0 w-4 h-4 cursor-nesw-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute right-0 top-0 h-4 w-4 cursor-nesw-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "top-right")}
           />
           <div
-            className="absolute top-0 left-0 w-4 h-4 cursor-nwse-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute left-0 top-0 h-4 w-4 cursor-nwse-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "top-left")}
           />
           <div
-            className="absolute bottom-0 left-0 w-4 h-4 cursor-nesw-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute bottom-0 left-0 h-4 w-4 cursor-nesw-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom-left")}
           />
-
-          {/* Edge resize handles */}
           <div
-            className="absolute top-0 left-4 right-4 h-2 cursor-ns-resize bg-transparent hover:bg-blue-500/20"
-            onMouseDown={(e) => handleResizeMouseDown(e, "top")}
-          />
-          <div
-            className="absolute bottom-0 left-4 right-4 h-2 cursor-ns-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute bottom-0 left-4 right-4 h-1.5 cursor-ns-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom")}
           />
           <div
-            className="absolute left-0 top-4 bottom-4 w-2 cursor-ew-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute bottom-4 left-0 top-9 w-1.5 cursor-ew-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "left")}
           />
           <div
-            className="absolute right-0 top-4 bottom-4 w-2 cursor-ew-resize bg-transparent hover:bg-blue-500/20"
+            className="absolute bottom-4 right-0 top-9 w-1.5 cursor-ew-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "right")}
           />
         </>
