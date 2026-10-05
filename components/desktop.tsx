@@ -90,6 +90,7 @@ export function Desktop({ onLock }: DesktopProps) {
     resetIconPositions,
   } = useWindowManager();
   const brightness = useSystemControls((state) => state.brightness);
+  const darkMode = useSystemControls((state) => state.darkMode);
   const loadControls = useSystemControls((state) => state.loadControls);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -113,6 +114,12 @@ export function Desktop({ onLock }: DesktopProps) {
     loadState();
     loadControls();
   }, [loadState, loadControls]);
+
+  // Control Center's Dark Mode applies to the whole shell (and portals).
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    return () => document.documentElement.classList.remove("dark");
+  }, [darkMode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

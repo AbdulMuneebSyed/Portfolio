@@ -218,8 +218,8 @@ export function Window({ window, children }: WindowProps) {
       <div
         className={`relative flex h-[30px] shrink-0 select-none items-center border-b px-[13px] ${
           window.isActive
-            ? "border-black/10 bg-[#ececec]"
-            : "border-black/5 bg-[#f6f6f6]"
+            ? "border-black/10 bg-[#ececec] dark:border-black/60 dark:bg-[#2c2c2e]"
+            : "border-black/5 bg-[#f6f6f6] dark:border-black/60 dark:bg-[#323234]"
         }`}
         onMouseDown={(e) => {
           setActiveWindow(window.id);
@@ -281,7 +281,9 @@ export function Window({ window, children }: WindowProps) {
         </div>
         <span
           className={`pointer-events-none absolute inset-x-24 truncate text-center text-[13px] font-semibold ${
-            window.isActive ? "text-[#4d4d4d]" : "text-[#b0b0b0]"
+            window.isActive
+              ? "text-[#4d4d4d] dark:text-[#e5e5e7]"
+              : "text-[#b0b0b0] dark:text-[#8e8e93]"
           }`}
         >
           {window.title}

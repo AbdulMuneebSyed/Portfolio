@@ -59,7 +59,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.1 } }}
             transition={{ duration: 0.15 }}
-            className="font-mac absolute inset-x-0 top-[22%] mx-auto w-[680px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[14px] border border-black/10 bg-[#ececec]/80 shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl backdrop-saturate-150"
+            className="font-mac absolute inset-x-0 top-[22%] mx-auto w-[680px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[14px] border border-black/10 bg-[#ececec]/80 dark:border-white/10 dark:bg-[#2c2c2e]/85 shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl backdrop-saturate-150"
             onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
             role="dialog"
             aria-label="Spotlight search"
@@ -72,12 +72,12 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Spotlight Search"
-                className="flex-1 bg-transparent text-[22px] font-light text-[#1d1d1f] outline-none placeholder:text-[#8e8e93]"
+                className="flex-1 bg-transparent text-[22px] font-light text-[#1d1d1f] outline-none dark:text-white placeholder:text-[#8e8e93]"
                 aria-label="Search apps"
               />
             </div>
             {results.length > 0 ? (
-              <ul className="max-h-[360px] overflow-y-auto border-t border-black/10 p-1.5">
+              <ul className="max-h-[360px] overflow-y-auto border-t border-black/10 p-1.5 dark:border-white/10">
                 {results.map((app, index) => (
                   <li key={app.id}>
                     <button
@@ -86,7 +86,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                       className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left ${
                         index === selected
                           ? "bg-[#0a82ff] text-white"
-                          : "text-[#1d1d1f]"
+                          : "text-[#1d1d1f] dark:text-white"
                       }`}
                     >
                       <AppIcon appId={app.id} size={30} />
@@ -96,7 +96,9 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                         </span>
                         <span
                           className={`block truncate text-xs ${
-                            index === selected ? "text-white/80" : "text-[#6e6e73]"
+                            index === selected
+                              ? "text-white/80"
+                              : "text-[#6e6e73] dark:text-white/55"
                           }`}
                         >
                           {app.description}

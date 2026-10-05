@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   BatteryCharging,
   BatteryFull,
@@ -363,11 +363,6 @@ export function MenuBar({
           <button {...statusItemProps("control", "Control Center")}>
             <ControlCenterIcon />
           </button>
-          {openMenuId === "control" && (
-            <div className="absolute right-0 top-[calc(100%+1px)]">
-              <ControlCenter onClose={closeMenus} />
-            </div>
-          )}
         </div>
         <button
           {...statusItemProps("clock", "Notification Center")}
@@ -384,8 +379,26 @@ export function MenuBar({
       {typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>
+            {openMenuId === "control" && (
+              <motion.div
+                key="control-center"
+                ref={panelRef}
+                initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.12 } }}
+                transition={{ duration: 0.16 }}
+                className="font-mac fixed right-3 z-[9600] origin-top-right"
+                style={{ top: MENU_BAR_HEIGHT + 8 }}
+              >
+                <ControlCenter
+                  onClose={closeMenus}
+                  onShowWifi={() => setOpenMenuId("wifi")}
+                />
+              </motion.div>
+            )}
             {openMenuId === "clock" && (
               <div
+                key="notification-center"
                 ref={panelRef}
                 className="font-mac fixed right-2 z-[9600]"
                 style={{ top: MENU_BAR_HEIGHT + 8 }}
@@ -410,11 +423,11 @@ function MenuDropdown({
   return (
     <div
       role="menu"
-      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
+      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] dark:border-white/10 dark:bg-[#2c2c2e]/95 dark:text-[#f5f5f7] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
     >
       {items.map((item, index) =>
         "separator" in item ? (
-          <div key={index} className="mx-2 my-1 h-px bg-black/10" />
+          <div key={index} className="mx-2 my-1 h-px bg-black/10 dark:bg-white/10" />
         ) : (
           <button
             key={index}
@@ -424,7 +437,7 @@ function MenuDropdown({
               item.onSelect();
               onClose();
             }}
-            className="flex w-full items-center gap-1.5 rounded-[4px] px-2 py-[2px] text-left enabled:hover:bg-[#0a82ff] enabled:hover:text-white disabled:text-black/30"
+            className="flex w-full items-center gap-1.5 rounded-[4px] px-2 py-[2px] text-left enabled:hover:bg-[#0a82ff] enabled:hover:text-white disabled:text-black/30 dark:disabled:text-white/30"
           >
             <span className="w-3 text-xs">{item.checked ? "✓" : ""}</span>
             <span className="flex-1 truncate">{item.label}</span>

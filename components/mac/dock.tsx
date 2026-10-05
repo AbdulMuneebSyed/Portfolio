@@ -107,7 +107,7 @@ function DockItem({ appId, mouseX, isRunning }: DockItemProps) {
       className="relative flex shrink-0 items-end justify-center focus:outline-none"
     >
       {isHovered && (
-        <span className="pointer-events-none absolute -top-8 whitespace-nowrap rounded-[6px] border border-black/10 bg-[#ececec]/90 px-2.5 py-[3px] text-[13px] text-[#1d1d1f] shadow-md backdrop-blur">
+        <span className="pointer-events-none absolute -top-8 whitespace-nowrap rounded-[6px] border border-black/10 bg-[#ececec]/90 px-2.5 py-[3px] text-[13px] text-[#1d1d1f] dark:border-white/10 dark:bg-[#2c2c2e]/90 dark:text-white shadow-md backdrop-blur">
           {app.title}
         </span>
       )}
