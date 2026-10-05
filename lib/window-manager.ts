@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { WindowState, DesktopIcon } from "./types";
 import { getApp, getDesktopIconsFromRegistry } from "./app-registry";
-import { WIN7_WALLPAPER } from "@/lib/wallpapers";
+import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 
 interface WindowManagerState {
   windows: WindowState[];
@@ -91,13 +91,13 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   activeWindowId: null,
   desktopIcons: DEFAULT_ICONS,
   isShutdown: false,
-  wallpaper: WIN7_WALLPAPER,
+  wallpaper: DEFAULT_WALLPAPER,
   taskbarTransparency: 85,
   aeroEffects: true,
   loadState: () => {
     if (typeof window === "undefined") return;
 
-    const savedState = localStorage.getItem("win7-desktop-state-v4");
+    const savedState = localStorage.getItem("muneebos-mac-state-v1");
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
@@ -147,7 +147,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       aeroEffects: state.aeroEffects,
     };
 
-    localStorage.setItem("win7-desktop-state-v4", JSON.stringify(stateToSave));
+    localStorage.setItem("muneebos-mac-state-v1", JSON.stringify(stateToSave));
   },
 
   updateIconPosition: (id, position) => {

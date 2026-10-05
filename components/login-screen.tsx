@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ArrowRight, Power, Wifi, Volume2 } from "lucide-react";
 import avatar from "../public/avatar.jpg";
 import windowsLogo from "../public/windowsstart.png";
-import { WIN7_WALLPAPER } from "@/lib/wallpapers";
+import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -52,7 +52,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     <div className="relative flex h-dvh w-dvw overflow-hidden bg-[#0d315f] text-white">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: WIN7_WALLPAPER }}
+        style={{ backgroundImage: DEFAULT_WALLPAPER }}
       />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(255,255,255,0.38),transparent_26%),linear-gradient(180deg,rgba(1,32,78,0.18),rgba(2,16,35,0.45)_58%,rgba(1,8,17,0.72))]" />
 

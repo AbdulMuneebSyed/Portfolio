@@ -12,7 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
-import { WIN7_WALLPAPER } from "@/lib/wallpapers";
+import { MAC_WALLPAPERS } from "@/lib/wallpapers";
 
 export function SettingsWindow() {
   const [activeTab, setActiveTab] = useState<
@@ -22,7 +22,6 @@ export function SettingsWindow() {
     wallpaper,
     setWallpaper,
     taskbarTransparency,
-    setTaskbarTransparency,
     aeroEffects,
     setAeroEffects,
   } = useWindowManager();
@@ -80,28 +79,11 @@ export function SettingsWindow() {
     });
   }, []);
 
-  const wallpapers = [
-    {
-      id: "default",
-      name: "Windows 7 Blue",
-      url: WIN7_WALLPAPER,
-    },
-    {
-      id: "xp",
-      name: "Windows XP Bliss",
-      url: "url(/xp.jpg)",
-    },
-    {
-      id: "win10",
-      name: "Windows 10",
-      url: "url(/10.jpg)",
-    },
-    {
-      id: "black",
-      name: "Black",
-      url: "url(/black.png)",
-    },
-  ];
+  const wallpapers = MAC_WALLPAPERS.map((wp) => ({
+    id: wp.id,
+    name: wp.name,
+    url: wp.css,
+  }));
 
   const handleWallpaperChange = (wallpaperUrl: string) => {
     setWallpaper(wallpaperUrl);
@@ -114,7 +96,7 @@ export function SettingsWindow() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "win7-settings.json";
+    link.download = "muneebos-settings.json";
     link.click();
   };
 
@@ -202,32 +184,6 @@ export function SettingsWindow() {
                     </p>
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Taskbar Transparency
-              </h3>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={settings.taskbarTransparency}
-                  onChange={(e) => {
-                    const transparency = Number.parseInt(e.target.value);
-                    setSettings((prev) => ({
-                      ...prev,
-                      taskbarTransparency: transparency,
-                    }));
-                    setTaskbarTransparency(transparency);
-                  }}
-                  className="flex-1"
-                />
-                <span className="text-sm font-medium text-gray-700 w-12">
-                  {settings.taskbarTransparency}%
-                </span>
               </div>
             </div>
 

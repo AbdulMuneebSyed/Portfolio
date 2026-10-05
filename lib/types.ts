@@ -38,6 +38,7 @@ export interface AppRegistryEntry {
   defaultSize: { width: number; height: number };
   defaultIconPosition?: { x: number; y: number };
   showOnDesktop?: boolean;
+  desktopTitle?: string;
   searchable?: boolean;
   launchAliases?: string[];
   externalUrl?: string;
