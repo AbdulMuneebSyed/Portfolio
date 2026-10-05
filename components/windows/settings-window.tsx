@@ -12,6 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
+import { WIN7_WALLPAPER } from "@/lib/wallpapers";
 
 export function SettingsWindow() {
   const [activeTab, setActiveTab] = useState<
@@ -82,8 +83,8 @@ export function SettingsWindow() {
   const wallpapers = [
     {
       id: "default",
-      name: "Windows 7 Default",
-      url: "url(https://wparena.com/wp-content/uploads/2009/09/img0.jpg)",
+      name: "Windows 7 Blue",
+      url: WIN7_WALLPAPER,
     },
     {
       id: "xp",

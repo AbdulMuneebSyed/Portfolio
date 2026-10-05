@@ -1,19 +1,17 @@
 "use client";
 
-import type React from "react";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowRight, Power, Wifi, Volume2 } from "lucide-react";
 import avatar from "../public/avatar.jpg";
 import windowsLogo from "../public/windowsstart.png";
+import { WIN7_WALLPAPER } from "@/lib/wallpapers";
 
 interface LoginScreenProps {
   onLogin: () => void;
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [password, setPassword] = useState("");
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [time, setTime] = useState<Date | null>(null);
 
@@ -23,13 +21,23 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     return () => window.clearInterval(interval);
   }, []);
 
-  const handleLogin = (event?: React.FormEvent) => {
-    event?.preventDefault();
-    if (isWelcoming) return;
+  const hasLoggedInRef = useRef(false);
+
+  const handleLogin = () => {
+    if (hasLoggedInRef.current) return;
+    hasLoggedInRef.current = true;
 
     setIsWelcoming(true);
     window.setTimeout(onLogin, 950);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") handleLogin();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   const formattedTime =
     time?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) ?? "";
@@ -44,7 +52,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     <div className="relative flex h-dvh w-dvw overflow-hidden bg-[#0d315f] text-white">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/xp.jpg')" }}
+        style={{ backgroundImage: WIN7_WALLPAPER }}
       />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(255,255,255,0.38),transparent_26%),linear-gradient(180deg,rgba(1,32,78,0.18),rgba(2,16,35,0.45)_58%,rgba(1,8,17,0.72))]" />
 
@@ -74,33 +82,17 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                 <h1 className="mb-3 text-[28px] font-light drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]">
                   Syed Abdul Muneeb
                 </h1>
-                <form
-                  onSubmit={handleLogin}
-                  className="flex items-center rounded-sm border border-[#526b82] bg-white p-0.5 shadow-[0_2px_7px_rgba(0,0,0,0.45)]"
-                >
-                  <input
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    type="password"
-                    aria-label="Password"
-                    placeholder="Password"
-                    className="h-8 w-56 bg-white px-2 text-sm text-black outline-none placeholder:text-slate-500"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    aria-label="Log in"
-                    className="flex size-8 items-center justify-center rounded-sm border border-[#496579] bg-gradient-to-b from-[#eef7ff] to-[#8eb8d6] text-[#193c57] shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] hover:from-white hover:to-[#a8cbe2]"
-                  >
-                    <ArrowRight className="size-4" />
-                  </button>
-                </form>
                 <button
                   onClick={() => handleLogin()}
-                  className="mt-4 rounded px-3 py-1 text-xs text-white/85 drop-shadow hover:bg-white/10"
+                  autoFocus
+                  className="flex items-center gap-2 rounded-sm border border-[#496579] bg-gradient-to-b from-[#eef7ff] to-[#8eb8d6] px-6 py-2 text-sm font-semibold text-[#193c57] shadow-[0_2px_7px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.9)_inset] hover:from-white hover:to-[#a8cbe2] focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 >
-                  Log on without password
+                  Enter portfolio
+                  <ArrowRight className="size-4" />
                 </button>
+                <div className="mt-3 text-xs text-white/80 drop-shadow">
+                  No password needed. Press Enter or click to continue.
+                </div>
               </>
             )}
           </div>

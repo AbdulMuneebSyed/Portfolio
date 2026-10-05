@@ -10,8 +10,9 @@ import {
   Send,
   Github,
   Linkedin,
-  Twitter,
+  FileText,
 } from "lucide-react";
+import { supabase } from "@/lib/supabase-client";
 
 export function ContactWindow() {
   const [formData, setFormData] = useState({
@@ -20,20 +21,42 @@ export function ContactWindow() {
     subject: "",
     message: "",
   });
-  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle"
+  );
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("sending");
+    if (status !== "idle") return;
 
-    // Simulate sending
-    setTimeout(() => {
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setErrorMessage("Please fill in name, email, and message.");
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 2500);
+      return;
+    }
+
+    setStatus("sending");
+    setErrorMessage("");
+
+    try {
+      const { error } = await supabase.from("bugs_and_suggestions").insert({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        report_text: `[CONTACT FORM] Subject: ${
+          formData.subject.trim() || "(no subject)"
+        }\n\n${formData.message.trim()}`,
+      });
+      if (error) throw error;
       setStatus("sent");
-      setTimeout(() => {
-        setStatus("idle");
-        setFormData({ name: "", email: "", subject: "", message: "" });
-      }, 3000);
-    }, 1500);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setTimeout(() => setStatus("idle"), 3500);
+    } catch (err: any) {
+      setErrorMessage(err?.message || "Something went wrong. Try emailing me directly.");
+      setStatus("error");
+      setTimeout(() => setStatus("idle"), 4000);
+    }
   };
 
   const handleChange = (
@@ -47,11 +70,11 @@ export function ContactWindow() {
       <div className="p-8 max-w-5xl mx-auto w-full">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Get In Touch</h1>
         <p className="text-gray-600 mb-8">
-          Have a question or want to work together? I'd love to hear from you!
+          Have a question, an opportunity, or want to build something together?
+          Message me — I read every note.
         </p>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Contact Form */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Send a Message
@@ -106,7 +129,6 @@ export function ContactWindow() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -131,13 +153,13 @@ export function ContactWindow() {
 
               <button
                 type="submit"
-                disabled={status !== "idle"}
+                disabled={status === "sending" || status === "sent"}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {status === "sending" ? (
                   "Sending..."
                 ) : status === "sent" ? (
-                  "Message Sent!"
+                  "Message sent — thanks!"
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
@@ -145,10 +167,12 @@ export function ContactWindow() {
                   </>
                 )}
               </button>
+              {status === "error" && errorMessage && (
+                <div className="text-sm text-red-600">{errorMessage}</div>
+              )}
             </form>
           </div>
 
-          {/* Contact Info */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Contact Information
@@ -159,10 +183,10 @@ export function ContactWindow() {
                 <div>
                   <p className="font-medium text-gray-900">Email</p>
                   <a
-                    href="mailto:john.doe@email.com"
+                    href="mailto:samuneeb786@gmail.com"
                     className="text-blue-600 hover:underline"
                   >
-                    john.doe@email.com
+                    samuneeb786@gmail.com
                   </a>
                 </div>
               </div>
@@ -172,10 +196,10 @@ export function ContactWindow() {
                 <div>
                   <p className="font-medium text-gray-900">Phone</p>
                   <a
-                    href="tel:+15551234567"
+                    href="tel:+919966782707"
                     className="text-blue-600 hover:underline"
                   >
-                    +1 (555) 123-4567
+                    +91 99667 82707
                   </a>
                 </div>
               </div>
@@ -184,7 +208,7 @@ export function ContactWindow() {
                 <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
                 <div>
                   <p className="font-medium text-gray-900">Location</p>
-                  <p className="text-gray-600">San Francisco, CA</p>
+                  <p className="text-gray-600">Hyderabad, India</p>
                 </div>
               </div>
             </div>
@@ -194,7 +218,7 @@ export function ContactWindow() {
             </h3>
             <div className="flex gap-3">
               <a
-                href="https://github.com"
+                href="https://github.com/AbdulMuneebSyed"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -212,13 +236,13 @@ export function ContactWindow() {
                 <Linkedin className="w-6 h-6 text-blue-700" />
               </a>
               <a
-                href="https://twitter.com"
+                href="/Syed Abdul Muneeb's SDE Resume (15).pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-12 h-12 flex items-center justify-center bg-sky-100 hover:bg-sky-200 rounded-lg transition-colors"
-                aria-label="Twitter"
+                className="w-12 h-12 flex items-center justify-center bg-emerald-100 hover:bg-emerald-200 rounded-lg transition-colors"
+                aria-label="Resume"
               >
-                <Twitter className="w-6 h-6 text-sky-700" />
+                <FileText className="w-6 h-6 text-emerald-700" />
               </a>
             </div>
           </div>

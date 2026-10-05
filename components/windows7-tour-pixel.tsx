@@ -11,6 +11,8 @@ interface Windows7TourProps {
   onSkip: () => void;
 }
 
+const TOUR_ICON_IDS = ["about", "projects", "resume", "contact"];
+
 export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
   const { desktopIcons } = useWindowManager();
   const tourRef = useRef<any>(null);
@@ -23,7 +25,7 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
     ) {
       return "/torch-linkedIn.png";
     } else if (
-      content.includes("Quest complete") ||
+      content.includes("That's the tour") ||
       content.includes("coding quests be bug-free")
     ) {
       return "/torch-final.png";
@@ -119,11 +121,37 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
     });
 
     // Steps for icons
-    desktopIcons.forEach((icon, index) => {
+    // Only tour the icons that matter to a visitor; the rest are
+    // discoverable on their own.
+    const tourIcons = TOUR_ICON_IDS.map((id) =>
+      desktopIcons.find((icon) => icon.id === id)
+    ).filter((icon): icon is (typeof desktopIcons)[number] => Boolean(icon));
+
+    tourIcons.forEach((icon, index) => {
       const selector = `[data-icon-id="${icon.id}"]`;
       let content = "";
 
       switch (icon.id) {
+        case "about":
+          content =
+            "🙋 About Me: my experience at Pulsegen, MathonGO and Capco, plus skills and awards.";
+          break;
+        case "projects":
+          content =
+            "🚀 Projects: real work I've shipped, like AiResumate, GetMarks and LaunchPad.";
+          break;
+        case "contact":
+          content =
+            "✉️ Contact: send me a message from here and it lands with me directly.";
+          break;
+        case "github-activity":
+          content =
+            "🐙 My GitHub: recent activity and repositories, pulled live.";
+          break;
+        case "terminal":
+          content =
+            "⌨️ A terminal! Type 'help', or 'open projects' to launch apps by name.";
+          break;
         case "computer":
           content =
             "🗂️ This is *This PC*.Does what a normal 'this PC' does. Listen music,play games and much more to come";
@@ -207,11 +235,10 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
 
     // Final Step
     const finalText =
-      '🎉 Quest complete, brave explorer! This "MuneebOS 7"  is really my portfolio in disguise. Click icons, drag windows, and uncover my projects. And if you find treasure worth sharing, connect with me on LinkedIn or check my resume. The site is still under heavy development and many interesting things will be added in coming time. May your exploring quests be bug-free! ⚔️✨';
-
+      "🎉 That's the tour! Everything else on the desktop (Terminal, GitHub, games in Computer) is yours to explore. If you like what you see, say hi through Contact or LinkedIn. ⚔️✨";
     tourSteps.push({
       id: "final",
-      text: generateStepContent(finalText, desktopIcons.length + 1, true),
+      text: generateStepContent(finalText, tourIcons.length + 1, true),
       buttons: [
         {
           classes: "shepherd-button",

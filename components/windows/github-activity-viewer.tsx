@@ -27,7 +27,19 @@ type GitHubRepo = {
   stargazers_count: number;
   forks_count: number;
   updated_at: string;
+  fork?: boolean;
 };
+
+// Events that show actual coding work; housekeeping like Delete, Member,
+// and Watch is noise for a visitor.
+const MEANINGFUL_EVENT_TYPES = new Set([
+  "PushEvent",
+  "PullRequestEvent",
+  "PullRequestReviewEvent",
+  "CreateEvent",
+  "ReleaseEvent",
+  "IssuesEvent",
+]);
 
 const fallbackEvents: GitHubEvent[] = [
   {
@@ -106,7 +118,7 @@ export function GitHubActivityViewer() {
       const [eventsResponse, reposResponse] = await Promise.all([
         fetch(`https://api.github.com/users/${cleanUsername}/events/public`),
         fetch(
-          `https://api.github.com/users/${cleanUsername}/repos?sort=updated&per_page=8`
+          `https://api.github.com/users/${cleanUsername}/repos?sort=updated&per_page=20`
         ),
       ]);
 
@@ -117,8 +129,13 @@ export function GitHubActivityViewer() {
       const nextEvents = (await eventsResponse.json()) as GitHubEvent[];
       const nextRepos = (await reposResponse.json()) as GitHubRepo[];
 
-      setEvents(nextEvents.length ? nextEvents.slice(0, 12) : fallbackEvents);
-      setRepos(nextRepos.length ? nextRepos : fallbackRepos);
+      const codingEvents = nextEvents.filter((event) =>
+        MEANINGFUL_EVENT_TYPES.has(event.type)
+      );
+      const ownRepos = nextRepos.filter((repo) => !repo.fork).slice(0, 8);
+
+      setEvents(codingEvents.length ? codingEvents.slice(0, 12) : fallbackEvents);
+      setRepos(ownRepos.length ? ownRepos : fallbackRepos);
       setUsername(cleanUsername);
       setStatus("ready");
       setMessage(

@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import type { DesktopIcon } from "@/lib/types";
 import { useWindowManager } from "@/lib/window-manager";
 import { getApp } from "@/lib/app-registry";
+import { nearestFreeCell } from "@/lib/desktop-grid";
 import Image from "next/image";
 import { DesktopIconContextMenu } from "./desktop-icon-context-menu";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,56 +15,94 @@ interface DesktopIconProps {
   icon: DesktopIcon;
 }
 
-const GRID_SIZE = 100; // Grid cell size in pixels
+// Pixels the mouse must travel before a press becomes a drag, so a plain
+// click (or the first half of a double-click) never moves the icon.
+const DRAG_THRESHOLD = 4;
 
 export function DesktopIconComponent({ icon }: DesktopIconProps) {
   const { openWindow, updateIconPosition } = useWindowManager();
   const [lastClick, setLastClick] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isSnapping, setIsSnapping] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
   } | null>(null);
   const iconRef = useRef<HTMLDivElement>(null);
-
-  const snapToGrid = (value: number) => {
-    return Math.round(value / GRID_SIZE) * GRID_SIZE;
-  };
+  // Read by the document listeners; state alone would be stale between
+  // a fast mousemove and mouseup.
+  const draggingRef = useRef(false);
+  const pressRef = useRef<{
+    startX: number;
+    startY: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
 
   useEffect(() => {
-    if (!isDragging) return;
+    const getContainer = () =>
+      iconRef.current?.offsetParent as HTMLElement | null | undefined;
+
+    // Icon positions are relative to the icon container, not the viewport.
+    const toContainerPosition = (event: MouseEvent) => {
+      const press = pressRef.current;
+      const rect = getContainer()?.getBoundingClientRect();
+      if (!press || !rect) return null;
+      return {
+        x: Math.max(0, event.clientX - rect.left - press.offsetX),
+        y: Math.max(0, event.clientY - rect.top - press.offsetY),
+      };
+    };
 
     const handleMouseMove = (event: MouseEvent) => {
-      const nextX = Math.max(0, event.clientX - dragOffset.x);
-      const nextY = Math.max(0, event.clientY - dragOffset.y);
-      updateIconPosition(icon.id, { x: nextX, y: nextY });
+      const press = pressRef.current;
+      if (!press) return;
+
+      if (!draggingRef.current) {
+        const moved = Math.hypot(
+          event.clientX - press.startX,
+          event.clientY - press.startY
+        );
+        if (moved < DRAG_THRESHOLD) return;
+        draggingRef.current = true;
+        setIsDragging(true);
+      }
+
+      const position = toContainerPosition(event);
+      if (position) updateIconPosition(icon.id, position);
     };
 
     const handleMouseUp = (event: MouseEvent) => {
-      const nextX = snapToGrid(Math.max(0, event.clientX - dragOffset.x));
-      const nextY = snapToGrid(Math.max(0, event.clientY - dragOffset.y));
+      const wasDragging = draggingRef.current;
+      const position = wasDragging ? toContainerPosition(event) : null;
+      const container = getContainer();
+      pressRef.current = null;
+      draggingRef.current = false;
+      if (!wasDragging || !position || !container) return;
+
+      const occupied = useWindowManager
+        .getState()
+        .desktopIcons.filter((other) => other.id !== icon.id)
+        .map((other) => other.position);
+      const snapped = nearestFreeCell(position, occupied, {
+        width: container.clientWidth,
+        height: container.clientHeight,
+      });
+
       setIsDragging(false);
       setIsSnapping(true);
-      updateIconPosition(icon.id, { x: nextX, y: nextY });
+      updateIconPosition(icon.id, snapped);
       window.setTimeout(() => setIsSnapping(false), 180);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp, { once: true });
+    document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [
-    dragOffset.x,
-    dragOffset.y,
-    icon.id,
-    isDragging,
-    updateIconPosition,
-  ]);
+  }, [icon.id, updateIconPosition]);
 
   const handleOpen = () => {
     const app = getApp(icon.id);
@@ -124,11 +163,12 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     setLastClick(now);
     const rect = iconRef.current?.getBoundingClientRect();
     if (rect) {
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
-      setIsDragging(true);
+      pressRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top,
+      };
     }
   };
 
@@ -142,7 +182,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
         }}
         whileTap={{ scale: 0.95, backgroundColor: "rgba(255, 255, 255, 0.25)" }}
         data-icon-id={icon.id}
-        className={`desktop-icon flex flex-col items-center justify-center w-[64px] h-[72px] sm:w-[72px] sm:h-[80px] md:w-[80px] md:h-[88px] select-none transition-colors ${
+        className={`desktop-icon flex flex-col items-center justify-start pt-1 w-[64px] h-[72px] sm:w-[72px] sm:h-[80px] md:w-[80px] md:h-[88px] select-none transition-colors ${
           isDragging ? "opacity-70" : ""
         } ${isSnapping ? "snapping" : ""}`}
         style={{

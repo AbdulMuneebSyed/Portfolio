@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     siteName: "Syed Abdul Muneeb Portfolio",
     images: [
       {
-        url: "/windowslogo.png", // Using existing asset
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Muneeb OS Portfolio",
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     title: "Syed Abdul Muneeb - Software Engineer Portfolio",
     description:
       "Welcome to Muneeb OS! An interactive Windows 7-style portfolio showcasing my work as a Software Engineer.",
-    images: ["/windowslogo.png"],
+    images: ["/og-image.png"],
     creator: "@muneeb", // Placeholder, user can update
   },
   icons: {

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { WindowState, DesktopIcon } from "./types";
 import { getApp, getDesktopIconsFromRegistry } from "./app-registry";
+import { WIN7_WALLPAPER } from "@/lib/wallpapers";
 
 interface WindowManagerState {
   windows: WindowState[];
@@ -37,7 +38,7 @@ interface WindowManagerState {
   saveState: () => void;
 }
 
-const DESKTOP_LAYOUT_VERSION = 3;
+const DESKTOP_LAYOUT_VERSION = 5;
 const DEFAULT_ICONS: DesktopIcon[] = getDesktopIconsFromRegistry();
 
 function estimateMemoryMb(component: string, id: string) {
@@ -90,7 +91,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   activeWindowId: null,
   desktopIcons: DEFAULT_ICONS,
   isShutdown: false,
-  wallpaper: "url('/xp.jpg')",
+  wallpaper: WIN7_WALLPAPER,
   taskbarTransparency: 85,
   aeroEffects: true,
   loadState: () => {
@@ -122,7 +123,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           nextZIndex: 100 + savedWindows.length,
           nextProcessId,
           activeWindowId: null,
-          isShutdown: parsed.isShutdown || false,
           wallpaper: parsed.wallpaper || get().wallpaper,
           taskbarTransparency: parsed.taskbarTransparency ?? 85,
           aeroEffects: parsed.aeroEffects ?? true,
@@ -142,7 +142,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       desktopLayoutVersion: DESKTOP_LAYOUT_VERSION,
       windows: serializeWindows(state.windows),
       nextProcessId: state.nextProcessId,
-      isShutdown: state.isShutdown,
       wallpaper: state.wallpaper,
       taskbarTransparency: state.taskbarTransparency,
       aeroEffects: state.aeroEffects,

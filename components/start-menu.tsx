@@ -70,9 +70,9 @@ export function StartMenu({ onClose }: StartMenuProps) {
     onClose();
   };
 
-  const pinnedApps = allPrograms.filter((app) =>
-    ["terminal", "task-manager", "calculator"].includes(app.id)
-  );
+  const pinnedApps = ["about", "projects", "resume", "contact", "github-activity", "terminal"]
+    .map((id) => allPrograms.find((app) => app.id === id))
+    .filter((app): app is (typeof allPrograms)[number] => Boolean(app));
 
   const rightPanelItems = [
     {

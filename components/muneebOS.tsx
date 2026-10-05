@@ -56,35 +56,35 @@ const PROFILE_CARDS: ProfileCard[] = [
   {
     id: "now",
     title: "Right now",
-    subtitle: "Product Designer",
-    description: "Crafting playful web experiences.",
+    subtitle: "SDE Intern @ Pulsegen",
+    description: "Search and adoption tracking for a 400K+ account SaaS.",
     accent: "from-sky-500/70 to-cyan-400/70",
   },
   {
     id: "latest",
-    title: "Latest project",
-    subtitle: "Torch Mobile",
-    description: "An immersive productivity OS in the browser.",
+    title: "Co-founder",
+    subtitle: "AiResumate",
+    description: "AI resume platform built on Gemini, GPT, and Claude.",
     accent: "from-purple-500/70 to-pink-500/70",
   },
   {
     id: "reach-out",
     title: "Let’s talk",
-    subtitle: "Always open",
+    subtitle: "Open to SDE roles",
     description: "Swipe for contact options and collabs.",
     accent: "from-emerald-500/70 to-lime-400/70",
   },
   {
     id: "latest-archive",
-    title: "Torch beta",
-    subtitle: "Designing future workflows",
-    description: "Experimenting with motion-driven UX systems.",
+    title: "Previously",
+    subtitle: "MathonGO (GetMarks)",
+    description: "Leaderboards, NEET v2, and an LMS for 30K+ daily learners.",
     accent: "from-orange-500/70 to-amber-400/70",
   },
   {
     id: "connect",
     title: "Mail me",
-    subtitle: "hello@muneeb.design",
+    subtitle: "samuneeb786@gmail.com",
     description: "Let’s ship something memorable together.",
     accent: "from-rose-500/70 to-pink-500/70",
   },
@@ -126,7 +126,7 @@ type MobileAppMeta = {
 
 const MOBILE_APP_META: Record<MobileAppId, MobileAppMeta> = {
   chrome: {
-    title: "Chrome",
+    title: "Projects",
     subtitle: "Projects and demos",
     icon: "/chrome.png",
   },
@@ -348,22 +348,22 @@ const shuffleArray = <T,>(input: T[]): T[] => {
 const NOTIFICATIONS: NotificationItem[] = [
   {
     id: "notif-1",
-    title: "Torch v2 is live",
-    description: "Check out the new animation system you shipped yesterday.",
+    title: "AiResumate is live",
+    description: "AI resume scoring and rewriting at airesumate.com.",
     time: "2m",
     accent: "bg-white/85",
   },
   {
     id: "notif-2",
-    title: "Portfolio feedback",
-    description: "Sara sent detailed thoughts on the Windows nostalgia flow.",
+    title: "Now at Pulsegen",
+    description: "Building search and RBAC for a 400K+ account SaaS.",
     time: "18m",
     accent: "bg-white/85",
   },
   {
     id: "notif-3",
-    title: "Coffee run?",
-    description: "Arsalan dropped a calendar invite for 4:15pm.",
+    title: "Open to SDE roles",
+    description: "Tap Contact in the dock to reach me.",
     time: "1h",
     accent: "bg-white/85",
   },
@@ -2212,7 +2212,7 @@ const HomeScreen = ({
     () => [
       {
         id: "chrome",
-        label: "Chrome",
+        label: "Projects",
         icon: "/chrome.png",
         onPress: () => onOpenApp("chrome"),
       },
@@ -2242,7 +2242,7 @@ const HomeScreen = ({
     () => [
       {
         id: "chrome",
-        title: "Chrome",
+        title: "Projects",
         subtitle: "Projects, demos, and links",
         icon: "/chrome.png",
         onPress: () => onOpenApp("chrome"),
@@ -3120,9 +3120,7 @@ export const MuneebOS = () => {
     }
     unlockingTouchRef.current = true;
     setIsUnlocking(true);
-    if (unlockTimerRef.current) {
-      clearTimeout(unlockTimerRef.current);
-    }
+    if (unlockTimerRef.current) return;
 
     unlockTimerRef.current = setTimeout(() => {
       setIsUnlocking(false);
@@ -3133,12 +3131,9 @@ export const MuneebOS = () => {
     }, 1300);
   }, [registerRipple]);
 
+  // A tap is enough: releasing early lets the unlock animation finish
+  // instead of cancelling it.
   const handleFingerprintEnd = useCallback(() => {
-    if (unlockTimerRef.current) {
-      clearTimeout(unlockTimerRef.current);
-      unlockTimerRef.current = null;
-      setIsUnlocking(false);
-    }
     unlockingTouchRef.current = false;
   }, []);
 

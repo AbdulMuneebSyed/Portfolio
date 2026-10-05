@@ -101,7 +101,7 @@ export function TerminalWindow() {
         },
         {
           kind: "output",
-          text: "Try: open projects | open github | open mail | open recycle | open taskmgr",
+          text: "Try: open about | open projects | open contact | open github | open resume",
         },
       ]);
       return;
@@ -111,7 +111,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Syed Abdul Muneeb - software developer focused on modern web apps, AI tooling, and polished product UI.",
+          text: "Syed Abdul Muneeb - full-stack SDE. SDE Intern at Pulsegen; previously MathonGO (GetMarks) and Capco-CS. Co-founder of AiResumate.",
         },
       ]);
       return;
@@ -121,9 +121,9 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Featured: E-Commerce Platform, Task Management App, AI Chat Assistant, Portfolio OS.",
+          text: "Featured: AiResumate, GetMarks (MathonGO), LaunchPad, Capco-CS Vendor Portal, E-Cell Hackathon Platform.",
         },
-        { kind: "output", text: "Run 'open projects' for the pro explorer." },
+        { kind: "output", text: "Run 'open projects' for details." },
       ]);
       return;
     }
@@ -132,7 +132,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Next.js, React, TypeScript, Tailwind CSS, Supabase, Node.js, PostgreSQL, API design.",
+          text: "TypeScript, React, Next.js, Node.js, ASP.NET Core, MongoDB, PostgreSQL, Redis, AWS, Docker, GenAI.",
         },
       ]);
       return;
@@ -142,7 +142,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Run 'open mail' to compose a message and manage contacts.",
+          text: "Email samuneeb786@gmail.com, or run 'open contact' to send a message.",
         },
       ]);
       return;
