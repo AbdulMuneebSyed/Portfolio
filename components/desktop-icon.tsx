@@ -5,11 +5,11 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import type { DesktopIcon } from "@/lib/types";
 import { useWindowManager } from "@/lib/window-manager";
-import { getApp } from "@/lib/app-registry";
+import { AppIcon } from "@/lib/app-icons";
+import { launchApp } from "@/lib/launch-app";
 import { nearestFreeCell } from "@/lib/desktop-grid";
-import Image from "next/image";
 import { DesktopIconContextMenu } from "./desktop-icon-context-menu";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
 interface DesktopIconProps {
   icon: DesktopIcon;
@@ -19,11 +19,14 @@ interface DesktopIconProps {
 // click (or the first half of a double-click) never moves the icon.
 const DRAG_THRESHOLD = 4;
 
+// Desktop files are anchored to the top-right corner like Finder:
+// `position.x` is the distance from the container's right edge.
 export function DesktopIconComponent({ icon }: DesktopIconProps) {
-  const { openWindow, updateIconPosition } = useWindowManager();
+  const { updateIconPosition } = useWindowManager();
   const [lastClick, setLastClick] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isSnapping, setIsSnapping] = useState(false);
+  const [isSelected, setIsSelected] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -35,7 +38,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
   const pressRef = useRef<{
     startX: number;
     startY: number;
-    offsetX: number;
+    offsetRight: number;
     offsetY: number;
   } | null>(null);
 
@@ -43,13 +46,12 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     const getContainer = () =>
       iconRef.current?.offsetParent as HTMLElement | null | undefined;
 
-    // Icon positions are relative to the icon container, not the viewport.
     const toContainerPosition = (event: MouseEvent) => {
       const press = pressRef.current;
       const rect = getContainer()?.getBoundingClientRect();
       if (!press || !rect) return null;
       return {
-        x: Math.max(0, event.clientX - rect.left - press.offsetX),
+        x: Math.max(0, rect.right - event.clientX - press.offsetRight),
         y: Math.max(0, event.clientY - rect.top - press.offsetY),
       };
     };
@@ -95,58 +97,35 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       window.setTimeout(() => setIsSnapping(false), 180);
     };
 
+    const handleDocumentMouseDown = (event: MouseEvent) => {
+      if (!iconRef.current?.contains(event.target as Node)) {
+        setIsSelected(false);
+      }
+    };
+
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("mousedown", handleDocumentMouseDown);
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
     };
   }, [icon.id, updateIconPosition]);
 
-  const handleOpen = () => {
-    const app = getApp(icon.id);
-
-    if (app?.externalUrl) {
-      window.open(app.externalUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    // Special handling for Games icon to open Computer Explorer with Games folder
-    const isGamesIcon = icon.id === "games";
-
-    const metadata = isGamesIcon
-      ? {
-          initialPath: [
-            "Computer",
-            "Local Disk (C:)",
-            "Program Files",
-            "Games",
-          ],
-        }
-      : undefined;
-
-    openWindow({
-      id: icon.id,
-      title: icon.title,
-      icon: typeof icon.icon === "string" ? icon.icon : icon.icon.src,
-      component: icon.component,
-      isMinimized: false,
-      isMaximized: false,
-      position: { x: 100 + Math.random() * 200, y: 50 + Math.random() * 100 },
-      size: app?.defaultSize ?? { width: 800, height: 600 },
-      metadata: app?.metadata ?? metadata,
-    });
-  };
+  const handleOpen = () => launchApp(icon.id);
 
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsSelected(true);
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return; // Only left click
+    setIsSelected(true);
 
     const now = Date.now();
     const timeDiff = now - lastClick;
@@ -166,7 +145,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       pressRef.current = {
         startX: e.clientX,
         startY: e.clientY,
-        offsetX: e.clientX - rect.left,
+        offsetRight: rect.right - e.clientX,
         offsetY: e.clientY - rect.top,
       };
     }
@@ -174,22 +153,16 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
 
   return (
     <>
-      <motion.div
+      <div
         ref={iconRef}
-        whileHover={{
-          scale: 1.05,
-          backgroundColor: "rgba(255, 255, 255, 0.15)",
-        }}
-        whileTap={{ scale: 0.95, backgroundColor: "rgba(255, 255, 255, 0.25)" }}
         data-icon-id={icon.id}
-        className={`desktop-icon flex flex-col items-center justify-start pt-1 w-[64px] h-[72px] sm:w-[72px] sm:h-[80px] md:w-[80px] md:h-[88px] select-none transition-colors ${
+        className={`desktop-icon absolute flex h-[92px] w-[84px] select-none flex-col items-center justify-start gap-1 pt-1 ${
           isDragging ? "opacity-70" : ""
         } ${isSnapping ? "snapping" : ""}`}
         style={{
-          position: "absolute",
-          left: icon.position.x,
+          right: icon.position.x,
           top: icon.position.y,
-          cursor: isDragging ? "grabbing" : "pointer",
+          cursor: isDragging ? "grabbing" : "default",
         }}
         onMouseDown={handleMouseDown}
         onContextMenu={handleRightClick}
@@ -198,17 +171,21 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
           setContextMenu(null); // Close context menu on click
         }}
       >
-        <Image
-          src={typeof icon.icon === "string" ? icon.icon : icon.icon.src}
-          alt={icon.title}
-          width={40}
-          height={40}
-          className="sm:w-[44px] sm:h-[44px] md:w-[48px] md:h-[48px]"
-        />
-        <div className="text-[10px] sm:text-xs text-white text-center font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] pointer-events-none mt-1 max-w-full break-words leading-tight">
+        <span
+          className={`rounded-md p-1 ${isSelected ? "bg-black/25" : ""}`}
+        >
+          <AppIcon appId={icon.id} size={52} />
+        </span>
+        <span
+          className={`pointer-events-none max-w-full rounded px-1 text-center text-xs font-medium leading-tight text-white ${
+            isSelected
+              ? "bg-[#0a63e1]"
+              : "drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
+          }`}
+        >
           {icon.title}
-        </div>
-      </motion.div>
+        </span>
+      </div>
 
       {/* Context Menu */}
       <AnimatePresence>

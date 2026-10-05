@@ -13,7 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
-import { getApp } from "@/lib/app-registry";
+import { launchApp } from "@/lib/launch-app";
 
 function formatStartedAt(value?: string) {
   if (!value) return "--";
@@ -64,21 +64,7 @@ export function TaskManagerWindow() {
     };
   }, [windows]);
 
-  const launchTerminal = () => {
-    const terminal = getApp("terminal");
-    if (!terminal) return;
-
-    openWindow({
-      id: terminal.id,
-      title: terminal.title,
-      icon: typeof terminal.icon === "string" ? terminal.icon : terminal.icon.src,
-      component: terminal.component,
-      isMinimized: false,
-      isMaximized: false,
-      position: terminal.defaultPosition ?? { x: 140, y: 80 },
-      size: terminal.defaultSize,
-    });
-  };
+  const launchTerminal = () => launchApp("terminal");
 
   const focusSelected = () => {
     if (!selectedWindow) return;
@@ -104,7 +90,7 @@ export function TaskManagerWindow() {
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <MonitorDot className="size-4 text-sky-700" />
-            MuneebOS Task Manager
+            Activity Monitor
           </div>
           <button
             onClick={launchTerminal}

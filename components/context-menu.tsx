@@ -1,4 +1,5 @@
 "use client";
+import type React from "react";
 
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
@@ -7,7 +8,6 @@ interface ContextMenuItem {
   label?: string;
   disabled?: boolean;
   separator?: boolean;
-  submenu?: ContextMenuItem[];
   onClick?: () => void;
 }
 
@@ -42,30 +42,40 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
     };
   }, [onClose]);
 
+  // Keep the menu inside the viewport.
+  const menuWidth = 220;
+  const menuHeight = items.length * 24 + 8;
+  const left =
+    typeof window !== "undefined" && x + menuWidth > window.innerWidth
+      ? x - menuWidth
+      : x;
+  const top =
+    typeof window !== "undefined" && y + menuHeight > window.innerHeight
+      ? Math.max(0, y - menuHeight)
+      : y;
+
   return (
     <motion.div
       ref={menuRef}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
-      transition={{ duration: 0.1 }}
-      className="context-menu fixed z-[10000] min-w-[200px] bg-[#f0f0f0] border border-[#999] rounded shadow-lg py-1"
-      style={{ left: x, top: y }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.1 } }}
+      transition={{ duration: 0.08 }}
+      className="fixed z-[10000] min-w-[220px] rounded-lg border border-black/10 bg-[#f2f2f2]/85 p-1 text-[13px] text-[#1d1d1f] shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
+      style={{ left, top }}
+      onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
     >
       {items.map((item, index) => {
         if (item.separator) {
-          return <div key={index} className="h-px bg-[#d7d7d7] my-1 mx-2" />;
+          return <div key={index} className="mx-2 my-1 h-px bg-black/10" />;
         }
 
         return (
           <button
             key={index}
-            className={`w-full px-4 py-1.5 text-left text-sm flex items-center justify-between ${
-              item.disabled
-                ? "text-gray-400 cursor-not-allowed"
-                : "text-gray-800 hover:bg-[#3399ff] hover:text-white cursor-pointer"
-            }`}
-            onClick={() => {
+            className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-[3px] text-left enabled:hover:bg-[#0a63e1] enabled:hover:text-white disabled:text-black/30"
+            onClick={(e) => {
+              e.stopPropagation();
               if (!item.disabled && item.onClick) {
                 item.onClick();
                 onClose();
@@ -74,7 +84,6 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
             disabled={item.disabled}
           >
             <span>{item.label}</span>
-            {item.submenu && <span className="ml-4">▶</span>}
           </button>
         );
       })}

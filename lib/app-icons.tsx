@@ -24,7 +24,7 @@ type IconSpec =
   | { image: string };
 
 const ICONS: Record<string, IconSpec> = {
-  about: { image: "/avatar.jpg" },
+  about: { image: "/avatar-256.jpg" },
   projects: { glyph: Folder, from: "#6cc4ff", to: "#1f7ae0" },
   resume: { glyph: FileText, from: "#ff7a6e", to: "#d93025" },
   contact: { glyph: Mail, from: "#5ac8fa", to: "#0a6cf0" },

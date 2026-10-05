@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useWindowManager } from "@/lib/window-manager";
+import { launchApp } from "@/lib/launch-app";
 import { findAppByAlias, getLaunchableApps } from "@/lib/app-registry";
 
 type TerminalLine = {
@@ -16,7 +16,7 @@ const initialLines: TerminalLine[] = [
   {
     id: "boot",
     kind: "output",
-    text: "MuneebOS Terminal [Version 7.1.7601]",
+    text: "Last login: just now on ttys000",
   },
   {
     id: "hint",
@@ -26,14 +26,13 @@ const initialLines: TerminalLine[] = [
 ];
 
 export function TerminalWindow() {
-  const { openWindow } = useWindowManager();
   const [input, setInput] = useState("");
   const [lines, setLines] = useState<TerminalLine[]>(initialLines);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  const prompt = useMemo(() => "C:\\Users\\Muneeb>", []);
+  const prompt = useMemo(() => "muneeb@MuneebOS ~ %", []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
@@ -56,23 +55,7 @@ export function TerminalWindow() {
       return;
     }
 
-    if (app.externalUrl) {
-      window.open(app.externalUrl, "_blank", "noopener,noreferrer");
-      addLines([{ kind: "output", text: `Opening ${app.title}...` }]);
-      return;
-    }
-
-    openWindow({
-      id: app.id,
-      title: app.title,
-      icon: typeof app.icon === "string" ? app.icon : app.icon.src,
-      component: app.component,
-      isMinimized: false,
-      isMaximized: false,
-      position: app.defaultPosition ?? { x: 140, y: 80 },
-      size: app.defaultSize,
-      metadata: app.metadata,
-    });
+    launchApp(app.id);
     addLines([{ kind: "output", text: `Opening ${app.title}...` }]);
   };
 

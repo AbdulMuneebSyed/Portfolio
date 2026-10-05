@@ -5,7 +5,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "about",
     title: "About Me",
-    icon: "/avatar.jpg",
+    icon: "/avatar-256.jpg",
     component: "AboutWindow",
     category: "Portfolio",
     description: "Experience, skills, and awards.",
@@ -225,22 +225,25 @@ export function findAppByAlias(query: string) {
   });
 }
 
+// Matches ranked: title prefix, then title/alias, then any other text.
 export function searchApps(query: string) {
   const normalized = query.trim().toLowerCase();
   const apps = getLaunchableApps();
 
   if (!normalized) return apps;
 
-  return apps.filter((app) => {
-    const searchableText = [
-      app.id,
-      app.title,
-      app.category,
-      app.description,
-      ...(app.launchAliases ?? []),
-    ]
-      .join(" ")
-      .toLowerCase();
-    return searchableText.includes(normalized);
-  });
+  const rank = (app: AppRegistryEntry) => {
+    const title = app.title.toLowerCase();
+    if (title.startsWith(normalized)) return 0;
+    const names = [title, app.id, ...(app.launchAliases ?? [])];
+    if (names.some((name) => name.toLowerCase().includes(normalized))) return 1;
+    const text = `${app.category} ${app.description}`.toLowerCase();
+    return text.includes(normalized) ? 2 : -1;
+  };
+
+  return apps
+    .map((app) => ({ app, score: rank(app) }))
+    .filter(({ score }) => score >= 0)
+    .sort((a, b) => a.score - b.score)
+    .map(({ app }) => app);
 }

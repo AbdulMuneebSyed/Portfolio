@@ -1,6 +1,6 @@
 "use client";
 import { Desktop } from "@/components/desktop";
-import { LoginScreen } from "@/components/login-screen";
+import { LockScreen } from "@/components/mac/lock-screen";
 import { MuneebOS } from "@/components/muneebOS";
 import React from "react";
 
@@ -26,9 +26,9 @@ export default function Home() {
         ) : isMobile ? (
           <MuneebOS />
         ) : isLoggedIn ? (
-          <Desktop />
+          <Desktop onLock={() => setIsLoggedIn(false)} />
         ) : (
-          <LoginScreen onLogin={() => setIsLoggedIn(true)} />
+          <LockScreen onUnlock={() => setIsLoggedIn(true)} />
         )}
       </main>
     </div>

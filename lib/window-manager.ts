@@ -29,6 +29,7 @@ interface WindowManagerState {
     size: { width: number; height: number },
   ) => void;
   updateIconPosition: (id: string, position: { x: number; y: number }) => void;
+  resetIconPositions: () => void;
   shutdown: () => void;
   restart: () => void;
   setWallpaper: (wallpaper: string) => void;
@@ -148,6 +149,11 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     };
 
     localStorage.setItem("muneebos-mac-state-v1", JSON.stringify(stateToSave));
+  },
+
+  resetIconPositions: () => {
+    set({ desktopIcons: DEFAULT_ICONS });
+    get().saveState();
   },
 
   updateIconPosition: (id, position) => {

@@ -250,34 +250,7 @@
     0 0 0 1px rgba(0, 0, 0, 0.14);
 }
 
-/* Enhanced desktop icon styles with Aero glow effect */
-.desktop-icon {
-  transition: all 0.2s ease;
-  position: relative;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-}
-
-.desktop-icon:hover {
-  background:
-    linear-gradient(180deg, rgba(232, 249, 255, 0.28), rgba(89, 177, 238, 0.18)),
-    rgba(221, 246, 251, 0.22);
-  border-color: rgba(186, 230, 255, 0.65);
-  box-shadow:
-    0 0 0 1px rgba(0, 71, 128, 0.12),
-    0 0 12px rgba(255, 255, 255, 0.32),
-    0 0 22px rgba(93, 190, 255, 0.26);
-  transform: translateY(-1px);
-}
-
-.desktop-icon.selected {
-  background: var(--win7-selection);
-  border: 1px solid rgba(51, 153, 255, 0.6);
-  box-shadow: 0 0 8px rgba(51, 153, 255, 0.4);
-}
-
-/* Custom Windows 7 cursor */
+/* Cursors */
 body,
 .desktop-icon,
 button,
@@ -293,8 +266,7 @@ textarea {
 }
 
 button:hover,
-a:hover,
-.desktop-icon:hover {
+a:hover {
   cursor: pointer;
 }
 
