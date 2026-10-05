@@ -1,6 +1,10 @@
-// CSS-only wallpapers in a modern macOS spirit, so there are no images to
-// load or license.
+// The Big Sur image is the default; the rest are CSS-only gradients.
 export const MAC_WALLPAPERS = [
+  {
+    id: "big-sur",
+    name: "Big Sur",
+    css: "url('/wallpapers/big-sur.webp')",
+  },
   {
     id: "dusk",
     name: "Dusk",

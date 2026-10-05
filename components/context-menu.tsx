@@ -61,7 +61,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.1 } }}
       transition={{ duration: 0.08 }}
-      className="fixed z-[10000] min-w-[220px] rounded-lg border border-black/10 bg-[#f2f2f2]/85 p-1 text-[13px] text-[#1d1d1f] shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
+      className="font-mac fixed z-[10000] min-w-[220px] rounded-[7px] border border-black/15 bg-[#ececec]/80 p-[5px] text-[13.5px] text-[#1d1d1f] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl"
       style={{ left, top }}
       onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
     >
@@ -73,7 +73,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
         return (
           <button
             key={index}
-            className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-[3px] text-left enabled:hover:bg-[#0a63e1] enabled:hover:text-white disabled:text-black/30"
+            className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-[2px] text-left enabled:hover:bg-[#0a82ff] enabled:hover:text-white disabled:text-black/30"
             onClick={(e) => {
               e.stopPropagation();
               if (!item.disabled && item.onClick) {

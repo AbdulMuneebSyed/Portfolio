@@ -1,8 +1,8 @@
 // One grid shared by default icon placement and drag-and-drop snapping,
 // so a dropped icon always lines up with the ones that never moved.
 // Positions are relative to the desktop icon container.
-export const GRID_CELL_WIDTH = 100;
-export const GRID_CELL_HEIGHT = 100;
+export const GRID_CELL_WIDTH = 104;
+export const GRID_CELL_HEIGHT = 112;
 
 type Position = { x: number; y: number };
 

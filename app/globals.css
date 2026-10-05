@@ -683,3 +683,12 @@ a:hover {
   mask-image: linear-gradient(to bottom, black, transparent 74%);
   opacity: 0.65;
 }
+
+/* macOS shell typography: SF Pro on Apple devices, close fallbacks elsewhere */
+.font-mac {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}

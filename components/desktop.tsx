@@ -178,7 +178,7 @@ export function Desktop({ onLock }: DesktopProps) {
 
   return (
     <div
-      className="relative h-dvh w-dvw overflow-hidden bg-[#1e1b4b]"
+      className="font-mac relative h-dvh w-dvw overflow-hidden bg-[#1e1b4b]"
       style={{
         backgroundImage: wallpaper,
         backgroundSize: "cover",
@@ -207,8 +207,8 @@ export function Desktop({ onLock }: DesktopProps) {
       <div
         className="absolute"
         style={{
-          top: MENU_BAR_HEIGHT + 12,
-          right: 12,
+          top: MENU_BAR_HEIGHT + 20,
+          right: 28,
           bottom: DOCK_RESERVED_HEIGHT,
           left: 12,
         }}

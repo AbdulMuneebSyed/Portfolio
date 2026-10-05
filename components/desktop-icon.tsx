@@ -156,7 +156,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       <div
         ref={iconRef}
         data-icon-id={icon.id}
-        className={`desktop-icon absolute flex h-[92px] w-[84px] select-none flex-col items-center justify-start gap-1 pt-1 ${
+        className={`desktop-icon absolute flex h-[104px] w-[96px] select-none flex-col items-center justify-start gap-[3px] ${
           isDragging ? "opacity-70" : ""
         } ${isSnapping ? "snapping" : ""}`}
         style={{
@@ -172,15 +172,15 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
         }}
       >
         <span
-          className={`rounded-md p-1 ${isSelected ? "bg-black/25" : ""}`}
+          className={`rounded-[5px] p-[3px] ${isSelected ? "bg-black/25" : ""}`}
         >
-          <AppIcon appId={icon.id} size={52} />
+          <AppIcon appId={icon.id} size={64} />
         </span>
         <span
-          className={`pointer-events-none max-w-full rounded px-1 text-center text-xs font-medium leading-tight text-white ${
+          className={`pointer-events-none line-clamp-2 max-w-full rounded-[4px] px-1 text-center text-[12px] font-semibold leading-[15px] text-white ${
             isSelected
               ? "bg-[#0a63e1]"
-              : "drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
+              : "[text-shadow:0_1px_2px_rgba(0,0,0,0.6)]"
           }`}
         >
           {icon.title}

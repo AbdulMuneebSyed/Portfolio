@@ -216,9 +216,9 @@ export function Window({ window, children }: WindowProps) {
     >
       {/* Title bar */}
       <div
-        className={`relative flex h-9 shrink-0 select-none items-center border-b px-3 ${
+        className={`relative flex h-[30px] shrink-0 select-none items-center border-b px-[13px] ${
           window.isActive
-            ? "border-black/10 bg-gradient-to-b from-[#f6f6f6] to-[#e8e8e8]"
+            ? "border-black/10 bg-[#ececec]"
             : "border-black/5 bg-[#f6f6f6]"
         }`}
         onMouseDown={(e) => {
@@ -281,7 +281,7 @@ export function Window({ window, children }: WindowProps) {
         </div>
         <span
           className={`pointer-events-none absolute inset-x-24 truncate text-center text-[13px] font-semibold ${
-            window.isActive ? "text-[#3c3c3c]" : "text-[#9a9a9a]"
+            window.isActive ? "text-[#4d4d4d]" : "text-[#b0b0b0]"
           }`}
         >
           {window.title}
@@ -320,11 +320,11 @@ export function Window({ window, children }: WindowProps) {
             onMouseDown={(e) => handleResizeMouseDown(e, "bottom")}
           />
           <div
-            className="absolute bottom-4 left-0 top-9 w-1.5 cursor-ew-resize"
+            className="absolute bottom-4 left-0 top-[30px] w-1.5 cursor-ew-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "left")}
           />
           <div
-            className="absolute bottom-4 right-0 top-9 w-1.5 cursor-ew-resize"
+            className="absolute bottom-4 right-0 top-[30px] w-1.5 cursor-ew-resize"
             onMouseDown={(e) => handleResizeMouseDown(e, "right")}
           />
         </>

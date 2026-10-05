@@ -1,7 +1,7 @@
 import { getApp } from "./app-registry";
 import { useWindowManager } from "./window-manager";
 
-export const MENU_BAR_HEIGHT = 28;
+export const MENU_BAR_HEIGHT = 30;
 export const DOCK_RESERVED_HEIGHT = 88;
 const CASCADE_STEP = 26;
 

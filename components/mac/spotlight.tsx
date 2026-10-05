@@ -59,7 +59,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.1 } }}
             transition={{ duration: 0.15 }}
-            className="absolute inset-x-0 top-[18%] mx-auto w-[640px] max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/40 bg-white/70 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl backdrop-saturate-150"
+            className="font-mac absolute inset-x-0 top-[22%] mx-auto w-[680px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[14px] border border-black/10 bg-[#ececec]/80 shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl backdrop-saturate-150"
             onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
             role="dialog"
             aria-label="Spotlight search"
@@ -72,7 +72,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Spotlight Search"
-                className="flex-1 bg-transparent text-xl text-[#1d1d1f] outline-none placeholder:text-[#8e8e93]"
+                className="flex-1 bg-transparent text-[22px] font-light text-[#1d1d1f] outline-none placeholder:text-[#8e8e93]"
                 aria-label="Search apps"
               />
             </div>
@@ -85,7 +85,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                       onClick={() => launch(app.id)}
                       className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left ${
                         index === selected
-                          ? "bg-[#0a63e1] text-white"
+                          ? "bg-[#0a82ff] text-white"
                           : "text-[#1d1d1f]"
                       }`}
                     >

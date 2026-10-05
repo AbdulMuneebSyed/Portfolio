@@ -98,7 +98,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   loadState: () => {
     if (typeof window === "undefined") return;
 
-    const savedState = localStorage.getItem("muneebos-mac-state-v1");
+    const savedState = localStorage.getItem("muneebos-mac-state-v2");
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
@@ -148,7 +148,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       aeroEffects: state.aeroEffects,
     };
 
-    localStorage.setItem("muneebos-mac-state-v1", JSON.stringify(stateToSave));
+    localStorage.setItem("muneebos-mac-state-v2", JSON.stringify(stateToSave));
   },
 
   resetIconPositions: () => {

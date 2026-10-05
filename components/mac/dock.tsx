@@ -15,9 +15,10 @@ import { AppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
 
-const BASE_SIZE = 50;
-const MAX_SIZE = 78;
-const MAGNIFY_DISTANCE = 140;
+// Icon canvas sizes; Big Sur artwork fills ~80% of the canvas.
+const BASE_SIZE = 56;
+const MAX_SIZE = 80;
+const MAGNIFY_DISTANCE = 130;
 
 export function Dock() {
   const mouseX = useMotionValue(Infinity);
@@ -26,18 +27,18 @@ export function Dock() {
   const runningAppIds = new Set(windows.map((w) => w.appId ?? w.id));
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-2 z-[9000] flex justify-center">
+    <div className="font-mac pointer-events-none fixed inset-x-0 bottom-1.5 z-[9000] flex justify-center">
       <motion.nav
         aria-label="Dock"
         onMouseMove={(e: React.MouseEvent) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        className="pointer-events-auto flex h-[66px] items-end gap-2 rounded-[22px] border border-white/30 bg-white/25 px-2.5 pb-2 shadow-[0_10px_40px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur-2xl backdrop-saturate-150"
+        className="pointer-events-auto flex h-[64px] items-end gap-px rounded-[18px] border border-white/25 bg-white/20 px-1.5 pb-1 shadow-[0_0_0_0.5px_rgba(0,0,0,0.25),0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-3xl backdrop-saturate-150"
       >
         {DOCK_APP_IDS.map((id, index) =>
           id === "separator" ? (
             <div
               key={`separator-${index}`}
-              className="mx-1 h-10 w-px self-center bg-white/40"
+              className="mx-1.5 h-[46px] w-px self-center bg-black/20"
             />
           ) : (
             <DockItem
@@ -106,13 +107,13 @@ function DockItem({ appId, mouseX, isRunning }: DockItemProps) {
       className="relative flex shrink-0 items-end justify-center focus:outline-none"
     >
       {isHovered && (
-        <span className="pointer-events-none absolute -top-9 whitespace-nowrap rounded-md border border-black/10 bg-[#f2f2f2]/90 px-2.5 py-1 text-xs font-medium text-[#1d1d1f] shadow-md backdrop-blur">
+        <span className="pointer-events-none absolute -top-8 whitespace-nowrap rounded-[6px] border border-black/10 bg-[#ececec]/90 px-2.5 py-[3px] text-[13px] text-[#1d1d1f] shadow-md backdrop-blur">
           {app.title}
         </span>
       )}
       <AppIcon appId={appId} size={renderSize} />
       {isRunning && (
-        <span className="absolute -bottom-1.5 size-1 rounded-full bg-black/70 shadow-[0_0_2px_rgba(255,255,255,0.8)]" />
+        <span className="absolute -bottom-[3px] size-[4px] rounded-full bg-black/75" />
       )}
     </motion.button>
   );

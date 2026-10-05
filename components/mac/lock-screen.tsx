@@ -39,10 +39,12 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   });
 
-  const time =
-    now?.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) ?? "";
+  // macOS lock screen style: 12-hour time without am/pm, e.g. "6:56".
+  const time = now
+    ? `${now.getHours() % 12 || 12}:${String(now.getMinutes()).padStart(2, "0")}`
+    : "";
   const date =
-    now?.toLocaleDateString([], {
+    now?.toLocaleDateString("en-GB", {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -52,7 +54,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
     <motion.div
       animate={{ opacity: isUnlocking ? 0 : 1, scale: isUnlocking ? 1.04 : 1 }}
       transition={{ duration: 0.45, ease: "easeInOut" }}
-      className="relative flex h-dvh w-dvw cursor-default select-none flex-col items-center overflow-hidden text-white"
+      className="font-mac relative flex h-dvh w-dvw cursor-default select-none flex-col items-center overflow-hidden text-white"
       style={{
         backgroundImage: savedWallpaper || DEFAULT_WALLPAPER,
         backgroundSize: "cover",
@@ -60,11 +62,11 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
       }}
       onClick={unlock}
     >
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-black/10" />
 
       <div className="relative z-10 mt-[9vh] text-center drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)]">
-        <div className="text-xl font-semibold text-white/90">{date}</div>
-        <div className="text-[96px] font-bold leading-none tracking-tight">
+        <div className="text-[22px] font-semibold text-white/85">{date}</div>
+        <div className="text-[112px] font-bold leading-[1.05] tracking-[-0.02em] text-white/90">
           {time}
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MuneebLogo } from "./muneeb-logo";
+import { AppleLogo } from "./apple-logo";
 
 const BOOT_DURATION_MS = 2000;
 
@@ -21,7 +21,7 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[20000] flex flex-col items-center justify-center gap-12 bg-black text-white">
-      <MuneebLogo className="size-20" />
+      <AppleLogo className="size-20" />
       <div className="h-1 w-48 overflow-hidden rounded-full bg-white/20">
         <div
           className="h-full rounded-full bg-white ease-out"

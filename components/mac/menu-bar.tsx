@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Search, Volume2, Wifi } from "lucide-react";
+import { BatteryFull, Search, Wifi } from "lucide-react";
 import { getApp } from "@/lib/app-registry";
 import { launchApp, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
-import { MuneebLogo } from "./muneeb-logo";
+import { AppleLogo } from "./apple-logo";
 
 type MenuItem =
   | { separator: true }
@@ -83,7 +83,7 @@ export function MenuBar({
   const menus: Menu[] = [
     {
       id: "system",
-      title: <MuneebLogo className="size-[15px]" />,
+      title: <AppleLogo className="size-[15px]" />,
       items: [
         { label: "About Muneeb", onSelect: () => launchApp("about") },
         { separator: true },
@@ -108,6 +108,46 @@ export function MenuBar({
           label: `Quit ${activeAppName}`,
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
+        },
+      ],
+    },
+    {
+      id: "file",
+      title: "File",
+      items: [
+        { label: "New Finder Window", onSelect: () => launchApp("computer") },
+        { separator: true },
+        {
+          label: "Close Window",
+          disabled: !activeWindow,
+          onSelect: () => activeWindow && closeWindow(activeWindow.id),
+        },
+      ],
+    },
+    {
+      id: "edit",
+      title: "Edit",
+      items: [
+        { label: "Undo", disabled: true, onSelect: () => {} },
+        { label: "Redo", disabled: true, onSelect: () => {} },
+        { separator: true },
+        {
+          label: "Copy Email Address",
+          onSelect: () => {
+            void navigator.clipboard?.writeText("samuneeb786@gmail.com");
+          },
+        },
+      ],
+    },
+    {
+      id: "view",
+      title: "View",
+      items: [
+        {
+          label: "Enter Full Screen",
+          onSelect: () => {
+            void document.documentElement.requestFullscreen?.();
+          },
         },
       ],
     },
@@ -172,18 +212,12 @@ export function MenuBar({
     },
   ];
 
-  const clock = now
-    ? `${now.toLocaleDateString([], {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-      })}  ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-    : "";
+  const clock = now ? formatMenuBarClock(now) : "";
 
   return (
     <div
       ref={barRef}
-      className="fixed inset-x-0 top-0 z-[9500] flex select-none items-center justify-between bg-black/25 px-2 text-[13px] text-white shadow-[0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl backdrop-saturate-150"
+      className="font-mac fixed inset-x-0 top-0 z-[9500] flex select-none items-center justify-between bg-black/20 px-2.5 text-[13.5px] text-white backdrop-blur-3xl backdrop-saturate-150 [text-shadow:0_0_1px_rgba(0,0,0,0.25)]"
       style={{ height: MENU_BAR_HEIGHT }}
     >
       <div className="flex h-full items-center">
@@ -191,9 +225,11 @@ export function MenuBar({
           <div key={menu.id} className="relative h-full">
             <button
               data-menu-id={menu.id}
-              className={`flex h-full items-center rounded px-2.5 ${
-                menu.bold ? "font-semibold" : "font-medium"
-              } ${openMenuId === menu.id ? "bg-white/25" : ""}`}
+              className={`my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] ${
+                menu.id === "system" ? "px-3" : "px-[9px]"
+              } ${menu.bold ? "font-bold" : "font-medium"} ${
+                openMenuId === menu.id ? "bg-white/25" : ""
+              }`}
               onMouseDown={(e) => {
                 e.preventDefault();
                 setOpenMenuId((current) => (current === menu.id ? null : menu.id));
@@ -214,23 +250,18 @@ export function MenuBar({
         ))}
       </div>
 
-      <div className="flex h-full items-center gap-1 pr-1">
-        <span className="flex h-full items-center px-1.5" aria-label="Volume">
-          <Volume2 className="size-4" />
-        </span>
-        <span className="flex h-full items-center px-1.5" aria-label="Wi-Fi">
-          <Wifi className="size-4" />
-        </span>
+      <div className="flex h-full items-center gap-[18px] pr-1 font-medium">
+        <BatteryFull className="size-[19px]" strokeWidth={1.75} aria-label="Battery" />
+        <Wifi className="size-4" strokeWidth={2.25} aria-label="Wi-Fi" />
         <button
-          className="flex h-full items-center rounded px-1.5 hover:bg-white/20"
+          className="flex items-center"
           onClick={onOpenSpotlight}
           aria-label="Spotlight"
         >
-          <Search className="size-4" />
+          <Search className="size-[15px]" strokeWidth={2.25} />
         </button>
-        <span className="whitespace-pre px-2 font-medium tabular-nums">
-          {clock}
-        </span>
+        <ControlCenterIcon />
+        <span className="whitespace-nowrap tabular-nums">{clock}</span>
       </div>
     </div>
   );
@@ -246,7 +277,7 @@ function MenuDropdown({
   return (
     <div
       role="menu"
-      className="absolute left-0 top-[calc(100%+2px)] min-w-[220px] rounded-lg border border-black/10 bg-[#f2f2f2]/85 p-1 text-[13px] text-[#1d1d1f] shadow-[0_12px_40px_rgba(0,0,0,0.3)] backdrop-blur-2xl"
+      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/80 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
     >
       {items.map((item, index) =>
         "separator" in item ? (
@@ -260,7 +291,7 @@ function MenuDropdown({
               item.onSelect();
               onClose();
             }}
-            className="flex w-full items-center gap-2 rounded-[5px] px-2 py-[3px] text-left enabled:hover:bg-[#0a63e1] enabled:hover:text-white disabled:text-black/30"
+            className="flex w-full items-center gap-1.5 rounded-[4px] px-2 py-[2px] text-left enabled:hover:bg-[#0a82ff] enabled:hover:text-white disabled:text-black/30"
           >
             <span className="w-3 text-xs">{item.checked ? "✓" : ""}</span>
             <span className="flex-1 truncate">{item.label}</span>
@@ -271,5 +302,28 @@ function MenuDropdown({
         )
       )}
     </div>
+  );
+}
+
+// Matches the macOS menu bar clock, e.g. "Wed 8 Mar 3:19 pm".
+function formatMenuBarClock(date: Date) {
+  const weekday = date.toLocaleDateString("en-GB", { weekday: "short" });
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-GB", { month: "short" });
+  const hours = date.getHours() % 12 || 12;
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = date.getHours() < 12 ? "am" : "pm";
+  return `${weekday} ${day} ${month}  ${hours}:${minutes} ${period}`;
+}
+
+// Control Center glyph: two stacked toggles.
+function ControlCenterIcon() {
+  return (
+    <svg viewBox="0 0 20 16" className="h-[15px] w-[18px]" aria-label="Control Center">
+      <rect x="1" y="1" width="18" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="15" cy="4" r="1.8" fill="currentColor" />
+      <rect x="1" y="9" width="18" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="5" cy="12" r="1.8" fill="currentColor" />
+    </svg>
   );
 }
