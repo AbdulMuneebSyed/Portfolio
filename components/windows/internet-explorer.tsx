@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
+import { useSystemControls } from "@/lib/system-controls";
 import {
   ArrowLeft,
   ArrowRight,
@@ -78,6 +79,7 @@ const bookmarks: Bookmark[] = [
 ];
 
 export function InternetExplorer() {
+  const wifiOn = useSystemControls((state) => state.wifiOn);
   const [tabs, setTabs] = useState<Tab[]>([
     {
       id: "tab-1",
@@ -342,7 +344,18 @@ export function InternetExplorer() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-auto bg-white">
-        {activeTab.url === "about:bookmarks" ? (
+        {!wifiOn ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+            <h2 className="text-[22px] font-bold text-[#1d1d1f]">
+              You Are Not Connected to the Internet
+            </h2>
+            <p className="max-w-md text-[13px] text-[#6e6e73]">
+              This page can&apos;t be displayed because your computer is
+              currently offline. Turn Wi-Fi back on from the menu bar or
+              Control Center.
+            </p>
+          </div>
+        ) : activeTab.url === "about:bookmarks" ? (
           <div className="p-6 bg-white">
             {/* Start page header */}
             <div className="text-center mb-8">

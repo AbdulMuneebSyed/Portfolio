@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import { useSystemControls } from "@/lib/system-controls";
 
 export function useGlobalClickSound() {
   useEffect(() => {
     let lastClickTime = 0;
 
     const playClickSound = () => {
+      // Control Center's Sound slider scales this; 0 means muted.
+      const volume = useSystemControls.getState().volume;
+      if (volume <= 0) return;
       try {
         const audio = new Audio("/click.mp3");
-        audio.volume = 0.3;
+        audio.volume = 0.3 * volume;
         audio.play().catch((e) => console.log("Audio play failed:", e));
       } catch (e) {
         console.log("Audio not available:", e);

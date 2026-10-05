@@ -5,6 +5,7 @@ import {
   AppWindow,
   Github,
   Linkedin,
+  Music,
   Trash2,
   type LucideIcon,
 } from "lucide-react";
@@ -35,6 +36,7 @@ const ICONS: Record<string, IconSpec> = {
   settings: { kind: "png", src: "/icons/mac/system-settings.png" },
   feedback: { kind: "png", src: "/icons/mac/notes.png" },
   calculator: { kind: "png", src: "/icons/mac/calculator.png" },
+  music: { kind: "glyph", glyph: Music, from: "#ff6b81", to: "#f2263f" },
   recycle: { kind: "glyph", glyph: Trash2, from: "#fbfbfd", to: "#d4d4da", color: "#6b6b73" },
   "task-manager": { kind: "glyph", glyph: Activity, from: "#2b2b2e", to: "#0e0e10", color: "#5ce06a" },
 };

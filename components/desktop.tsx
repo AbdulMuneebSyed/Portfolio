@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { HelpCircle } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
+import { useSystemControls } from "@/lib/system-controls";
 import { useGlobalClickSound } from "@/hooks/use-global-click-sound";
 import {
   DOCK_RESERVED_HEIGHT,
@@ -88,6 +89,8 @@ export function Desktop({ onLock }: DesktopProps) {
     loadState,
     resetIconPositions,
   } = useWindowManager();
+  const brightness = useSystemControls((state) => state.brightness);
+  const loadControls = useSystemControls((state) => state.loadControls);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -108,7 +111,8 @@ export function Desktop({ onLock }: DesktopProps) {
 
   useEffect(() => {
     loadState();
-  }, [loadState]);
+    loadControls();
+  }, [loadState, loadControls]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -252,6 +256,15 @@ export function Desktop({ onLock }: DesktopProps) {
       )}
 
       <Dock />
+
+      {/* Control Center's Display slider: dims everything, like a screen. */}
+      {brightness < 1 && (
+        <div
+          className="pointer-events-none fixed inset-0 z-[30000] bg-black"
+          style={{ opacity: 1 - brightness }}
+        />
+      )}
+
       <Spotlight
         open={isSpotlightOpen}
         onClose={() => setIsSpotlightOpen(false)}

@@ -1,11 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BatteryFull, Search, Wifi } from "lucide-react";
+import { createPortal } from "react-dom";
+import { AnimatePresence } from "framer-motion";
+import {
+  BatteryCharging,
+  BatteryFull,
+  Moon,
+  Search,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
 import { getApp } from "@/lib/app-registry";
 import { launchApp, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
+import { useSystemControls } from "@/lib/system-controls";
+import { useBatteryStatus } from "@/lib/use-battery";
 import { AppleLogo } from "./apple-logo";
+import {
+  BatteryMenu,
+  ControlCenter,
+  NotificationCenter,
+  WifiMenu,
+} from "./status-menus";
 
 type MenuItem =
   | { separator: true }
@@ -40,6 +57,48 @@ export function MenuBar({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [now, setNow] = useState<Date | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  // Notification Center renders outside the bar (see below), so outside
+  // clicks are checked against both.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const battery = useBatteryStatus();
+  const wifiOn = useSystemControls((state) => state.wifiOn);
+  const focusOn = useSystemControls((state) => state.focusOn);
+  const closeMenus = () => setOpenMenuId(null);
+  // A menu reached by hovering (while another was open) stays open when
+  // it is then clicked, instead of toggling shut.
+  const hoverOpenedRef = useRef<string | null>(null);
+  const toggleMenu = (id: string) => {
+    if (hoverOpenedRef.current === id) {
+      hoverOpenedRef.current = null;
+      return;
+    }
+    hoverOpenedRef.current = null;
+    setOpenMenuId((current) => (current === id ? null : id));
+  };
+  useEffect(() => {
+    if (!openMenuId) hoverOpenedRef.current = null;
+  }, [openMenuId]);
+  const hoverMenu = (id: string) => {
+    if (openMenuId && openMenuId !== id) {
+      hoverOpenedRef.current = id;
+      setOpenMenuId(id);
+    }
+  };
+
+  // Status items behave like menus: click toggles, hover switches while
+  // another one is open.
+  const statusItemProps = (id: string, label: string) => ({
+    "aria-label": label,
+    "aria-expanded": openMenuId === id,
+    className: `my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] px-[7px] ${
+      openMenuId === id ? "bg-white/25" : ""
+    }`,
+    onMouseDown: (e: React.MouseEvent) => {
+      e.preventDefault();
+      toggleMenu(id);
+    },
+    onMouseEnter: () => hoverMenu(id),
+  });
 
   const windows = useWindowManager((state) => state.windows);
   const activeWindowId = useWindowManager((state) => state.activeWindowId);
@@ -67,7 +126,13 @@ export function MenuBar({
   useEffect(() => {
     if (!openMenuId) return;
     const handlePointer = (e: MouseEvent) => {
-      if (!barRef.current?.contains(e.target as Node)) setOpenMenuId(null);
+      const target = e.target as Node;
+      if (
+        !barRef.current?.contains(target) &&
+        !panelRef.current?.contains(target)
+      ) {
+        setOpenMenuId(null);
+      }
     };
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpenMenuId(null);
@@ -232,9 +297,9 @@ export function MenuBar({
               }`}
               onMouseDown={(e) => {
                 e.preventDefault();
-                setOpenMenuId((current) => (current === menu.id ? null : menu.id));
+                toggleMenu(menu.id);
               }}
-              onMouseEnter={() => openMenuId && setOpenMenuId(menu.id)}
+              onMouseEnter={() => hoverMenu(menu.id)}
               aria-haspopup="menu"
               aria-expanded={openMenuId === menu.id}
             >
@@ -250,19 +315,87 @@ export function MenuBar({
         ))}
       </div>
 
-      <div className="flex h-full items-center gap-[18px] pr-1 font-medium">
-        <BatteryFull className="size-[19px]" strokeWidth={1.75} aria-label="Battery" />
-        <Wifi className="size-4" strokeWidth={2.25} aria-label="Wi-Fi" />
+      <div className="flex h-full items-center gap-[4px] font-medium">
+        {focusOn && (
+          <span className="px-[7px]" aria-label="Focus on">
+            <Moon className="size-[14px] fill-current" />
+          </span>
+        )}
+        <div className="relative h-full">
+          <button {...statusItemProps("battery", "Battery")}>
+            {battery?.charging ? (
+              <BatteryCharging className="size-[19px]" strokeWidth={1.75} />
+            ) : (
+              <BatteryFull className="size-[19px]" strokeWidth={1.75} />
+            )}
+          </button>
+          {openMenuId === "battery" && (
+            <div className="absolute right-0 top-[calc(100%+1px)]">
+              <BatteryMenu battery={battery} onClose={closeMenus} />
+            </div>
+          )}
+        </div>
+        <div className="relative h-full">
+          <button {...statusItemProps("wifi", "Wi-Fi")}>
+            {wifiOn ? (
+              <Wifi className="size-4" strokeWidth={2.25} />
+            ) : (
+              <WifiOff className="size-4" strokeWidth={2.25} />
+            )}
+          </button>
+          {openMenuId === "wifi" && (
+            <div className="absolute right-0 top-[calc(100%+1px)]">
+              <WifiMenu onClose={closeMenus} />
+            </div>
+          )}
+        </div>
         <button
-          className="flex items-center"
-          onClick={onOpenSpotlight}
+          className="my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] px-[7px]"
+          onClick={() => {
+            closeMenus();
+            onOpenSpotlight();
+          }}
           aria-label="Spotlight"
         >
           <Search className="size-[15px]" strokeWidth={2.25} />
         </button>
-        <ControlCenterIcon />
-        <span className="whitespace-nowrap tabular-nums">{clock}</span>
+        <div className="relative h-full">
+          <button {...statusItemProps("control", "Control Center")}>
+            <ControlCenterIcon />
+          </button>
+          {openMenuId === "control" && (
+            <div className="absolute right-0 top-[calc(100%+1px)]">
+              <ControlCenter onClose={closeMenus} />
+            </div>
+          )}
+        </div>
+        <button
+          {...statusItemProps("clock", "Notification Center")}
+          className={`my-[3px] flex h-[calc(100%-6px)] items-center whitespace-nowrap rounded-[5px] px-[7px] tabular-nums ${
+            openMenuId === "clock" ? "bg-white/25" : ""
+          }`}
+        >
+          {clock}
+        </button>
       </div>
+
+      {/* Portaled out of the bar: a blur nested inside the bar's own
+          backdrop blur can't see the desktop behind it. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {openMenuId === "clock" && (
+              <div
+                ref={panelRef}
+                className="font-mac fixed right-2 z-[9600]"
+                style={{ top: MENU_BAR_HEIGHT + 8 }}
+              >
+                <NotificationCenter onClose={closeMenus} />
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 }
@@ -277,7 +410,7 @@ function MenuDropdown({
   return (
     <div
       role="menu"
-      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/80 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
+      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
     >
       {items.map((item, index) =>
         "separator" in item ? (
@@ -319,7 +452,7 @@ function formatMenuBarClock(date: Date) {
 // Control Center glyph: two stacked toggles.
 function ControlCenterIcon() {
   return (
-    <svg viewBox="0 0 20 16" className="h-[15px] w-[18px]" aria-label="Control Center">
+    <svg viewBox="0 0 20 16" className="h-[15px] w-[18px]" aria-hidden="true">
       <rect x="1" y="1" width="18" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
       <circle cx="15" cy="4" r="1.8" fill="currentColor" />
       <rect x="1" y="9" width="18" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />

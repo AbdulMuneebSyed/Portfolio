@@ -143,6 +143,16 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     launchAliases: ["activity", "activity monitor", "processes", "task manager"],
   },
   {
+    id: "music",
+    title: "Music",
+    icon: "/icons/mac/notes.png",
+    component: "MusicPlayer",
+    category: "Utilities",
+    description: "Play the songs in my library.",
+    defaultSize: { width: 480, height: 600 },
+    launchAliases: ["music", "songs", "player"],
+  },
+  {
     id: "calculator",
     title: "Calculator",
     icon: "/calc.png",
