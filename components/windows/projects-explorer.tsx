@@ -82,7 +82,7 @@ const projects: Project[] = [
     id: "muneebos",
     title: "Muneeb OS (this portfolio)",
     description:
-      "The site you're on right now — a Windows 7 desktop rebuilt in React with a full window manager, tour, and mini-apps.",
+      "The site you're on right now — a macOS-style desktop built in React with a window manager, Dock, Spotlight, and mini-apps.",
     techStack: ["Next.js", "TypeScript", "Zustand", "Framer Motion", "Tailwind"],
     demoLink: "https://github.com/AbdulMuneebSyed",
     category: "Interactive",
@@ -92,7 +92,7 @@ const projects: Project[] = [
 export function ProjectsExplorer() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [breadcrumb] = useState(["Computer", "Projects"]);
+  const [breadcrumb] = useState(["Muneeb's Mac", "Projects"]);
 
   const filteredProjects = projects.filter(
     (p) =>
@@ -103,15 +103,8 @@ export function ProjectsExplorer() {
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="border-b border-gray-300 bg-gradient-to-b from-white to-gray-50">
+      <div className="border-b border-black/10 bg-[#f6f6f6]">
         <div className="flex items-center gap-2 px-3 py-2">
-          <button className="px-3 py-1 text-sm hover:bg-blue-100 rounded">File</button>
-          <button className="px-3 py-1 text-sm hover:bg-blue-100 rounded">Edit</button>
-          <button className="px-3 py-1 text-sm hover:bg-blue-100 rounded">View</button>
-          <button className="px-3 py-1 text-sm hover:bg-blue-100 rounded">Tools</button>
-        </div>
-
-        <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-gray-200">
           <div className="flex items-center gap-1 flex-1 bg-white border border-gray-300 rounded px-2 py-1">
             <Folder className="w-4 h-4 text-gray-600" />
             {breadcrumb.map((item, index) => (

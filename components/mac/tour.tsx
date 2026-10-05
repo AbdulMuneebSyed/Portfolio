@@ -18,23 +18,13 @@ export function Tour({ run, onComplete, onSkip }: TourProps) {
 
   // Helper to determine character image based on content
   const getCharacterImage = (content: string) => {
-    if (
-      content.includes("That’s my LinkedIn profile") ||
-      content.includes("This one’s my resume. Click here")
-    ) {
+    if (content.includes("This one’s my resume. Click here")) {
       return "/torch-linkedIn.png";
-    } else if (
-      content.includes("That's the tour") ||
-      content.includes("coding quests be bug-free")
-    ) {
-      return "/torch-final.png";
-    } else if (content.includes("This is the Recycle Bin. Sometimes")) {
-      return "/torch-bin.png";
-    } else if (content.includes("bug reports, or just thoughts")) {
-      return "/torch-bugs.png";
-    } else {
-      return "/torch.png";
     }
+    if (content.includes("That's the tour")) {
+      return "/torch-final.png";
+    }
+    return "/torch.png";
   };
 
   // Helper to determine character style (poses)
@@ -143,65 +133,9 @@ export function Tour({ run, onComplete, onSkip }: TourProps) {
           content =
             "✉️ Contact: send me a message from here and it lands with me directly.";
           break;
-        case "github-activity":
-          content =
-            "🐙 My GitHub: recent activity and repositories, pulled live.";
-          break;
-        case "terminal":
-          content =
-            "⌨️ A terminal! Type 'help', or 'open projects' to launch apps by name.";
-          break;
-        case "computer":
-          content =
-            "🗂️ This is *This PC*.Does what a normal 'this PC' does. Listen music,play games and much more to come";
-          break;
         case "resume":
           content =
             "📜 This one’s my resume. Click here to check out my skills, experience, and the stuff I’ve worked on.";
-          break;
-        case "linkedin":
-          content =
-            "🔗 That’s my LinkedIn profile. If you want to connect professionally, this is the spot.";
-          break;
-        case "feedback":
-          content =
-            "💌 Got feedback? Whether it’s suggestions, bug reports, or just thoughts, drop them here. It really helps me improve!";
-          break;
-        case "ie":
-          content =
-            "🌐 Yep, Internet Explorer! Don’t worry, it’s just for the retro vibes. Inside, you can see all my projects in one place.";
-          break;
-        case "settings":
-          content =
-            "⚙️ Want to customize the vibe? Wallpapers, transparency, effects etc, you can tweak them all here.";
-          break;
-        case "recycle":
-          content =
-            "🗑️ This is the Recycle Bin. Sometimes I dump experiments here. Not much to see, but hey, it’s part of the desktop feel.";
-          break;
-        case "games":
-          content =
-            "🎮 And here’s the fun part,games and interactive demos. Because coding doesn’t always have to be serious.";
-          break;
-        case "notepad":
-          content =
-            "📝 Need to jot down something? Notepad is here. Simple, classic, and gets the job done.";
-          break;
-        case "calculator":
-          content =
-            "🧮 A fully functional Calculator. Math is hard, so let this handle the numbers for you.";
-          break;
-        case "music":
-          content =
-            "🎵 Tunes for the vibe. Play some music while you browse around.";
-          break;
-        case "minesweeper":
-          content =
-            "💣 Watch your step! The classic Minesweeper game. Try not to blow up!";
-          break;
-        case "snake":
-          content =
-            "🐍 Hiss... The legendary Snake game. Eat apples, get long, don't hit the wall!";
           break;
         default:
           content = `✨ This is the ${icon.title}. Each icon has its own little purpose, so click around and explore.`;

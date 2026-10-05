@@ -432,7 +432,7 @@ export function Calculator() {
 
       {/* Status Bar */}
       <div className="mt-3 pt-2 border-t border-gray-300 text-xs text-gray-600">
-        Windows Calculator
+        Calculator
       </div>
     </div>
   );

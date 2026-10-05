@@ -67,7 +67,7 @@ const fallbackRepos: GitHubRepo[] = [
     id: 1,
     name: "Portfolio",
     html_url: "https://github.com/AbdulMuneebSyed/Portfolio",
-    description: "Windows-inspired portfolio desktop with interactive apps.",
+    description: "macOS-style portfolio desktop with interactive apps.",
     language: "TypeScript",
     stargazers_count: 0,
     forks_count: 0,

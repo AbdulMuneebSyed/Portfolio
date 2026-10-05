@@ -214,7 +214,7 @@ export function TerminalWindow() {
   return (
     <div className="flex h-full flex-col bg-[#0c0c0c] font-mono text-[13px] text-[#d7f7d2]">
       <div className="flex items-center justify-between border-b border-white/10 bg-[#1d1d1d] px-3 py-2 text-xs text-[#d6d6d6]">
-        <span>Administrator: MuneebOS Command Prompt</span>
+        <span>muneeb — zsh — 80×24</span>
         <span className="text-[#8bcf84]">READY</span>
       </div>
       <div className="flex-1 overflow-auto px-3 py-3">

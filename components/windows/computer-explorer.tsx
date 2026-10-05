@@ -21,13 +21,10 @@ import {
   Star,
   LayoutGrid,
   List as ListIcon,
-  HelpCircle,
   Menu,
   Video,
   Download,
   Printer,
-  Share2,
-  Disc,
   Info,
 } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
@@ -52,10 +49,10 @@ interface ComputerExplorerProps {
 }
 
 const libraryStructure: Record<string, FolderItem[]> = {
-  Computer: [
+  "Muneeb's Mac": [
     {
       id: "local-disk-c",
-      name: "Local Disk (C:)",
+      name: "Macintosh HD",
       type: "drive",
       icon: HardDrive,
       totalSize: "499 GB",
@@ -64,35 +61,25 @@ const libraryStructure: Record<string, FolderItem[]> = {
     },
     {
       id: "local-disk-d",
-      name: "Data (D:)",
+      name: "Data",
       type: "drive",
       icon: HardDrive,
       totalSize: "931 GB",
       freeSpace: "850 GB",
       percentFull: 9,
     },
-    {
-      id: "dvd-drive",
-      name: "DVD RW Drive (E:)",
-      type: "drive",
-      icon: "💿",
-      totalSize: "0 bytes",
-      freeSpace: "0 bytes",
-      percentFull: 0,
-      description: "CD Drive",
-    },
   ],
-  "Local Disk (C:)": [
+  "Macintosh HD": [
     {
       id: "program-files",
-      name: "Program Files",
+      name: "Applications",
       type: "folder",
       icon: Folder,
       modified: "10/26/2009 8:00 AM",
     },
     {
       id: "windows",
-      name: "Windows",
+      name: "System",
       type: "folder",
       icon: Folder,
       modified: "10/26/2009 8:00 AM",
@@ -106,13 +93,13 @@ const libraryStructure: Record<string, FolderItem[]> = {
     },
     {
       id: "perflogs",
-      name: "PerfLogs",
+      name: "Library",
       type: "folder",
       icon: Folder,
       modified: "07/13/2009 10:20 PM",
     },
   ],
-  "Program Files": [
+  "Applications": [
     {
       id: "games",
       name: "Games",
@@ -122,21 +109,21 @@ const libraryStructure: Record<string, FolderItem[]> = {
     },
     {
       id: "microsoft-office",
-      name: "Microsoft Office",
+      name: "Utilities",
       type: "folder",
       icon: Folder,
       modified: "10/26/2009 8:00 AM",
     },
     {
       id: "internet-explorer",
-      name: "Internet Explorer",
+      name: "Safari",
       type: "folder",
       icon: Monitor,
       modified: "10/26/2009 8:00 AM",
     },
     {
       id: "windows-media-player",
-      name: "Windows Media Player",
+      name: "Music",
       type: "folder",
       icon: Folder,
       modified: "10/26/2009 8:00 AM",
@@ -265,9 +252,9 @@ export function ComputerExplorer({
       return initialPath;
     }
     if (initialFolder && libraryStructure[initialFolder]) {
-      return ["Computer", initialFolder];
+      return ["Muneeb's Mac", initialFolder];
     }
-    return ["Computer"];
+    return ["Muneeb's Mac"];
   };
 
   const [currentPath, setCurrentPath] = useState<string[]>(getInitialPath());
@@ -402,7 +389,7 @@ export function ComputerExplorer({
     setSelectedItemId(null);
   };
 
-  // Group items for "Computer" view
+  // Group items for "Muneeb's Mac" view
   const hardDrives = filteredItems.filter(
     (item) => item.type === "drive" && item.icon === HardDrive
   );
@@ -474,38 +461,6 @@ export function ComputerExplorer({
 
       {/* Command Bar */}
       <div className="flex items-center gap-0 px-2 py-1.5 bg-[#F5F6F7] border-b border-[#D9D9D9] text-sm text-[#1E1E1E]">
-        <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors">
-          Organize
-        </button>
-        {currentFolder === "Computer" && (
-          <>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors">
-              System properties
-            </button>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors">
-              Uninstall or change a program
-            </button>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors">
-              Map network drive
-            </button>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors">
-              Open Control Panel
-            </button>
-          </>
-        )}
-        {currentFolder === "Documents" && (
-          <>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors flex items-center gap-1">
-              <Share2 className="w-3 h-3" /> Share with
-            </button>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors flex items-center gap-1">
-              <Disc className="w-3 h-3" /> Burn
-            </button>
-            <button className="px-3 py-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors flex items-center gap-1">
-              <Folder className="w-3 h-3" /> New folder
-            </button>
-          </>
-        )}
         <div className="flex-1" />
         <div className="flex items-center gap-1 border-l border-[#D9D9D9] pl-2 ml-2">
           <button
@@ -527,9 +482,6 @@ export function ComputerExplorer({
             <LayoutGrid className="w-4 h-4 text-[#1E1E1E]" />
           </button>
         </div>
-        <button className="p-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors ml-1">
-          <HelpCircle className="w-4 h-4 text-[#1E1E1E]" />
-        </button>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -548,14 +500,14 @@ export function ComputerExplorer({
               <div className="pl-6 space-y-0.5 mt-0.5">
                 <div
                   className="flex items-center gap-2 px-1 py-0.5 hover:bg-[#E5F3FB] cursor-pointer"
-                  onClick={() => setCurrentPath(["Computer", "Desktop"])}
+                  onClick={() => setCurrentPath(["Muneeb's Mac", "Desktop"])}
                 >
                   <Monitor className="w-4 h-4 text-[#3C3C3C]" />
                   <span>Desktop</span>
                 </div>
                 <div
                   className="flex items-center gap-2 px-1 py-0.5 hover:bg-[#E5F3FB] cursor-pointer"
-                  onClick={() => setCurrentPath(["Computer", "Downloads"])}
+                  onClick={() => setCurrentPath(["Muneeb's Mac", "Downloads"])}
                 >
                   <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
                     <ArrowRight className="w-3 h-3 text-white" />
@@ -583,7 +535,7 @@ export function ComputerExplorer({
                         ? "bg-[#CDE6F7] border border-[#7DA2CE] rounded-[2px]"
                         : "hover:bg-[#E5F3FB] border border-transparent"
                     }`}
-                    onClick={() => setCurrentPath(["Computer", lib])}
+                    onClick={() => setCurrentPath(["Muneeb's Mac", lib])}
                   >
                     <Folder className="w-4 h-4 text-[#FACC2E] fill-[#FACC2E]" />
                     <span>{lib}</span>
@@ -596,11 +548,11 @@ export function ComputerExplorer({
             <div>
               <div
                 className={`flex items-center gap-1 px-1 py-0.5 text-[#1E1E1E] cursor-pointer group ${
-                  currentFolder === "Computer"
+                  currentFolder === "Muneeb's Mac"
                     ? "bg-[#CDE6F7] border border-[#7DA2CE] rounded-[2px]"
                     : "hover:bg-[#E5F3FB] border border-transparent"
                 }`}
-                onClick={() => setCurrentPath(["Computer"])}
+                onClick={() => setCurrentPath(["Muneeb's Mac"])}
               >
                 <div className="w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <div className="w-0 h-0 border-l-[4px] border-l-[#444] border-y-[3px] border-y-transparent transform rotate-45"></div>
@@ -612,11 +564,11 @@ export function ComputerExplorer({
                 <div
                   className="flex items-center gap-2 px-1 py-0.5 hover:bg-[#E5F3FB] cursor-pointer"
                   onClick={() =>
-                    setCurrentPath(["Computer", "Local Disk (C:)"])
+                    setCurrentPath(["Muneeb's Mac", "Macintosh HD"])
                   }
                 >
                   <HardDrive className="w-4 h-4 text-[#3C3C3C]" />
-                  <span>Local Disk (C:)</span>
+                  <span>Macintosh HD</span>
                 </div>
               </div>
             </div>
@@ -636,7 +588,7 @@ export function ComputerExplorer({
 
         {/* Main Content */}
         <div className="flex-1 bg-white overflow-y-auto p-0">
-          {currentFolder === "Computer" ? (
+          {currentFolder === "Muneeb's Mac" ? (
             <div className="space-y-6 p-4">
               {/* Hard Disk Drives */}
               {hardDrives.length > 0 && (

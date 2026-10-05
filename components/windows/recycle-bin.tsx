@@ -19,7 +19,7 @@ type DeletedItem = {
   originalPath: string;
 };
 
-const storageKey = "muneebos-recycle-bin-v1";
+const storageKey = "muneebos-trash-v1";
 
 const seedItems: DeletedItem[] = [
   {
@@ -28,7 +28,7 @@ const seedItems: DeletedItem[] = [
     type: "Document",
     size: "48 KB",
     deletedAt: "2026-07-03",
-    originalPath: "C:\\Users\\Muneeb\\Documents",
+    originalPath: "~/Documents",
   },
   {
     id: "screenshot",
@@ -36,7 +36,7 @@ const seedItems: DeletedItem[] = [
     type: "Image",
     size: "1.2 MB",
     deletedAt: "2026-07-05",
-    originalPath: "C:\\Users\\Muneeb\\Pictures",
+    originalPath: "~/Pictures",
   },
   {
     id: "snippet",
@@ -44,7 +44,7 @@ const seedItems: DeletedItem[] = [
     type: "Code",
     size: "9 KB",
     deletedAt: "2026-07-07",
-    originalPath: "C:\\Users\\Muneeb\\Projects",
+    originalPath: "~/Projects",
   },
 ];
 
@@ -80,7 +80,7 @@ export function RecycleBin() {
         setSelectedId(parsed[0]?.id ?? "");
       }
     } catch {
-      setLastAction("Recycle Bin data could not be loaded.");
+      setLastAction("Trash data could not be loaded.");
     } finally {
       setHasLoadedStorage(true);
     }
@@ -114,7 +114,7 @@ export function RecycleBin() {
   const emptyBin = () => {
     setItems([]);
     setSelectedId("");
-    setLastAction("Recycle Bin emptied.");
+    setLastAction("Trash emptied.");
   };
 
   const addDeletedItem = () => {
@@ -130,30 +130,19 @@ export function RecycleBin() {
       type,
       size: type === "Image" ? "640 KB" : type === "Code" ? "6 KB" : "18 KB",
       deletedAt: new Date().toISOString().slice(0, 10),
-      originalPath: "C:\\Users\\Muneeb\\Desktop",
+      originalPath: "~/Desktop",
     };
     setItems((current) => [item, ...current]);
     setSelectedId(item.id);
-    setLastAction(`${item.name} moved to Recycle Bin.`);
+    setLastAction(`${item.name} moved to Trash.`);
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#f4f8fc] text-slate-900">
-      <div className="border-b border-slate-300 bg-gradient-to-b from-white to-[#dce8f4]">
-        <div className="flex items-center gap-2 px-3 py-2 text-xs">
-          <button className="rounded border border-transparent px-2 py-1 hover:border-sky-300 hover:bg-sky-100">
-            File
-          </button>
-          <button className="rounded border border-transparent px-2 py-1 hover:border-sky-300 hover:bg-sky-100">
-            Edit
-          </button>
-          <button className="rounded border border-transparent px-2 py-1 hover:border-sky-300 hover:bg-sky-100">
-            View
-          </button>
-        </div>
-        <div className="flex items-center gap-2 border-t border-white/80 px-3 py-2">
+    <div className="flex h-full flex-col bg-white text-slate-900">
+      <div className="border-b border-black/10 bg-[#f6f6f6]">
+        <div className="flex items-center gap-2 px-3 py-2">
           <div className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm">
-            Recycle Bin
+            Trash
           </div>
           <button
             onClick={addDeletedItem}
@@ -174,7 +163,7 @@ export function RecycleBin() {
           </div>
           {items.length === 0 ? (
             <div className="flex h-full min-h-[260px] items-center justify-center text-sm text-slate-500">
-              Recycle Bin is empty.
+              Trash is empty.
             </div>
           ) : (
             items.map((item) => (
@@ -232,7 +221,7 @@ export function RecycleBin() {
               disabled={items.length === 0}
               className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Empty Recycle Bin
+              Empty Trash
             </button>
           </div>
         </aside>

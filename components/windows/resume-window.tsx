@@ -30,9 +30,6 @@ export function ResumeWindow() {
               Syed Abdul Muneeb - Resume.pdf
             </span>
           </div>
-          <div className="text-sm text-gray-600 mt-1">
-            Added to resume: <span className="font-medium">Pulsegen</span>
-          </div>
         </div>
         <div className="flex gap-2">
           <button

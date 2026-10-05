@@ -164,7 +164,7 @@ export function PixelMusicPlayer({ fileName, filePath }: MusicPlayerProps) {
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-orange-400 rounded-full border border-orange-600 shadow-sm" />
           <span className="text-xs text-[#1E395B] font-medium">
-            Windows Media Player
+            Music
           </span>
         </div>
       </div>

@@ -81,7 +81,7 @@ export function InternetExplorer() {
   const [tabs, setTabs] = useState<Tab[]>([
     {
       id: "tab-1",
-      title: "Internet Explorer",
+      title: "Favorites",
       url: "about:bookmarks",
       isLoading: false,
     },
@@ -141,15 +141,15 @@ export function InternetExplorer() {
       url,
       isLoading: url !== "about:bookmarks",
       title:
-        url === "about:bookmarks" ? "Internet Explorer" : new URL(url).hostname,
+        url === "about:bookmarks" ? "Favorites" : new URL(url).hostname,
     });
 
     {
       activeTab.url !== "about:bookmarks" && (
         <div className="border-b border-[#E0E0E0] bg-[#FFFBEA] px-4 py-2 flex items-center justify-between text-xs text-[#664D03]">
           <span>
-            If this website refuses to connect inside Internet Explorer, you can
-            open it in a normal browser tab instead.
+            If this website refuses to connect here, you can open it in a normal
+            browser tab instead.
           </span>
           <button
             onClick={() => openInNewTab(activeTab.url)}
@@ -212,33 +212,9 @@ export function InternetExplorer() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#F0F0F0]">
-      {/* IE Menu Bar */}
-      <div className="bg-gradient-to-b from-[#F8F8F8] to-[#E8E8E8] border-b border-[#C0C0C0]">
-        <div className="flex items-center px-2 py-1 text-xs">
-          <button className="px-3 py-1 hover:bg-[#E0E8F0] hover:border hover:border-[#5B9BD5] rounded text-[#333]">
-            File
-          </button>
-          <button className="px-3 py-1 hover:bg-[#E0E8F0] hover:border hover:border-[#5B9BD5] rounded text-[#333]">
-            Edit
-          </button>
-          <button className="px-3 py-1 hover:bg-[#E0E8F0] hover:border hover:border-[#5B9BD5] rounded text-[#333]">
-            View
-          </button>
-          <button className="px-3 py-1 hover:bg-[#E0E8F0] hover:border hover:border-[#5B9BD5] rounded text-[#333]">
-            Favorites
-          </button>
-          <button className="px-3 py-1 hover:bg-[#E0E8F0] hover:border hover:border-[#5B9BD5] rounded text-[#333]">
-            Tools
-          </button>
-          <button className="px-3 py-1 hover:bg-[#E0E8F0] hover:border hover:border-[#5B9BD5] rounded text-[#333]">
-            Help
-          </button>
-        </div>
-      </div>
-
-      {/* IE Toolbar */}
-      <div className="bg-gradient-to-b from-[#F0F4F7] to-[#E1E8ED] border-b border-[#C0C0C0] px-2 py-2">
+    <div className="flex flex-col h-full bg-[#f6f6f6]">
+      {/* Toolbar */}
+      <div className="bg-[#f6f6f6] border-b border-black/10 px-2 py-2">
         <div className="flex items-center gap-1">
           {/* Navigation Buttons */}
           <div className="flex items-center bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded">
@@ -282,7 +258,6 @@ export function InternetExplorer() {
 
           {/* Address Bar */}
           <div className="flex-1 flex items-center gap-2">
-            <span className="text-xs text-[#666] font-medium">Address</span>
             <form
               onSubmit={handleUrlSubmit}
               className="flex-1 flex items-center"
@@ -294,7 +269,7 @@ export function InternetExplorer() {
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
                   className="flex-1 px-2 py-1 text-sm focus:outline-none"
-                  placeholder="Type a Web address"
+                  placeholder="Search or enter website name"
                 />
               </div>
               <button
@@ -369,17 +344,17 @@ export function InternetExplorer() {
       <div className="flex-1 overflow-auto bg-white">
         {activeTab.url === "about:bookmarks" ? (
           <div className="p-6 bg-white">
-            {/* IE Home Page Header */}
+            {/* Start page header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#4A9EFF] to-[#0066CC] rounded-lg flex items-center justify-center">
                   <Globe className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-[#003366]">
-                    Internet Explorer
+                  <h1 className="text-2xl font-bold text-[#1d1d1f]">
+                    Favorites
                   </h1>
-                  <p className="text-sm text-[#666]">Bookmarks & Favorites</p>
+                  <p className="text-sm text-[#666]">Products I&apos;ve worked on</p>
                 </div>
               </div>
             </div>
@@ -420,20 +395,10 @@ export function InternetExplorer() {
                 ))}
               </div>
 
-              {/* IE Style Footer */}
-              <div className="mt-8 p-4 bg-gradient-to-b from-[#F0F8FF] to-[#E8F4FF] border border-[#D0E4FF] rounded">
-                <div className="flex items-center gap-2 text-sm text-[#003366]">
-                  <div className="w-4 h-4 bg-[#0066CC] rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">i</span>
-                  </div>
-                  <span>
-                    <strong>Internet Explorer Notice:</strong> Some websites may
-                    not display correctly in iframe mode. Click on any bookmark
-                    to navigate to the website. Use Ctrl+Click to open in new
-                    tab.
-                  </span>
-                </div>
-              </div>
+              <p className="mt-8 text-center text-xs text-[#888]">
+                Some sites don&apos;t allow being shown inside another page. If
+                one stays blank, use &ldquo;Open in other tab instead&rdquo;.
+              </p>
             </div>
           </div>
         ) : (
@@ -451,8 +416,8 @@ export function InternetExplorer() {
             {activeTab.url !== "about:bookmarks" && (
               <div className="border-b border-[#E0E0E0] bg-[#FFFBEA] px-4 py-2 flex items-center justify-between text-xs text-[#664D03]">
                 <span>
-                  If this website refuses to connect inside Internet Explorer,
-                  you can open it in a normal browser tab instead.
+                  If this website refuses to connect here, you can open it in a
+                  normal browser tab instead.
                 </span>
                 <button
                   onClick={() => openInNewTab(activeTab.url)}
@@ -477,17 +442,6 @@ export function InternetExplorer() {
         )}
       </div>
 
-      {/* IE Status Bar */}
-      <div className="border-t border-[#C0C0C0] bg-gradient-to-b from-[#F0F0F0] to-[#E8E8E8] px-3 py-1 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-4">
-          <span className="text-[#333]">Done</span>
-          <span className="text-[#666]">Protected Mode: On</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-[#666]">100%</span>
-          <span className="text-[#333]">Internet Explorer 8</span>
-        </div>
-      </div>
     </div>
   );
 }

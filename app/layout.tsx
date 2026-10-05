@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s | Syed Abdul Muneeb",
   },
   description:
-    "Explore the interactive portfolio of Syed Abdul Muneeb, a Software Engineer. Experience Muneeb OS, a retro Windows 7-style interface showcasing projects, skills, and experience.",
+    "Explore the interactive portfolio of Syed Abdul Muneeb, a Software Engineer. Experience Muneeb OS, a macOS-style desktop showcasing projects, skills, and experience.",
   keywords: [
     "Syed Abdul Muneeb",
     "Software Engineer",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "Web Developer",
     "React",
     "Next.js",
-    "Windows 7 Clone",
+    "macOS Portfolio",
     "Interactive Portfolio",
     "Frontend Developer",
     "Full Stack Developer",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     url: "https://portfolio-muneeb.vercel.app", // Assuming a URL or placeholder
     title: "Syed Abdul Muneeb - Software Engineer Portfolio",
     description:
-      "Welcome to Muneeb OS! An interactive Windows 7-style portfolio showcasing my work as a Software Engineer.",
+      "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
     siteName: "Syed Abdul Muneeb Portfolio",
     images: [
       {
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Syed Abdul Muneeb - Software Engineer Portfolio",
     description:
-      "Welcome to Muneeb OS! An interactive Windows 7-style portfolio showcasing my work as a Software Engineer.",
+      "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
     images: ["/og-image.png"],
     creator: "@muneeb", // Placeholder, user can update
   },

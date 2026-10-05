@@ -265,7 +265,7 @@ export function FeedbackWindow() {
   );
 }
 
-// Classic Windows form components
+// Form components
 function FormField({
   label,
   children,
