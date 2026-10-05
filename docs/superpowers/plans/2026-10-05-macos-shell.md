@@ -42,10 +42,10 @@ behaviour to verify.
 - Produces: `DOCK_APP_IDS: (string | "separator")[]` and `DESKTOP_FILE_IDS = ["about", "projects", "resume", "contact"]` in `app-registry.ts`.
 - Produces: `MAC_WALLPAPERS: { id: string; name: string; css: string }[]` and `DEFAULT_WALLPAPER` in `wallpapers.ts`.
 
-- [ ] Rename registry titles per spec table (Safari, Finder, System Settings, Trash, Activity Monitor, Feedback); only `DESKTOP_FILE_IDS` keep `showOnDesktop`, placed at `gridCell(0, 0..3)` (measured from the top-right).
-- [ ] Change storage key to `muneebos-mac-state-v1`; default wallpaper `DEFAULT_WALLPAPER`.
-- [ ] Verify: `npx tsc --noEmit -p . | grep -c "error TS"` → 20.
-- [ ] Commit.
+- [x] Rename registry titles per spec table (Safari, Finder, System Settings, Trash, Activity Monitor, Feedback); only `DESKTOP_FILE_IDS` keep `showOnDesktop`, placed at `gridCell(0, 0..3)` (measured from the top-right).
+- [x] Change storage key to `muneebos-mac-state-v1`; default wallpaper `DEFAULT_WALLPAPER`.
+- [x] Verify: `npx tsc --noEmit -p . | grep -c "error TS"` → 20.
+- [x] Commit.
 
 ### Task 2: Mac window chrome
 
@@ -53,10 +53,10 @@ behaviour to verify.
 
 **Interfaces:** Consumes `WindowState`; minimize target element id becomes `dock-item-${window.appId ?? window.id}`.
 
-- [ ] Traffic lights (red close, yellow minimize, green zoom; glyphs on hover), centred title, light title bar (inactive = flatter), 10px radius, large soft shadow.
-- [ ] Zoomed window: `top: 28`, `left: 0`, `width: 100vw`, `height: calc(100vh - 28px - 88px)`. Drag clamps `y ≥ 28`.
-- [ ] Verify in browser: open About; drag, zoom, minimize (shrinks toward Dock icon), restore from Dock, close.
-- [ ] Commit.
+- [x] Traffic lights (red close, yellow minimize, green zoom; glyphs on hover), centred title, light title bar (inactive = flatter), 10px radius, large soft shadow.
+- [x] Zoomed window: `top: 28`, `left: 0`, `width: 100vw`, `height: calc(100vh - 28px - 88px)`. Drag clamps `y ≥ 28`.
+- [x] Verify in browser: open About; drag, zoom, minimize (shrinks toward Dock icon), restore from Dock, close.
+- [x] Commit.
 
 ### Task 3: Menu bar, Dock, Spotlight, desktop composition
 
@@ -70,14 +70,14 @@ behaviour to verify.
 - `Dock()` – each item `id="dock-item-<appId>"`, `data-dock-id="<appId>"`.
 - `Spotlight({ open: boolean; onClose: () => void })` – uses `searchApps` + `launchApp`.
 
-- [ ] Menu bar per spec (logo menu, active app name, Go, Window, Help, right-side glyphs + clock). Menus close on outside click / Esc.
-- [ ] Dock with framer-motion magnification, separators, running dots, click → `launchApp` (restores minimized windows).
-- [ ] Spotlight: ⌘K / Ctrl+K toggles, arrow keys + Enter, Esc closes.
-- [ ] Desktop icons: Finder-style label, anchored top-right (`left = containerWidth − GRID_CELL_WIDTH − x`, inverse for drag); open via `launchApp`.
-- [ ] Context menus restyled Mac (rounded, translucent, blue highlight). Desktop menu: Change Wallpaper…, Clean Up, Spotlight.
-- [ ] Remove ⌘X memories shortcut and Ctrl+Shift+Esc → open Activity Monitor via `launchApp`.
-- [ ] Verify in browser: Dock magnifies; dots appear for open apps; Spotlight finds "resume" and opens it; desktop files drag/snap top-right; menu bar Go → Projects opens Projects.
-- [ ] Commit.
+- [x] Menu bar per spec (logo menu, active app name, Go, Window, Help, right-side glyphs + clock). Menus close on outside click / Esc.
+- [x] Dock with framer-motion magnification, separators, running dots, click → `launchApp` (restores minimized windows).
+- [x] Spotlight: ⌘K / Ctrl+K toggles, arrow keys + Enter, Esc closes.
+- [x] Desktop icons: Finder-style label, anchored top-right (`left = containerWidth − GRID_CELL_WIDTH − x`, inverse for drag); open via `launchApp`.
+- [x] Context menus restyled Mac (rounded, translucent, blue highlight). Desktop menu: Change Wallpaper…, Clean Up, Spotlight.
+- [x] Remove ⌘X memories shortcut and Ctrl+Shift+Esc → open Activity Monitor via `launchApp`.
+- [x] Verify in browser: Dock magnifies; dots appear for open apps; Spotlight finds "resume" and opens it; desktop files drag/snap top-right; menu bar Go → Projects opens Projects.
+- [x] Commit.
 
 ### Task 4: Lock screen, boot screen, tour
 
@@ -88,25 +88,25 @@ behaviour to verify.
 
 **Interfaces:** `LockScreen({ onUnlock: () => void })`; `BootScreen({ onDone: () => void })`.
 
-- [ ] Lock screen per spec; Enter or click unlocks. Menu bar "Lock Screen" returns to it.
-- [ ] Shut Down → black "Click or press Enter to start up" → `BootScreen` (~2s) → desktop. Startup chime removed.
-- [ ] Tour targets `[data-dock-id="…"]`; "Take the Tour" in Help menu plus a Mac-style pill.
-- [ ] Verify in browser: fresh visit → lock → desktop → tour walks About/Projects/Resume/Contact Dock icons; Shut Down → boot → desktop.
-- [ ] Commit.
+- [x] Lock screen per spec; Enter or click unlocks. Menu bar "Lock Screen" returns to it.
+- [x] Shut Down → black "Click or press Enter to start up" → `BootScreen` (~2s) → desktop. Startup chime removed.
+- [x] Tour targets `[data-dock-id="…"]`; "Take the Tour" in Help menu plus a Mac-style pill.
+- [x] Verify in browser: fresh visit → lock → desktop → tour walks About/Projects/Resume/Contact Dock icons; Shut Down → boot → desktop.
+- [x] Commit.
 
 ### Task 5: App internals, settings, copy, OG image
 
 **Files:** Modify: `components/windows/internet-explorer.tsx`, `projects-explorer.tsx`, `recycle-bin.tsx`, `task-manager-window.tsx`, `calculator.tsx`, `modern-music-player.tsx`, `settings-window.tsx`, `computer-explorer.tsx`, `github-activity-viewer.tsx`, `app/layout.tsx`, `public/og-image.png`
 
-- [ ] Rename visible Windows wording (Safari, Trash, Activity Monitor, Calculator, Music, Finder); drop Explorer's File/Edit/View/Tools bar.
-- [ ] Settings: wallpaper picker uses `MAC_WALLPAPERS`; remove Aero and taskbar transparency controls.
-- [ ] Metadata copy says macOS-style; regenerate OG image from the lock screen.
-- [ ] Verify in browser: each Dock app opens with no Windows wording visible; wallpaper switch works.
-- [ ] Commit.
+- [x] Rename visible Windows wording (Safari, Trash, Activity Monitor, Calculator, Music, Finder); drop Explorer's File/Edit/View/Tools bar.
+- [x] Settings: wallpaper picker uses `MAC_WALLPAPERS`; remove Aero and taskbar transparency controls.
+- [x] Metadata copy says macOS-style; regenerate OG image from the lock screen.
+- [x] Verify in browser: each Dock app opens with no Windows wording visible; wallpaper switch works.
+- [x] Commit.
 
 ### Task 6: Final verification
 
-- [ ] `npx tsc --noEmit -p .` → 20 errors (pre-existing).
-- [ ] `npx next build` succeeds.
-- [ ] Full fresh-visitor walkthrough at 1440×900 and 1280×720; mobile view at 375×812 unchanged.
-- [ ] `grep -rn "Windows\|Internet Explorer\|Recycle Bin\|Control Panel" components app lib` shows only intentional leftovers (mobile, hidden demo apps, game internals).
+- [x] `npx tsc --noEmit -p .` → 20 errors (pre-existing).
+- [x] `npx next build` succeeds.
+- [x] Full fresh-visitor walkthrough at 1440×900 and 1280×720; mobile view at 375×812 unchanged.
+- [x] `grep -rn "Windows\|Internet Explorer\|Recycle Bin\|Control Panel" components app lib` shows only intentional leftovers (mobile, hidden demo apps, game internals).
