@@ -2,10 +2,10 @@
 
 import React, { useEffect, useRef } from "react";
 import Shepherd from "shepherd.js";
-import { useWindowManager } from "@/lib/window-manager";
+import { getApp } from "@/lib/app-registry";
 import "@/styles/shepherd-pixel.css";
 
-interface Windows7TourProps {
+interface TourProps {
   run: boolean;
   onComplete: () => void;
   onSkip: () => void;
@@ -13,8 +13,7 @@ interface Windows7TourProps {
 
 const TOUR_ICON_IDS = ["about", "projects", "resume", "contact"];
 
-export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
-  const { desktopIcons } = useWindowManager();
+export function Tour({ run, onComplete, onSkip }: TourProps) {
   const tourRef = useRef<any>(null);
 
   // Helper to determine character image based on content
@@ -120,15 +119,15 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
       classes: "pixel-theme",
     });
 
-    // Steps for icons
-    // Only tour the icons that matter to a visitor; the rest are
+    // Steps point at the Dock icons that matter to a visitor; the rest are
     // discoverable on their own.
-    const tourIcons = TOUR_ICON_IDS.map((id) =>
-      desktopIcons.find((icon) => icon.id === id)
-    ).filter((icon): icon is (typeof desktopIcons)[number] => Boolean(icon));
+    const tourIcons = TOUR_ICON_IDS.map((id) => ({
+      id,
+      title: getApp(id)?.title ?? id,
+    }));
 
     tourIcons.forEach((icon, index) => {
-      const selector = `[data-icon-id="${icon.id}"]`;
+      const selector = `[data-dock-id="${icon.id}"]`;
       let content = "";
 
       switch (icon.id) {
@@ -210,7 +209,7 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
 
       tourSteps.push({
         id: icon.id,
-        attachTo: { element: selector, on: "auto" },
+        attachTo: { element: selector, on: "top" },
         text: generateStepContent(content, index + 1),
         buttons: [
           {
@@ -235,7 +234,7 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
 
     // Final Step
     const finalText =
-      "🎉 That's the tour! Everything else on the desktop (Terminal, GitHub, games in Computer) is yours to explore. If you like what you see, say hi through Contact or LinkedIn. ⚔️✨";
+      "🎉 That's the tour! Everything else in the Dock (Terminal, GitHub, Safari, games in Finder) is yours to explore. Press ⌘K to search anything. If you like what you see, say hi through Contact or LinkedIn. ⚔️✨";
     tourSteps.push({
       id: "final",
       text: generateStepContent(finalText, tourIcons.length + 1, true),
@@ -285,7 +284,7 @@ export function Windows7Tour({ run, onComplete, onSkip }: Windows7TourProps) {
         tourRef.current = null;
       }
     };
-  }, [run, desktopIcons, onComplete, onSkip]);
+  }, [run, onComplete, onSkip]);
 
   return null;
 }

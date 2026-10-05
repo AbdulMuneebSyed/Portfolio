@@ -6,22 +6,17 @@ import { MuneebLogo } from "./muneeb-logo";
 const BOOT_DURATION_MS = 2000;
 
 export function BootScreen({ onDone }: { onDone: () => void }) {
-  const [progress, setProgress] = useState(0);
+  const [isFilling, setIsFilling] = useState(false);
 
   useEffect(() => {
-    const start = performance.now();
-    let frame = 0;
-    const tick = (time: number) => {
-      const value = Math.min(1, (time - start) / BOOT_DURATION_MS);
-      setProgress(value);
-      if (value < 1) {
-        frame = requestAnimationFrame(tick);
-      } else {
-        onDone();
-      }
+    // A timer (not requestAnimationFrame) so a throttled background tab
+    // still finishes booting on time; the bar is a CSS transition.
+    const startId = window.setTimeout(() => setIsFilling(true), 50);
+    const doneId = window.setTimeout(onDone, BOOT_DURATION_MS);
+    return () => {
+      window.clearTimeout(startId);
+      window.clearTimeout(doneId);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
   }, [onDone]);
 
   return (
@@ -29,8 +24,12 @@ export function BootScreen({ onDone }: { onDone: () => void }) {
       <MuneebLogo className="size-20" />
       <div className="h-1 w-48 overflow-hidden rounded-full bg-white/20">
         <div
-          className="h-full rounded-full bg-white"
-          style={{ width: `${Math.round(progress * 100)}%` }}
+          className="h-full rounded-full bg-white ease-out"
+          style={{
+            width: isFilling ? "100%" : "0%",
+            transitionProperty: "width",
+            transitionDuration: `${BOOT_DURATION_MS - 150}ms`,
+          }}
         />
       </div>
     </div>

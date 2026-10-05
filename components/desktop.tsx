@@ -19,7 +19,7 @@ import { MenuBar } from "./mac/menu-bar";
 import { Dock } from "./mac/dock";
 import { Spotlight } from "./mac/spotlight";
 import { BootScreen } from "./mac/boot-screen";
-import { Windows7Tour } from "./windows7-tour-pixel";
+import { Tour } from "./mac/tour";
 import { ProjectsExplorer } from "./windows/projects-explorer";
 import { ResumeWindow } from "./windows/resume-window";
 import { AboutWindow } from "./windows/about-window";
@@ -190,7 +190,7 @@ export function Desktop({ onLock }: DesktopProps) {
       }}
       onClick={() => setContextMenu(null)}
     >
-      <Windows7Tour
+      <Tour
         run={isTourRunning}
         onComplete={handleTourComplete}
         onSkip={handleTourComplete}
