@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://portfolio-muneeb.vercel.app"),
   title: {
     default: "Syed Abdul Muneeb | Software Engineer Portfolio",
     template: "%s | Syed Abdul Muneeb",
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://portfolio-muneeb.vercel.app", // Assuming a URL or placeholder
+    url: "https://portfolio-muneeb.vercel.app",
     title: "Syed Abdul Muneeb - Software Engineer Portfolio",
     description:
       "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
@@ -62,14 +63,7 @@ export const metadata: Metadata = {
     description:
       "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
     images: ["/og-image.png"],
-    creator: "@muneeb", // Placeholder, user can update
   },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
-  },
-  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

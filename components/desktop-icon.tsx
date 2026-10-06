@@ -8,6 +8,7 @@ import { useWindowManager } from "@/lib/window-manager";
 import { AppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
 import { nearestFreeCell } from "@/lib/desktop-grid";
+import { useDesktopSelection } from "@/lib/desktop-selection";
 import { DesktopIconContextMenu } from "./desktop-icon-context-menu";
 import { AnimatePresence } from "framer-motion";
 
@@ -26,7 +27,8 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
   const [lastClick, setLastClick] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isSnapping, setIsSnapping] = useState(false);
-  const [isSelected, setIsSelected] = useState(false);
+  const isSelected = useDesktopSelection((s) => s.selected.includes(icon.id));
+  const selectOnly = () => useDesktopSelection.getState().select([icon.id]);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -63,7 +65,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       if (!draggingRef.current) {
         const moved = Math.hypot(
           event.clientX - press.startX,
-          event.clientY - press.startY
+          event.clientY - press.startY,
         );
         if (moved < DRAG_THRESHOLD) return;
         draggingRef.current = true;
@@ -98,8 +100,12 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     };
 
     const handleDocumentMouseDown = (event: MouseEvent) => {
+      const onOtherIcon = (event.target as Element).closest?.("[data-icon-id]");
+      if (onOtherIcon && (event.shiftKey || event.metaKey)) return;
       if (!iconRef.current?.contains(event.target as Node)) {
-        setIsSelected(false);
+        const { selected, select } = useDesktopSelection.getState();
+        if (selected.includes(icon.id))
+          select(selected.filter((id) => id !== icon.id));
       }
     };
 
@@ -119,13 +125,23 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsSelected(true);
+    selectOnly();
     setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return; // Only left click
-    setIsSelected(true);
+    if (e.shiftKey || e.metaKey) {
+      // Shift- or ⌘-click adds or removes this file from the selection.
+      const { selected, select } = useDesktopSelection.getState();
+      select(
+        selected.includes(icon.id)
+          ? selected.filter((id) => id !== icon.id)
+          : [...selected, icon.id],
+      );
+      return;
+    }
+    selectOnly();
 
     const now = Date.now();
     const timeDiff = now - lastClick;
@@ -156,6 +172,24 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       <div
         ref={iconRef}
         data-icon-id={icon.id}
+        role="button"
+        tabIndex={0}
+        aria-label={`Open ${icon.title}`}
+        onFocus={() => !isSelected && selectOnly()}
+        onKeyDown={(e) => {
+          if (
+            e.key === "Enter" ||
+            ((e.metaKey || e.ctrlKey) &&
+              (e.key === "o" || e.key === "ArrowDown"))
+          ) {
+            e.preventDefault();
+            handleOpen();
+          }
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          handleOpen();
+        }}
         className={`desktop-icon absolute flex h-[104px] w-[96px] select-none flex-col items-center justify-start gap-[3px] ${
           isDragging ? "opacity-70" : ""
         } ${isSnapping ? "snapping" : ""}`}

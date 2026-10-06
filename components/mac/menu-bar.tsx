@@ -14,6 +14,7 @@ import {
 import { getApp } from "@/lib/app-registry";
 import { launchApp, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
+import { useMissionControl } from "@/lib/mission-control";
 import { useSystemControls } from "@/lib/system-controls";
 import { useBatteryStatus } from "@/lib/use-battery";
 import { AppleLogo } from "./apple-logo";
@@ -97,6 +98,12 @@ export function MenuBar({
       e.preventDefault();
       toggleMenu(id);
     },
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleMenu(id);
+      }
+    },
     onMouseEnter: () => hoverMenu(id),
   });
 
@@ -111,10 +118,11 @@ export function MenuBar({
   } = useWindowManager.getState();
 
   const activeWindow = windows.find(
-    (w) => w.id === activeWindowId && !w.isMinimized
+    (w) => w.id === activeWindowId && !w.isMinimized,
   );
   const activeAppName = activeWindow
-    ? getApp(activeWindow.appId ?? activeWindow.id)?.title ?? activeWindow.title
+    ? (getApp(activeWindow.appId ?? activeWindow.id)?.title ??
+      activeWindow.title)
     : "Finder";
 
   useEffect(() => {
@@ -152,7 +160,11 @@ export function MenuBar({
       items: [
         { label: "About Muneeb", onSelect: () => launchApp("about") },
         { separator: true },
-        { label: "System Settings…", onSelect: () => launchApp("settings") },
+        {
+          label: "System Settings…",
+          shortcut: "⌘,",
+          onSelect: () => launchApp("settings"),
+        },
         { separator: true },
         { label: "Lock Screen", onSelect: onLock },
         { label: "Restart…", onSelect: onRestart },
@@ -184,6 +196,7 @@ export function MenuBar({
         { separator: true },
         {
           label: "Close Window",
+          shortcut: "⌘W",
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
         },
@@ -237,6 +250,7 @@ export function MenuBar({
       items: [
         {
           label: "Minimize",
+          shortcut: "⌘M",
           disabled: !activeWindow,
           onSelect: () => activeWindow && minimizeWindow(activeWindow.id),
         },
@@ -247,8 +261,15 @@ export function MenuBar({
         },
         {
           label: "Close Window",
+          shortcut: "⌘W",
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
+        },
+        { separator: true },
+        {
+          label: "Mission Control",
+          shortcut: "⌃↑",
+          onSelect: () => useMissionControl.getState().toggle(),
         },
         ...(windows.length > 0 ? [{ separator: true } as const] : []),
         ...windows.map((w) => ({
@@ -262,6 +283,10 @@ export function MenuBar({
       id: "help",
       title: "Help",
       items: [
+        {
+          label: "Keyboard Shortcuts…",
+          onSelect: () => launchApp("settings", { section: "keyboard" }),
+        },
         { label: "Take the Tour", onSelect: onStartTour },
         { label: "Contact Muneeb", onSelect: () => launchApp("contact") },
         {
@@ -270,7 +295,7 @@ export function MenuBar({
             window.open(
               "https://github.com/AbdulMuneebSyed",
               "_blank",
-              "noopener,noreferrer"
+              "noopener,noreferrer",
             ),
         },
       ],
@@ -282,12 +307,15 @@ export function MenuBar({
   return (
     <div
       ref={barRef}
-      className="font-mac fixed inset-x-0 top-0 z-[9500] flex select-none items-center justify-between bg-black/20 px-2.5 text-[13.5px] text-white backdrop-blur-3xl backdrop-saturate-150 [text-shadow:0_0_1px_rgba(0,0,0,0.25)]"
+      className="mac-menubar font-mac fixed inset-x-0 top-0 z-[9500] flex select-none items-center justify-between bg-black/20 px-2.5 text-[13.5px] text-white backdrop-blur-3xl backdrop-saturate-150 [text-shadow:0_0_1px_rgba(0,0,0,0.25)]"
       style={{ height: MENU_BAR_HEIGHT }}
     >
       <div className="flex h-full items-center">
         {menus.map((menu) => (
-          <div key={menu.id} className="relative h-full">
+          <div
+            key={menu.id}
+            className={`relative h-full ${["system", "app"].includes(menu.id) ? "" : "desktop-menu"}`}
+          >
             <button
               data-menu-id={menu.id}
               className={`my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] ${
@@ -300,6 +328,13 @@ export function MenuBar({
                 toggleMenu(menu.id);
               }}
               onMouseEnter={() => hoverMenu(menu.id)}
+              aria-label={menu.id === "system" ? "Apple menu" : undefined}
+              onKeyDown={(e) => {
+                if (["Enter", " ", "ArrowDown"].includes(e.key)) {
+                  e.preventDefault();
+                  toggleMenu(menu.id);
+                }
+              }}
               aria-haspopup="menu"
               aria-expanded={openMenuId === menu.id}
             >
@@ -321,7 +356,7 @@ export function MenuBar({
             <Moon className="size-[14px] fill-current" />
           </span>
         )}
-        <div className="relative h-full">
+        <div className="battery-menu relative h-full">
           <button {...statusItemProps("battery", "Battery")}>
             {battery?.charging ? (
               <BatteryCharging className="size-[19px]" strokeWidth={1.75} />
@@ -335,7 +370,7 @@ export function MenuBar({
             </div>
           )}
         </div>
-        <div className="relative h-full">
+        <div className="wifi-menu relative h-full">
           <button {...statusItemProps("wifi", "Wi-Fi")}>
             {wifiOn ? (
               <Wifi className="size-4" strokeWidth={2.25} />
@@ -366,11 +401,17 @@ export function MenuBar({
         </div>
         <button
           {...statusItemProps("clock", "Notification Center")}
-          className={`my-[3px] flex h-[calc(100%-6px)] items-center whitespace-nowrap rounded-[5px] px-[7px] tabular-nums ${
+          className={`menu-clock my-[3px] flex h-[calc(100%-6px)] items-center whitespace-nowrap rounded-[5px] px-[7px] tabular-nums ${
             openMenuId === "clock" ? "bg-white/25" : ""
           }`}
         >
-          {clock}
+          <span className="hidden sm:inline">{clock}</span>
+          <span className="sm:hidden">
+            {now?.toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+          </span>
         </button>
       </div>
 
@@ -385,7 +426,12 @@ export function MenuBar({
                 ref={panelRef}
                 initial={{ opacity: 0, y: -6, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.12 } }}
+                exit={{
+                  opacity: 0,
+                  y: -6,
+                  scale: 0.98,
+                  transition: { duration: 0.12 },
+                }}
                 transition={{ duration: 0.16 }}
                 className="font-mac fixed right-3 z-[9600] origin-top-right"
                 style={{ top: MENU_BAR_HEIGHT + 8 }}
@@ -407,7 +453,7 @@ export function MenuBar({
               </div>
             )}
           </AnimatePresence>,
-          document.body
+          document.body,
         )}
     </div>
   );
@@ -420,14 +466,45 @@ function MenuDropdown({
   items: MenuItem[];
   onClose: () => void;
 }) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    menuRef.current
+      ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+      ?.focus();
+  }, []);
   return (
     <div
+      ref={menuRef}
       role="menu"
+      onKeyDown={(e) => {
+        const buttons = Array.from(
+          e.currentTarget.querySelectorAll<HTMLButtonElement>(
+            "button:not(:disabled)",
+          ),
+        );
+        const index = buttons.indexOf(
+          document.activeElement as HTMLButtonElement,
+        );
+        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) {
+          e.preventDefault();
+          const next =
+            e.key === "Home"
+              ? 0
+              : e.key === "End"
+                ? buttons.length - 1
+                : (index + (e.key === "ArrowDown" ? 1 : -1) + buttons.length) %
+                  buttons.length;
+          buttons[next]?.focus();
+        } else if (e.key === "Escape") onClose();
+      }}
       className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] dark:border-white/10 dark:bg-[#2c2c2e]/95 dark:text-[#f5f5f7] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
     >
       {items.map((item, index) =>
         "separator" in item ? (
-          <div key={index} className="mx-2 my-1 h-px bg-black/10 dark:bg-white/10" />
+          <div
+            key={index}
+            className="mx-2 my-1 h-px bg-black/10 dark:bg-white/10"
+          />
         ) : (
           <button
             key={index}
@@ -445,7 +522,7 @@ function MenuDropdown({
               <span className="text-xs opacity-60">{item.shortcut}</span>
             )}
           </button>
-        )
+        ),
       )}
     </div>
   );
@@ -466,9 +543,27 @@ function formatMenuBarClock(date: Date) {
 function ControlCenterIcon() {
   return (
     <svg viewBox="0 0 20 16" className="h-[15px] w-[18px]" aria-hidden="true">
-      <rect x="1" y="1" width="18" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <rect
+        x="1"
+        y="1"
+        width="18"
+        height="6"
+        rx="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
       <circle cx="15" cy="4" r="1.8" fill="currentColor" />
-      <rect x="1" y="9" width="18" height="6" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <rect
+        x="1"
+        y="9"
+        width="18"
+        height="6"
+        rx="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
       <circle cx="5" cy="12" r="1.8" fill="currentColor" />
     </svg>
   );

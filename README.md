@@ -10,7 +10,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 
 ## What's inside
 
-### Desktop (screens 1024px and wider)
+### Desktop, tablet, and phone
 
 - **Lock screen** — clock, date, battery status; click or press Enter to unlock.
 - **Menu bar** — Apple menu (About, System Settings, Lock Screen, Restart,
@@ -25,11 +25,19 @@ Control Center, and windows they can drag, zoom, and minimize.
     Dark Mode, Screenshot (saves a PNG of the page), Focus, Display
     brightness, Sound volume, Edit Controls.
   - **Clock** — Notification Center with notifications and a calendar.
-- **Dock** — magnifies on hover, shows running apps, minimizes windows into it.
+- **Dock** — magnifies on hover, bounces while an app launches, shows running apps.
 - **Desktop files** — About Me, Projects, Resume.pdf, Contact; draggable,
-  snapping to a grid. Right-click for Change Wallpaper, Clean Up, Spotlight.
-- **Windows** — traffic-light buttons, drag, resize, zoom, minimize.
-- **Guided tour** on the first visit (and from Help → Take the Tour).
+  snapping to a grid. Drag on the empty desktop to select several, or
+  Shift-click to add to the selection. Right-click for Change Wallpaper, Clean Up, Spotlight.
+- **Windows** — traffic-light buttons, drag, resize, animated zoom, and
+  minimize into the app's Dock icon. Drag a window to the left or right
+  screen edge to tile it, or to the top to fill the screen (macOS Sequoia
+  tiling); drag it away to get its old size back.
+- **Mission Control** (Ctrl+↑, F3, or Window → Mission Control) — every
+  open window side by side; click one to bring it forward.
+- **Notification banners** — for sent messages, feedback, screenshots, and a
+  first-visit welcome. Focus mode silences them.
+- **Guided tour** available from Help → Take the Tour.
 
 ### Apps
 
@@ -43,14 +51,27 @@ Control Center, and windows they can drag, zoom, and minimize.
 | Terminal | `help`, `about`, `projects`, `open <app>`, … |
 | Safari | Links to products I've worked on |
 | Finder | Folders, music, and games (Minesweeper, Snake) |
-| System Settings | Wallpaper picker, visitor info |
+| System Settings | Appearance, wallpaper, display, sound, accessibility, keyboard shortcuts |
 | Feedback | Reviews and bug reports (saved to Supabase) |
 | Trash, Activity Monitor, Calculator, Music | Small desktop utilities |
 
-### Mobile (narrower than 1024px)
+### Responsive behavior
 
-A separate phone-style experience (`components/muneebOS.tsx`) with a lock
-screen, home screen, and apps for projects, contact, resume, and music.
+The same macOS desktop runs at every size. Below 700px, windows fill the
+available workspace, the Dock offers core apps plus Spotlight, and desktop
+files open with a tap. Window sidebars and toolbars adapt to their container.
+
+### Keyboard shortcuts
+
+Use Command on macOS or Ctrl on Windows/Linux: K opens Spotlight, comma opens
+Settings, M minimizes, W closes, and backtick cycles visible windows. Finder
+supports Command+O/Return to open, Command+Up for Home, Command+1/2 for views,
+and Command+[/] for navigation. Escape dismisses menus and Spotlight.
+Command+Space is supported when the operating system passes it to the page.
+Browser and OS reserved shortcuts may take precedence; menu actions remain available.
+
+Appearance, wallpaper, reduced motion, sound, notes, and window state are
+saved locally. Music and Control Center share one audio player.
 
 ## Tech stack
 
@@ -59,7 +80,6 @@ screen, home screen, and apps for projects, contact, resume, and music.
 - [Zustand](https://zustand-demo.pmnd.rs) for window and settings state
 - [Framer Motion](https://www.framer.com/motion/) for animation
 - [Supabase](https://supabase.com) for the contact and feedback forms
-- [Shepherd.js](https://shepherdjs.dev) for the guided tour
 - [lucide-react](https://lucide.dev) icons
 
 ## Getting started
@@ -71,8 +91,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in a browser window at
-least 1024px wide to get the desktop; narrower windows show the mobile UI.
+Open [http://localhost:3000](http://localhost:3000) at any screen size.
 
 Other scripts:
 
@@ -87,7 +106,7 @@ npm run lint    # lint
 ```
 app/
   layout.tsx            Metadata, fonts, analytics
-  page.tsx              Chooses mobile vs. desktop; lock screen → desktop
+  page.tsx              Lock screen → responsive desktop
   globals.css           Global styles and the .font-mac typography class
 components/
   desktop.tsx           Composes the desktop: menu bar, files, windows, Dock
@@ -96,7 +115,6 @@ components/
   mac/                  macOS shell: menu bar, Dock, Spotlight, lock and boot
                         screens, Control Center, Notification Center, tour
   windows/              The apps (About, Projects, Contact, Terminal, …)
-  muneebOS.tsx          Mobile experience
 lib/
   app-registry.ts       Every app: id, title, component, size, Dock order
   app-icons.tsx         App icons (Big Sur-style PNGs and drawn icons)

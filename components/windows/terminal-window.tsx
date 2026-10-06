@@ -31,6 +31,7 @@ export function TerminalWindow() {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const prompt = useMemo(() => "muneeb@MuneebOS ~ %", []);
 
@@ -80,7 +81,7 @@ export function TerminalWindow() {
         { kind: "output", text: "Available commands:" },
         {
           kind: "output",
-          text: "  about, projects, skills, contact, github, apps, taskmgr, date, echo, open, clear",
+          text: "  about, projects, skills, contact, github, apps, top, date, echo, open, clear",
         },
         {
           kind: "output",
@@ -146,13 +147,13 @@ export function TerminalWindow() {
         getLaunchableApps().map((app) => ({
           kind: "output",
           text: `${app.id.padEnd(18)} ${app.title} - ${app.category}`,
-        }))
+        })),
       );
       return;
     }
 
-    if (normalizedName === "taskmgr") {
-      openApp("taskmgr");
+    if (normalizedName === "top" || normalizedName === "taskmgr") {
+      openApp("task-manager");
       return;
     }
 
@@ -212,12 +213,19 @@ export function TerminalWindow() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-[#0c0c0c] font-mono text-[13px] text-[#d7f7d2]">
+    <div className="flex h-full flex-col bg-[#1e1e1e] font-mono text-[13px] text-[#e5e5e7]">
       <div className="flex items-center justify-between border-b border-white/10 bg-[#1d1d1d] px-3 py-2 text-xs text-[#d6d6d6]">
         <span>muneeb — zsh — 80×24</span>
-        <span className="text-[#8bcf84]">READY</span>
+        <span className="text-[#8e8e93]">Shell</span>
       </div>
-      <div className="flex-1 overflow-auto px-3 py-3">
+      <div
+        className="flex-1 overflow-auto px-3 py-3"
+        onClick={() => {
+          // Like Terminal: clicking the window returns to the prompt, unless
+          // the visitor is selecting text to copy.
+          if (!window.getSelection()?.toString()) inputRef.current?.focus();
+        }}
+      >
         {lines.map((line) => (
           <div
             key={line.id}
@@ -226,21 +234,25 @@ export function TerminalWindow() {
                 ? "text-[#ff8a8a]"
                 : line.kind === "input"
                   ? "text-white"
-                  : "text-[#d7f7d2]"
+                  : "text-[#e5e5e7]"
             }
           >
             {line.text}
           </div>
         ))}
-        <form onSubmit={handleSubmit} className="mt-1 flex items-center gap-2">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-1 flex flex-wrap items-center gap-2"
+        >
           <span className="text-white">{prompt}</span>
           <input
+            ref={inputRef}
             value={input}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={handleKeyDown}
             autoFocus
             spellCheck={false}
-            className="min-w-0 flex-1 bg-transparent text-white outline-none"
+            className="terminal-input min-w-0 flex-1 bg-transparent text-white outline-none"
             aria-label="Terminal command"
           />
         </form>

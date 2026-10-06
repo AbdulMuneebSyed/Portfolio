@@ -21,6 +21,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const battery = useBatteryStatus();
 
   useEffect(() => {
+    useWindowManager.getState().loadState();
     setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);

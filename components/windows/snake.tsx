@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { RotateCcw, Trophy, Play, Pause } from "lucide-react";
+import {
+  RotateCcw,
+  Play,
+  Pause,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+} from "lucide-react";
+
+import { useWindowManager } from "@/lib/window-manager";
 
 type Position = { x: number; y: number };
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 
 const GRID_SIZE = 20;
-const CELL_SIZE = 20;
 const INITIAL_SNAKE: Position[] = [
   { x: 10, y: 10 },
   { x: 9, y: 10 },
@@ -17,6 +26,11 @@ const INITIAL_DIRECTION: Direction = "RIGHT";
 const GAME_SPEED = 150;
 
 export function Snake() {
+  const active = useWindowManager((s) =>
+    s.windows.some(
+      (w) => w.component === "Snake" && w.isActive && !w.isMinimized,
+    ),
+  );
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
   const [direction, setDirection] = useState<Direction>(INITIAL_DIRECTION);
   const [nextDirection, setNextDirection] =
@@ -37,7 +51,7 @@ export function Snake() {
       };
     } while (
       currentSnake.some(
-        (segment) => segment.x === newFood.x && segment.y === newFood.y
+        (segment) => segment.x === newFood.x && segment.y === newFood.y,
       )
     );
     return newFood;
@@ -53,7 +67,7 @@ export function Snake() {
   };
 
   const moveSnake = useCallback(() => {
-    if (gameStatus !== "playing") return;
+    if (gameStatus !== "playing" || !active) return;
 
     setDirection(nextDirection);
 
@@ -90,7 +104,7 @@ export function Snake() {
       // Check self collision
       if (
         prevSnake.some(
-          (segment) => segment.x === newHead.x && segment.y === newHead.y
+          (segment) => segment.x === newHead.x && segment.y === newHead.y,
         )
       ) {
         setGameStatus("gameOver");
@@ -113,7 +127,7 @@ export function Snake() {
 
       return newSnake;
     });
-  }, [gameStatus, nextDirection, food, generateFood, highScore]);
+  }, [gameStatus, nextDirection, food, generateFood, highScore, active]);
 
   useEffect(() => {
     const interval = setInterval(moveSnake, GAME_SPEED);
@@ -122,6 +136,14 @@ export function Snake() {
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      if (
+        !active ||
+        e.metaKey ||
+        e.ctrlKey ||
+        (e.target as HTMLElement).matches("input, textarea")
+      )
+        return;
+      if (e.key.startsWith("Arrow")) e.preventDefault();
       if (
         gameStatus === "paused" &&
         ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)
@@ -152,122 +174,100 @@ export function Snake() {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [direction, gameStatus]);
+  }, [direction, gameStatus, active]);
 
+  const steer = (next: Direction) => {
+    const opposite: Record<Direction, Direction> = {
+      UP: "DOWN",
+      DOWN: "UP",
+      LEFT: "RIGHT",
+      RIGHT: "LEFT",
+    };
+    if (direction !== opposite[next]) setNextDirection(next);
+    if (gameStatus === "paused") setGameStatus("playing");
+  };
   return (
-    <div className="flex flex-col h-full bg-[#C0C0C0] p-1 select-none font-sans">
-      {/* Menu Bar */}
-      <div className="flex bg-[#ECE9D8] border-b border-white px-1 text-xs mb-1">
-        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
-          Game
-        </div>
-        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
-          Help
-        </div>
+    <div className="game-app">
+      <div className="mac-toolbar">
+        <h2>Snake</h2>
+        <span className="mac-muted text-xs">
+          Score {score} · Best {highScore}
+        </span>
+        <button
+          className="mac-icon-button"
+          aria-label={gameStatus === "playing" ? "Pause game" : "Play game"}
+          disabled={gameStatus === "gameOver"}
+          onClick={() =>
+            setGameStatus(gameStatus === "playing" ? "paused" : "playing")
+          }
+        >
+          {gameStatus === "playing" ? <Pause size={16} /> : <Play size={16} />}
+        </button>
+        <button
+          className="mac-icon-button"
+          aria-label="New game"
+          onClick={resetGame}
+        >
+          <RotateCcw size={16} />
+        </button>
       </div>
-
-      {/* Game Container */}
-      <div className="border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] p-2 bg-[#C0C0C0] flex flex-col gap-2 flex-1">
-        {/* Header (Score) */}
-        <div className="border-l-2 border-t-2 border-l-[#808080] border-t-[#808080] border-r-2 border-b-2 border-r-white border-b-white p-2 flex justify-between items-center bg-[#C0C0C0]">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold">SCORE:</span>
-            <div className="bg-black text-[#00FF00] font-mono text-xl px-2 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-24 text-right leading-none py-0.5">
-              {score.toString().padStart(5, "0")}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold">HIGH:</span>
-            <div className="bg-black text-[#00FF00] font-mono text-xl px-2 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-24 text-right leading-none py-0.5">
-              {highScore.toString().padStart(5, "0")}
-            </div>
-          </div>
-        </div>
-
-        {/* Game Board (LCD Style) */}
-        <div className="flex-1 flex items-center justify-center bg-[#9EA792] border-l-4 border-t-4 border-l-[#808080] border-t-[#808080] border-r-4 border-b-4 border-r-white border-b-white p-4 shadow-inner relative overflow-hidden">
-          {/* LCD Grid Pattern */}
-          <div
-            className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{
-              backgroundImage:
-                "linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)",
-              backgroundSize: "4px 4px",
-            }}
-          />
-
-          <div
-            className="relative border-2 border-[#4A503D] bg-[#8B967E] shadow-lg"
-            style={{
-              width: GRID_SIZE * CELL_SIZE,
-              height: GRID_SIZE * CELL_SIZE,
-            }}
-          >
-            {/* Snake */}
-            {snake.map((segment, index) => (
-              <div
-                key={index}
-                className="absolute bg-[#1A1F16] border border-[#8B967E]"
-                style={{
-                  left: segment.x * CELL_SIZE,
-                  top: segment.y * CELL_SIZE,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
-                }}
-              />
-            ))}
-
-            {/* Food */}
+      <div className="game-body">
+        <div className="snake-board">
+          {snake.map((segment, index) => (
             <div
-              className="absolute bg-[#1A1F16] rounded-full animate-pulse"
+              key={index}
+              className="snake-segment"
               style={{
-                left: food.x * CELL_SIZE + 2,
-                top: food.y * CELL_SIZE + 2,
-                width: CELL_SIZE - 4,
-                height: CELL_SIZE - 4,
+                left: `${segment.x * 5}%`,
+                top: `${segment.y * 5}%`,
+                opacity: index === 0 ? 1 : 0.75,
               }}
             />
-
-            {/* Overlay Messages */}
-            {gameStatus === "paused" && (
-              <div className="absolute inset-0 bg-[#8B967E]/80 flex items-center justify-center z-10">
-                <div className="text-center p-4 border-2 border-[#1A1F16] bg-[#9EA792] shadow-xl">
-                  <p className="text-lg font-bold text-[#1A1F16] mb-2 font-mono">
-                    PAUSED
-                  </p>
-                  <p className="text-xs text-[#1A1F16] font-mono">
-                    PRESS SPACE TO START
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {gameStatus === "gameOver" && (
-              <div className="absolute inset-0 bg-[#8B967E]/80 flex items-center justify-center z-10">
-                <div className="text-center p-4 border-2 border-[#1A1F16] bg-[#9EA792] shadow-xl">
-                  <p className="text-lg font-bold text-[#1A1F16] mb-2 font-mono">
-                    GAME OVER
-                  </p>
-                  <p className="text-sm text-[#1A1F16] mb-4 font-mono">
-                    SCORE: {score}
-                  </p>
-                  <button
-                    onClick={resetGame}
-                    className="px-4 py-1 bg-[#1A1F16] text-[#9EA792] font-mono text-xs hover:bg-[#2C3325] active:translate-y-0.5"
-                  >
-                    TRY AGAIN
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          ))}
+          <div
+            className="snake-food"
+            style={{ left: `${food.x * 5}%`, top: `${food.y * 5}%` }}
+          />
+          {gameStatus !== "playing" && (
+            <div className="game-overlay">
+              <h2>
+                {gameStatus === "gameOver" ? "Game Over" : "Ready to play?"}
+              </h2>
+              <p>
+                {gameStatus === "gameOver"
+                  ? `Your score: ${score}`
+                  : "Use the arrow keys or controls below."}
+              </p>
+              <button
+                className="mac-button primary"
+                onClick={() => {
+                  if (gameStatus === "gameOver") resetGame();
+                  else setGameStatus("playing");
+                }}
+              >
+                {gameStatus === "gameOver" ? "New Game" : "Play"}
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Controls Hint */}
-        <div className="text-center text-[10px] text-gray-600 mt-1 font-mono">
-          ARROWS TO MOVE • SPACE TO PAUSE
+        <div className="game-directions">
+          <button aria-label="Move left" onClick={() => steer("LEFT")}>
+            <ArrowLeft size={20} />
+          </button>
+          <button aria-label="Move up" onClick={() => steer("UP")}>
+            <ArrowUp size={20} />
+          </button>
+          <button aria-label="Move down" onClick={() => steer("DOWN")}>
+            <ArrowDown size={20} />
+          </button>
+          <button aria-label="Move right" onClick={() => steer("RIGHT")}>
+            <ArrowRight size={20} />
+          </button>
         </div>
+      </div>
+      <div className="mac-statusbar">
+        <span>Arrow keys to move</span>
+        <span>Space to pause</span>
       </div>
     </div>
   );

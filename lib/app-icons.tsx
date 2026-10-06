@@ -2,6 +2,7 @@ import type React from "react";
 import Image from "next/image";
 import {
   Activity,
+  Gamepad2,
   AppWindow,
   Github,
   Linkedin,
@@ -19,16 +20,35 @@ import {
 type IconSpec =
   | { kind: "png"; src: string }
   | { kind: "photo"; src: string }
-  | { kind: "glyph"; glyph: LucideIcon; from: string; to: string; color?: string }
+  | {
+      kind: "glyph";
+      glyph: LucideIcon;
+      from: string;
+      to: string;
+      color?: string;
+    }
   | { kind: "folder" }
   | { kind: "document"; label: string; color: string };
 
 const ICONS: Record<string, IconSpec> = {
+  notes: { kind: "png", src: "/icons/mac/notes.png" },
+  snake: { kind: "glyph", glyph: Gamepad2, from: "#64d2a0", to: "#24854a" },
+  minesweeper: {
+    kind: "glyph",
+    glyph: Gamepad2,
+    from: "#7a85ed",
+    to: "#5154ae",
+  },
   about: { kind: "photo", src: "/avatar-256.jpg" },
   projects: { kind: "folder" },
   resume: { kind: "document", label: "PDF", color: "#e5352b" },
   contact: { kind: "png", src: "/icons/mac/mail.png" },
-  "github-activity": { kind: "glyph", glyph: Github, from: "#3a3a3c", to: "#111113" },
+  "github-activity": {
+    kind: "glyph",
+    glyph: Github,
+    from: "#3a3a3c",
+    to: "#111113",
+  },
   linkedin: { kind: "glyph", glyph: Linkedin, from: "#1d8fe0", to: "#0a5fb4" },
   terminal: { kind: "png", src: "/icons/mac/terminal.png" },
   ie: { kind: "png", src: "/icons/mac/safari.png" },
@@ -37,8 +57,20 @@ const ICONS: Record<string, IconSpec> = {
   feedback: { kind: "png", src: "/icons/mac/notes.png" },
   calculator: { kind: "png", src: "/icons/mac/calculator.png" },
   music: { kind: "glyph", glyph: Music, from: "#ff6b81", to: "#f2263f" },
-  recycle: { kind: "glyph", glyph: Trash2, from: "#fbfbfd", to: "#d4d4da", color: "#6b6b73" },
-  "task-manager": { kind: "glyph", glyph: Activity, from: "#2b2b2e", to: "#0e0e10", color: "#5ce06a" },
+  recycle: {
+    kind: "glyph",
+    glyph: Trash2,
+    from: "#fbfbfd",
+    to: "#d4d4da",
+    color: "#6b6b73",
+  },
+  "task-manager": {
+    kind: "glyph",
+    glyph: Activity,
+    from: "#2b2b2e",
+    to: "#0e0e10",
+    color: "#5ce06a",
+  },
 };
 
 const FALLBACK: IconSpec = {
@@ -87,7 +119,9 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
   }
 
   if (spec.kind === "document") {
-    return frame(<DocumentArt size={art} label={spec.label} color={spec.color} />);
+    return frame(
+      <DocumentArt size={art} label={spec.label} color={spec.color} />,
+    );
   }
 
   const tileStyle = {
@@ -108,7 +142,7 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
           className="object-cover"
           draggable={false}
         />
-      </span>
+      </span>,
     );
   }
 
@@ -126,7 +160,7 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
         color={spec.color ?? "#ffffff"}
         strokeWidth={1.9}
       />
-    </span>
+    </span>,
   );
 }
 
@@ -152,7 +186,12 @@ function FolderArt({ size }: { size: number }) {
         d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4v27a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z"
         fill="url(#folder-front)"
       />
-      <path d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4" stroke="#bfe6ff" strokeWidth="1" fill="none" />
+      <path
+        d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4"
+        stroke="#bfe6ff"
+        strokeWidth="1"
+        fill="none"
+      />
     </svg>
   );
 }

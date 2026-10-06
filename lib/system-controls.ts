@@ -2,6 +2,10 @@ import { create } from "zustand";
 
 // Menu bar / Control Center settings, remembered between visits.
 interface SystemControlsState {
+  reduceMotion: boolean;
+  systemSounds: boolean;
+  setReduceMotion: (on: boolean) => void;
+  setSystemSounds: (on: boolean) => void;
   wifiOn: boolean;
   bluetoothOn: boolean;
   focusOn: boolean;
@@ -27,6 +31,8 @@ const STORAGE_KEY = "muneebos-controls-v1";
 
 type Persisted = Pick<
   SystemControlsState,
+  | "reduceMotion"
+  | "systemSounds"
   | "wifiOn"
   | "bluetoothOn"
   | "focusOn"
@@ -39,6 +45,8 @@ type Persisted = Pick<
 >;
 
 const DEFAULTS: Persisted = {
+  reduceMotion: false,
+  systemSounds: false,
   wifiOn: true,
   bluetoothOn: true,
   focusOn: false,
@@ -57,6 +65,8 @@ export const useSystemControls = create<SystemControlsState>((set, get) => {
     if (typeof window === "undefined") return;
     const state = get();
     const persisted: Persisted = {
+      reduceMotion: state.reduceMotion,
+      systemSounds: state.systemSounds,
       wifiOn: state.wifiOn,
       bluetoothOn: state.bluetoothOn,
       focusOn: state.focusOn,
@@ -81,6 +91,8 @@ export const useSystemControls = create<SystemControlsState>((set, get) => {
 
   return {
     ...DEFAULTS,
+    setReduceMotion: (reduceMotion) => update({ reduceMotion }),
+    setSystemSounds: (systemSounds) => update({ systemSounds }),
     setWifiOn: (wifiOn) => update({ wifiOn }),
     setBluetoothOn: (bluetoothOn) => update({ bluetoothOn }),
     setFocusOn: (focusOn) => update({ focusOn }),

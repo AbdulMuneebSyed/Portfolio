@@ -31,8 +31,8 @@ export function launchApp(appId: string, metadata?: Record<string, unknown>) {
     isMinimized: false,
     isMaximized: false,
     position: {
-      x: Math.max(0, Math.round((window.innerWidth - width) / 2) + cascade),
-      y: MENU_BAR_HEIGHT + Math.max(8, Math.round((usableHeight - height) / 2)) + cascade,
+      x: Math.max(8, Math.min(window.innerWidth - width - 8, Math.round((window.innerWidth - width) / 2) + cascade)),
+      y: MENU_BAR_HEIGHT + Math.min(usableHeight - height, Math.max(8, Math.round((usableHeight - height) / 2)) + cascade),
     },
     size: { width, height },
     metadata: metadata ?? app.metadata,

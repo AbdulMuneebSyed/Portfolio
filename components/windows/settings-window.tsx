@@ -1,308 +1,355 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useEffect } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  Monitor,
   Palette,
-  SettingsIcon,
+  Image as ImageIcon,
+  Monitor,
+  Volume2,
+  Keyboard,
   Info,
-  Download,
-  Upload,
+  Search,
+  Check,
+  Accessibility,
 } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
+import { useSystemControls } from "@/lib/system-controls";
 import { MAC_WALLPAPERS } from "@/lib/wallpapers";
 
-export function SettingsWindow() {
-  const [activeTab, setActiveTab] = useState<
-    "personalize" | "visitor" | "system"
-  >("personalize");
+const sections = [
+  { id: "appearance", name: "Appearance", icon: Palette, color: "#5856d6" },
+  { id: "wallpaper", name: "Wallpaper", icon: ImageIcon, color: "#30b0c7" },
+  { id: "display", name: "Displays", icon: Monitor, color: "#007aff" },
+  { id: "sound", name: "Sound", icon: Volume2, color: "#ff3b30" },
+  {
+    id: "accessibility",
+    name: "Accessibility",
+    icon: Accessibility,
+    color: "#007aff",
+  },
+  { id: "keyboard", name: "Keyboard", icon: Keyboard, color: "#8e8e93" },
+  { id: "about", name: "About", icon: Info, color: "#8e8e93" },
+];
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="settings-row">
+      <span>{label}</span>
+      {children}
+    </div>
+  );
+}
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (on: boolean) => void;
+}) {
+  return (
+    <button
+      role="switch"
+      aria-label={label}
+      aria-checked={checked}
+      className="mac-switch"
+      data-checked={checked}
+      onClick={() => onChange(!checked)}
+    >
+      <span />
+    </button>
+  );
+}
+
+export function SettingsWindow({ section }: { section?: string }) {
+  const [active, setActive] = useState(section ?? "appearance");
+  const [search, setSearch] = useState("");
+  const [system, setSystem] = useState({
+    resolution: "",
+    language: "",
+    timezone: "",
+  });
+  const controls = useSystemControls();
   const {
     wallpaper,
     setWallpaper,
-    taskbarTransparency,
+    resetIconPositions,
     aeroEffects,
     setAeroEffects,
   } = useWindowManager();
-  const [visitorInfo, setVisitorInfo] = useState({
-    browser: "",
-    os: "",
-    screenSize: "",
-    timezone: "",
-    language: "",
-  });
-
-  const [settings, setSettings] = useState({
-    wallpaper: wallpaper,
-    taskbarTransparency: taskbarTransparency,
-    aeroEffects: aeroEffects,
-    windowAnimations: true,
-    systemSounds: true,
-  });
-
-  // Sync settings with window manager state
   useEffect(() => {
-    setSettings((prev) => ({
-      ...prev,
-      wallpaper: wallpaper,
-      taskbarTransparency: taskbarTransparency,
-      aeroEffects: aeroEffects,
-    }));
-  }, [wallpaper, taskbarTransparency, aeroEffects]);
-
+    if (section) setActive(section);
+  }, [section]);
   useEffect(() => {
-    // Gather visitor information
-    const userAgent = navigator.userAgent;
-    let browser = "Unknown";
-    let os = "Unknown";
-
-    // Detect browser
-    if (userAgent.includes("Chrome")) browser = "Chrome";
-    else if (userAgent.includes("Firefox")) browser = "Firefox";
-    else if (userAgent.includes("Safari")) browser = "Safari";
-    else if (userAgent.includes("Edge")) browser = "Edge";
-
-    // Detect OS
-    if (userAgent.includes("Windows")) os = "Windows";
-    else if (userAgent.includes("Mac")) os = "macOS";
-    else if (userAgent.includes("Linux")) os = "Linux";
-    else if (userAgent.includes("Android")) os = "Android";
-    else if (userAgent.includes("iOS")) os = "iOS";
-
-    setVisitorInfo({
-      browser,
-      os,
-      screenSize: `${window.screen.width} x ${window.screen.height}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    setSystem({
+      resolution: `${screen.width} × ${screen.height}`,
       language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
   }, []);
-
-  const wallpapers = MAC_WALLPAPERS.map((wp) => ({
-    id: wp.id,
-    name: wp.name,
-    url: wp.css,
-  }));
-
-  const handleWallpaperChange = (wallpaperUrl: string) => {
-    setWallpaper(wallpaperUrl);
-    setSettings((prev) => ({ ...prev, wallpaper: wallpaperUrl }));
-  };
-
-  const handleExportSettings = () => {
-    const dataStr = JSON.stringify(settings, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "muneebos-settings.json";
-    link.click();
-  };
-
-  const handleImportSettings = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const imported = JSON.parse(event.target?.result as string);
-          setSettings(imported);
-        } catch (error) {
-          alert("Invalid settings file");
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
+  const title = sections.find((s) => s.id === active)?.name ?? "Appearance";
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Tabs */}
-      <div className="border-b border-gray-300 bg-gradient-to-b from-white to-gray-50 flex">
-        <button
-          className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === "personalize"
-              ? "bg-white border-b-2 border-blue-600 text-blue-600"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-          onClick={() => setActiveTab("personalize")}
-        >
-          <Palette className="w-4 h-4 inline mr-2" />
-          Personalize
-        </button>
-        <button
-          className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === "visitor"
-              ? "bg-white border-b-2 border-blue-600 text-blue-600"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-          onClick={() => setActiveTab("visitor")}
-        >
-          <Info className="w-4 h-4 inline mr-2" />
-          Visitor Info
-        </button>
-        <button
-          className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === "system"
-              ? "bg-white border-b-2 border-blue-600 text-blue-600"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-          onClick={() => setActiveTab("system")}
-        >
-          <SettingsIcon className="w-4 h-4 inline mr-2" />
-          System
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
-        {activeTab === "personalize" && (
-          <div className="max-w-3xl space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Monitor className="w-5 h-5 text-blue-600" />
-                Desktop Background
-              </h2>
-              <div className="grid grid-cols-2 gap-4">
-                {wallpapers.map((wp) => (
+    <div className="mac-split settings-app">
+      <aside className="mac-sidebar settings-sidebar">
+        <div className="settings-profile">
+          <img src="/avatar-256.jpg" alt="" />
+          <div>
+            <strong>Syed Abdul Muneeb</strong>
+            <span>Personal portfolio</span>
+          </div>
+        </div>
+        <label className="mac-search">
+          <Search size={14} />
+          <input
+            aria-label="Search settings"
+            placeholder="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
+        <nav aria-label="Settings categories">
+          {sections
+            .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+            .map((s) => (
+              <button
+                key={s.id}
+                aria-label={s.name}
+                title={s.name}
+                className="sidebar-item"
+                data-selected={active === s.id}
+                onClick={() => setActive(s.id)}
+              >
+                <span
+                  className="settings-glyph"
+                  style={{ background: s.color }}
+                >
+                  <s.icon size={15} />
+                </span>
+                <span>{s.name}</span>
+              </button>
+            ))}
+          {search &&
+            !sections.some((s) =>
+              s.name.toLowerCase().includes(search.toLowerCase()),
+            ) && <p className="mac-muted p-3 text-xs">No settings found.</p>}
+        </nav>
+      </aside>
+      <main className="settings-main">
+        <h1>{title}</h1>
+        {active === "appearance" && (
+          <>
+            <div className="settings-group">
+              <div className="appearance-options">
+                {[false, true].map((dark) => (
                   <button
-                    key={wp.id}
-                    className={`p-4 border-2 rounded-lg transition-all ${
-                      wallpaper === wp.url
-                        ? "border-blue-600 shadow-lg"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                    onClick={() => handleWallpaperChange(wp.url)}
+                    key={String(dark)}
+                    aria-pressed={controls.darkMode === dark}
+                    onClick={() => controls.setDarkMode(dark)}
                   >
-                    <div
-                      className="w-full h-24 rounded mb-2 bg-cover bg-center"
-                      style={{ backgroundImage: wp.url }}
-                    />
-                    <p className="text-sm font-medium text-gray-900">
-                      {wp.name}
-                    </p>
+                    <span
+                      className={`appearance-preview ${dark ? "night" : "day"}`}
+                    >
+                      <span className="preview-window">
+                        <i />
+                        <i />
+                        <i />
+                        <span />
+                      </span>
+                    </span>
+                    <span>
+                      {dark ? "Dark" : "Light"}
+                      {controls.darkMode === dark && <Check size={14} />}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
-
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Visual Effects
-              </h3>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.windowAnimations}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      windowAnimations: e.target.checked,
-                    }))
-                  }
-                  className="w-5 h-5"
-                />
-                <span className="text-gray-700">Enable window animations</span>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.systemSounds}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      systemSounds: e.target.checked,
-                    }))
-                  }
-                  className="w-5 h-5"
-                />
-                <span className="text-gray-700">Enable system sounds</span>
-              </label>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "visitor" && (
-          <div className="max-w-2xl">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Your System Information
-            </h2>
-            <div className="bg-gray-50 border border-gray-300 rounded-lg p-6 space-y-4">
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="font-medium text-gray-700">Browser:</span>
-                <span className="text-gray-900">{visitorInfo.browser}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="font-medium text-gray-700">
-                  Operating System:
-                </span>
-                <span className="text-gray-900">{visitorInfo.os}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="font-medium text-gray-700">
-                  Screen Resolution:
-                </span>
-                <span className="text-gray-900">{visitorInfo.screenSize}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="font-medium text-gray-700">Timezone:</span>
-                <span className="text-gray-900">{visitorInfo.timezone}</span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="font-medium text-gray-700">Language:</span>
-                <span className="text-gray-900">{visitorInfo.language}</span>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 mt-4">
-              This information is collected from your browser and is not stored
-              or transmitted anywhere.
+            <p className="settings-caption">
+              Choose the appearance of windows, menus, and apps.
             </p>
-          </div>
+            <div className="settings-group">
+              <Row label="Accent color">
+                <span className="flex items-center gap-2">
+                  <span className="size-4 rounded-full bg-[#007aff]" />
+                  Blue
+                </span>
+              </Row>
+              <Row label="Sidebar and Dock transparency">
+                <Toggle
+                  label="Sidebar and Dock transparency"
+                  checked={aeroEffects}
+                  onChange={setAeroEffects}
+                />
+              </Row>
+            </div>
+          </>
         )}
-
-        {activeTab === "system" && (
-          <div className="max-w-2xl space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Import/Export Settings
-              </h2>
-              <div className="flex gap-4">
+        {active === "wallpaper" && (
+          <>
+            <div
+              className="wallpaper-preview"
+              style={{ backgroundImage: wallpaper }}
+            >
+              <div />
+              <span>Desktop</span>
+            </div>
+            <h2>Desktop Pictures</h2>
+            <div className="wallpaper-grid">
+              {MAC_WALLPAPERS.map((wp) => (
                 <button
-                  onClick={handleExportSettings}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  key={wp.id}
+                  aria-pressed={wallpaper === wp.css}
+                  onClick={() => setWallpaper(wp.css)}
                 >
-                  <Download className="w-4 h-4" />
-                  Export Settings
+                  <span style={{ backgroundImage: wp.css }}>
+                    {wallpaper === wp.css && <Check size={18} />}
+                  </span>
+                  <span>{wp.name}</span>
                 </button>
-                <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer">
-                  <Upload className="w-4 h-4" />
-                  Import Settings
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={handleImportSettings}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Export your settings as JSON to backup or share. Import to
-                restore previous settings.
-              </p>
+              ))}
             </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Current Settings
-              </h3>
-              <pre className="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm overflow-auto">
-                {JSON.stringify(settings, null, 2)}
-              </pre>
+            <div className="settings-group mt-6">
+              <Row label="Desktop icons">
+                <button className="mac-button" onClick={resetIconPositions}>
+                  Clean Up
+                </button>
+              </Row>
             </div>
-          </div>
+          </>
         )}
-      </div>
+        {active === "display" && (
+          <>
+            <div className="display-illustration">
+              <div style={{ backgroundImage: wallpaper }} />
+            </div>
+            <h2 className="text-center">Built-in Display</h2>
+            <div className="settings-group mt-5">
+              <Row label="Brightness">
+                <input
+                  aria-label="Brightness"
+                  type="range"
+                  min="0.3"
+                  max="1"
+                  step="0.01"
+                  value={controls.brightness}
+                  onChange={(e) =>
+                    controls.setBrightness(Number(e.target.value))
+                  }
+                />
+              </Row>
+              <Row label="Resolution">
+                <span className="mac-muted">{system.resolution}</span>
+              </Row>
+            </div>
+          </>
+        )}
+        {active === "sound" && (
+          <>
+            <div className="settings-group">
+              <Row label="Output volume">
+                <input
+                  aria-label="Output volume"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={controls.volume}
+                  onChange={(e) => controls.setVolume(Number(e.target.value))}
+                />
+              </Row>
+              <Row label="Play interface sound effects">
+                <Toggle
+                  label="Play interface sound effects"
+                  checked={controls.systemSounds}
+                  onChange={controls.setSystemSounds}
+                />
+              </Row>
+            </div>
+            <p className="settings-caption">
+              Sound preferences apply to this portfolio.
+            </p>
+          </>
+        )}
+        {active === "accessibility" && (
+          <>
+            <div className="settings-group">
+              <Row label="Reduce motion">
+                <Toggle
+                  label="Reduce motion"
+                  checked={controls.reduceMotion}
+                  onChange={controls.setReduceMotion}
+                />
+              </Row>
+              <Row label="Reduce transparency">
+                <Toggle
+                  label="Reduce transparency"
+                  checked={!aeroEffects}
+                  onChange={(on) => setAeroEffects(!on)}
+                />
+              </Row>
+            </div>
+            <p className="settings-caption">
+              Reduce movement and use solid surfaces for a calmer desktop. Your
+              device’s reduced motion preference is also respected.
+            </p>
+          </>
+        )}
+        {active === "keyboard" && (
+          <>
+            <h2>Keyboard Shortcuts</h2>
+            <div className="settings-group">
+              {[
+                ["Spotlight", "⌘K / ⌘Space"],
+                ["System Settings", "⌘,"],
+                ["Minimize window", "⌘M"],
+                ["Close window", "⌘W"],
+                ["Cycle windows", "⌘`"],
+                ["Open selected file", "⌘O / Return"],
+                ["Finder: enclosing folder", "⌘↑"],
+                ["Finder: icon / list view", "⌘1 / ⌘2"],
+                ["Dismiss menu or search", "Esc"],
+              ].map(([label, key]) => (
+                <Row key={label} label={label}>
+                  <kbd>{key}</kbd>
+                </Row>
+              ))}
+            </div>
+            <p className="settings-caption">
+              Use Ctrl in place of ⌘ on Windows and Linux. Some shortcuts are
+              reserved by your browser or operating system; use the menus or ⌘K
+              if a shortcut is intercepted.
+            </p>
+          </>
+        )}
+        {active === "about" && (
+          <>
+            <div className="about-system">
+              <img src="/icons/mac/finder.png" alt="" />
+              <h2>Muneeb OS</h2>
+              <p>A personal portfolio, inspired by macOS.</p>
+            </div>
+            <div className="settings-group">
+              <Row label="Built with">
+                <span className="mac-muted">Next.js & React</span>
+              </Row>
+              <Row label="Display">
+                <span className="mac-muted">{system.resolution}</span>
+              </Row>
+              <Row label="Language">
+                <span className="mac-muted">{system.language}</span>
+              </Row>
+              <Row label="Time zone">
+                <span className="mac-muted">{system.timezone}</span>
+              </Row>
+            </div>
+            <p className="settings-caption">
+              Preferences are saved in this browser. Device information stays on
+              your device.
+            </p>
+          </>
+        )}
+      </main>
     </div>
   );
 }

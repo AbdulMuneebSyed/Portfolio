@@ -1,34 +1,24 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
-import { useSystemControls } from "@/lib/system-controls";
 import {
-  ArrowLeft,
-  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   RotateCcw,
   Home,
-  Star,
-  ExternalLink,
-  Search,
+  Plus,
+  X,
   Globe,
+  ExternalLink,
+  LockKeyhole,
 } from "lucide-react";
-
+import { useSystemControls } from "@/lib/system-controls";
 interface Bookmark {
   name: string;
   url: string;
   description: string;
   favicon?: string;
 }
-
-interface Tab {
-  id: string;
-  title: string;
-  url: string;
-  isLoading: boolean;
-}
-
 const bookmarks: Bookmark[] = [
   {
     name: "LinkedIn Profile",
@@ -79,382 +69,220 @@ const bookmarks: Bookmark[] = [
 ];
 
 export function InternetExplorer() {
-  const wifiOn = useSystemControls((state) => state.wifiOn);
-  const [tabs, setTabs] = useState<Tab[]>([
-    {
-      id: "tab-1",
-      title: "Favorites",
-      url: "about:bookmarks",
-      isLoading: false,
-    },
+  const wifiOn = useSystemControls((s) => s.wifiOn);
+  const [tabs, setTabs] = useState([
+    { id: 1, history: ["about:bookmarks"], cursor: 0 },
   ]);
-  const [activeTabId, setActiveTabId] = useState("tab-1");
-  const [urlInput, setUrlInput] = useState("about:bookmarks");
-
-  const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
-
-  const openInNewTab = (url: string) => {
-    if (typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const createNewTab = (
-    url: string = "about:bookmarks",
-    title: string = "New Tab"
-  ) => {
-    const newTabId = `tab-${Date.now()}`;
-    const newTab: Tab = {
-      id: newTabId,
-      title,
-      url,
-      isLoading: url !== "about:bookmarks",
-    };
-    setTabs((prevTabs) => [...prevTabs, newTab]);
-    setActiveTabId(newTabId);
-    setUrlInput(url);
-  };
-
-  const closeTab = (tabId: string) => {
-    if (tabs.length === 1) return; // Don't close the last tab
-
-    setTabs((prevTabs) => {
-      const newTabs = prevTabs.filter((tab) => tab.id !== tabId);
-      if (activeTabId === tabId) {
-        const tabIndex = prevTabs.findIndex((tab) => tab.id === tabId);
-        const newActiveTab = newTabs[Math.max(0, tabIndex - 1)];
-        setActiveTabId(newActiveTab.id);
-        setUrlInput(newActiveTab.url);
+  const [activeId, setActiveId] = useState(1);
+  const [address, setAddress] = useState("");
+  const [error, setError] = useState("");
+  const [reload, setReload] = useState(0);
+  const tab = tabs.find((t) => t.id === activeId)!;
+  const url = tab.history[tab.cursor];
+  const title = (url: string) =>
+    url === "about:bookmarks" ? "Start Page" : new URL(url).hostname;
+  const navigate = (raw: string) => {
+    let next = raw.trim();
+    if (next !== "about:bookmarks") {
+      try {
+        const parsed = new URL(
+          /^https?:\/\//i.test(next) ? next : `https://${next}`,
+        );
+        if (
+          !["https:", "http:"].includes(parsed.protocol) ||
+          !parsed.hostname.includes(".")
+        )
+          throw new Error();
+        next = parsed.href;
+      } catch {
+        setError("Enter a valid website address.");
+        return;
       }
-      return newTabs;
-    });
-  };
-
-  const updateActiveTab = (updates: Partial<Tab>) => {
-    setTabs((prevTabs) =>
-      prevTabs.map((tab) =>
-        tab.id === activeTabId ? { ...tab, ...updates } : tab
-      )
+    }
+    setError("");
+    setAddress(next === "about:bookmarks" ? "" : next);
+    setTabs((all) =>
+      all.map((t) =>
+        t.id === activeId
+          ? {
+              ...t,
+              history: [...t.history.slice(0, t.cursor + 1), next],
+              cursor: t.cursor + 1,
+            }
+          : t,
+      ),
     );
   };
-
-  const navigateTo = (url: string) => {
-    updateActiveTab({
-      url,
-      isLoading: url !== "about:bookmarks",
-      title:
-        url === "about:bookmarks" ? "Favorites" : new URL(url).hostname,
-    });
-
-    {
-      activeTab.url !== "about:bookmarks" && (
-        <div className="border-b border-[#E0E0E0] bg-[#FFFBEA] px-4 py-2 flex items-center justify-between text-xs text-[#664D03]">
-          <span>
-            If this website refuses to connect here, you can open it in a normal
-            browser tab instead.
-          </span>
-          <button
-            onClick={() => openInNewTab(activeTab.url)}
-            className="ml-4 px-3 py-1 bg-[#FFCC4D] hover:bg-[#FFB81C] text-[#3A2A00] border border-[#E0A800] rounded font-medium"
-          >
-            Open in other tab instead
-          </button>
-        </div>
-      );
-    }
-    setUrlInput(url);
+  const step = (delta: number) => {
+    const next = tab.cursor + delta;
+    setTabs((all) =>
+      all.map((t) => (t.id === activeId ? { ...t, cursor: next } : t)),
+    );
+    setAddress(
+      tab.history[next] === "about:bookmarks" ? "" : tab.history[next],
+    );
   };
-
-  const handleUrlSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    let processedUrl = urlInput;
-
-    // Add https:// if no protocol is specified
-    if (
-      !urlInput.startsWith("http://") &&
-      !urlInput.startsWith("https://") &&
-      !urlInput.startsWith("about:")
-    ) {
-      processedUrl = "https://" + urlInput;
-    }
-
-    navigateTo(processedUrl);
-  };
-
-  const handleBookmarkClick = (url: string, name: string) => {
-    // Check if we should open in current tab or new tab
-    if (activeTab.url === "about:bookmarks") {
-      navigateTo(url);
-      updateActiveTab({ title: name });
-    } else {
-      createNewTab(url, name);
-    }
-  };
-
-  const goBack = () => {
-    // For now, simple back to bookmarks
-    if (activeTab.url !== "about:bookmarks") {
-      navigateTo("about:bookmarks");
-    }
-  };
-
-  const goForward = () => {
-    // Placeholder for forward functionality
-    console.log("Forward clicked");
-  };
-
-  const refresh = () => {
-    if (activeTab.url !== "about:bookmarks") {
-      updateActiveTab({ isLoading: true });
-      // Force iframe reload
-      setTimeout(() => {
-        updateActiveTab({ isLoading: false });
-      }, 1000);
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full bg-[#f6f6f6]">
-      {/* Toolbar */}
-      <div className="bg-[#f6f6f6] border-b border-black/10 px-2 py-2">
-        <div className="flex items-center gap-1">
-          {/* Navigation Buttons */}
-          <div className="flex items-center bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded">
-            <button
-              onClick={goBack}
-              disabled={activeTab.url === "about:bookmarks"}
-              className="p-2 hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0] disabled:opacity-50 disabled:cursor-not-allowed border-r border-[#C0C0C0]"
-              aria-label="Back"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#333]" />
-            </button>
-            <button
-              onClick={goForward}
-              disabled={true}
-              className="p-2 hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0] disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Forward"
-            >
-              <ArrowRight className="w-4 h-4 text-[#333]" />
-            </button>
-          </div>
-
-          <div className="w-px h-6 bg-[#C0C0C0]" />
-
-          {/* Refresh and Home */}
+    <div className="safari-app">
+      <div className="mac-toolbar">
+        <button
+          className="mac-icon-button"
+          aria-label="Back"
+          disabled={tab.cursor === 0}
+          onClick={() => step(-1)}
+        >
+          <ChevronLeft size={19} />
+        </button>
+        <button
+          className="mac-icon-button"
+          aria-label="Forward"
+          disabled={tab.cursor === tab.history.length - 1}
+          onClick={() => step(1)}
+        >
+          <ChevronRight size={19} />
+        </button>
+        <button
+          className="mac-icon-button"
+          aria-label="Start page"
+          onClick={() => navigate("about:bookmarks")}
+        >
+          <Home size={16} />
+        </button>
+        <form
+          className="safari-address"
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigate(address);
+          }}
+        >
+          <LockKeyhole size={12} />
+          <input
+            aria-label="Website address"
+            placeholder="Search or enter website name"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
           <button
-            onClick={refresh}
-            className="p-2 bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0]"
-            aria-label="Refresh"
+            type="button"
+            aria-label="Reload page"
+            onClick={() => setReload(reload + 1)}
           >
-            <RotateCcw className="w-4 h-4 text-[#333]" />
+            <RotateCcw size={13} />
           </button>
-          <button
-            onClick={() => navigateTo("about:bookmarks")}
-            className="p-2 bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0]"
-            aria-label="Home"
-          >
-            <Home className="w-4 h-4 text-[#333]" />
-          </button>
-
-          <div className="w-px h-6 bg-[#C0C0C0]" />
-
-          {/* Address Bar */}
-          <div className="flex-1 flex items-center gap-2">
-            <form
-              onSubmit={handleUrlSubmit}
-              className="flex-1 flex items-center"
-            >
-              <div className="flex-1 flex items-center bg-white border-2 border-[#999] rounded-sm">
-                <Globe className="w-4 h-4 text-[#666] ml-2" />
-                <input
-                  type="text"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  className="flex-1 px-2 py-1 text-sm focus:outline-none"
-                  placeholder="Search or enter website name"
-                />
-              </div>
-              <button
-                type="submit"
-                className="ml-2 px-3 py-1 bg-gradient-to-b from-white to-[#E8E8E8] border border-[#999] rounded text-xs hover:bg-gradient-to-b hover:from-[#F0F8FF] hover:to-[#E0E8F0]"
-              >
-                Go
-              </button>
-            </form>
-          </div>
-
-          <div className="w-px h-6 bg-[#C0C0C0]" />
-
-          {/* Search and Favorites */}
-          <button className="p-2 bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0]">
-            <Search className="w-4 h-4 text-[#333]" />
-          </button>
-          <button className="p-2 bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0]">
-            <Star className="w-4 h-4 text-[#FF6B00]" />
-          </button>
-
-          {/* New Tab Button */}
-        </div>
+        </form>
+        <button
+          className="mac-icon-button"
+          aria-label="New tab"
+          onClick={() => {
+            const id = Date.now();
+            setTabs([...tabs, { id, history: ["about:bookmarks"], cursor: 0 }]);
+            setActiveId(id);
+            setAddress("");
+          }}
+        >
+          <Plus size={18} />
+        </button>
       </div>
-
-      {/* Tab Bar */}
-      <div className="bg-gradient-to-b from-[#E8E8E8] to-[#D8D8D8] border-b border-[#C0C0C0] flex items-end overflow-x-auto">
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`relative flex items-center min-w-[180px] max-w-[240px] h-8 cursor-pointer group ${
-              tab.id === activeTabId
-                ? "bg-white border-l border-r border-t border-[#C0C0C0] rounded-t-md z-10"
-                : "bg-gradient-to-b from-[#F0F0F0] to-[#E0E0E0] border-r border-[#C0C0C0] hover:bg-gradient-to-b hover:from-[#F8F8F8] hover:to-[#E8E8E8]"
-            }`}
-            onClick={() => {
-              setActiveTabId(tab.id);
-              setUrlInput(tab.url);
-            }}
-          >
-            <div className="flex items-center gap-2 px-3 py-1 flex-1 min-w-0">
-              {tab.isLoading ? (
-                <div className="w-3 h-3 border border-[#0066CC] border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-              ) : (
-                <Globe className="w-3 h-3 text-[#666] flex-shrink-0" />
-              )}
-              <span className="text-xs text-[#333] truncate">{tab.title}</span>
-            </div>
+      <div className="safari-tabs" role="tablist">
+        {tabs.map((t) => (
+          <div key={t.id} data-active={t.id === activeId}>
+            <button
+              role="tab"
+              aria-selected={t.id === activeId}
+              onClick={() => {
+                setActiveId(t.id);
+                setAddress(
+                  t.history[t.cursor] === "about:bookmarks"
+                    ? ""
+                    : t.history[t.cursor],
+                );
+              }}
+            >
+              <Globe size={12} />
+              <span>{title(t.history[t.cursor])}</span>
+            </button>
             {tabs.length > 1 && (
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  closeTab(tab.id);
+                aria-label={`Close ${title(t.history[t.cursor])} tab`}
+                onClick={() => {
+                  const next = tabs.filter((item) => item.id !== t.id);
+                  setTabs(next);
+                  if (t.id === activeId) {
+                    setActiveId(next[0].id);
+                    setAddress(
+                      next[0].history[next[0].cursor] === "about:bookmarks"
+                        ? ""
+                        : next[0].history[next[0].cursor],
+                    );
+                  }
                 }}
-                className="w-4 h-4 mr-1 flex items-center justify-center hover:bg-red-500  rounded-sm opacity-0 group-hover:opacity-100 transition-all"
               >
-                <span className="text-xs font-bold">×</span>
+                <X size={12} />
               </button>
             )}
           </div>
         ))}
-        <button
-          onClick={() => createNewTab()}
-          className="h-full px-2 bg-gradient-to-b from-white to-[#F0F0F0] border border-[#C0C0C0] rounded hover:bg-gradient-to-b hover:from-[#E0E8F0] hover:to-[#D0D8E0]"
-          title="New Tab"
-        >
-          <span className="text-[#333] text-sm font-bold">+</span>
-        </button>
       </div>
-
-      {/* Content Area */}
-      <div className="flex-1 overflow-auto bg-white">
-        {!wifiOn ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-            <h2 className="text-[22px] font-bold text-[#1d1d1f]">
-              You Are Not Connected to the Internet
-            </h2>
-            <p className="max-w-md text-[13px] text-[#6e6e73]">
-              This page can&apos;t be displayed because your computer is
-              currently offline. Turn Wi-Fi back on from the menu bar or
-              Control Center.
-            </p>
-          </div>
-        ) : activeTab.url === "about:bookmarks" ? (
-          <div className="p-6 bg-white">
-            {/* Start page header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#4A9EFF] to-[#0066CC] rounded-lg flex items-center justify-center">
-                  <Globe className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-[#1d1d1f]">
-                    Favorites
-                  </h1>
-                  <p className="text-sm text-[#666]">Products I&apos;ve worked on</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Bookmarks Grid */}
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-lg font-semibold text-[#333] mb-4 border-b border-[#E0E0E0] pb-2">
-                Frequently Visited
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {bookmarks.map((bookmark, index) => (
-                  <div
-                    key={index}
-                    onClick={() =>
-                      handleBookmarkClick(bookmark.url, bookmark.name)
-                    }
-                    className="group cursor-pointer border border-[#D0D0D0] rounded-lg bg-gradient-to-b from-white to-[#F8F8F8] hover:from-[#F0F8FF] hover:to-[#E8F4FF] hover:border-[#5B9BD5] transition-all duration-200 p-4"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-[#4A9EFF] to-[#0066CC] rounded flex items-center justify-center flex-shrink-0">
-                        <Globe className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-[#003366] group-hover:text-[#0066CC] transition-colors truncate">
-                          {bookmark.name}
-                        </h3>
-                        <p className="text-xs text-[#666] mt-1 line-clamp-2">
-                          {bookmark.description}
-                        </p>
-                        <p className="text-xs text-[#999] mt-2 truncate">
-                          {bookmark.url}
-                        </p>
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-[#666] group-hover:text-[#0066CC] opacity-0 group-hover:opacity-100 transition-all" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-8 text-center text-xs text-[#888]">
-                Some sites don&apos;t allow being shown inside another page. If
-                one stays blank, use &ldquo;Open in other tab instead&rdquo;.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="h-full flex flex-col bg-white">
-            {/* Loading indicator */}
-            {activeTab.isLoading && (
-              <div className="border-b border-[#E0E0E0] bg-[#F8F8F8] px-4 py-1">
-                <div className="flex items-center gap-2 text-xs text-[#666]">
-                  <div className="w-3 h-3 border-2 border-[#0066CC] border-t-transparent rounded-full animate-spin"></div>
-                  <span>Loading {activeTab.url}...</span>
-                </div>
-              </div>
-            )}
-
-            {activeTab.url !== "about:bookmarks" && (
-              <div className="border-b border-[#E0E0E0] bg-[#FFFBEA] px-4 py-2 flex items-center justify-between text-xs text-[#664D03]">
-                <span>
-                  If this website refuses to connect here, you can open it in a
-                  normal browser tab instead.
-                </span>
-                <button
-                  onClick={() => openInNewTab(activeTab.url)}
-                  className="ml-4 px-3 py-1 bg-[#FFCC4D] hover:bg-[#FFB81C] text-[#3A2A00] border border-[#E0A800] rounded font-medium"
+      {error && (
+        <p role="alert" className="p-3 text-xs text-red-500">
+          {error}
+        </p>
+      )}
+      {!wifiOn ? (
+        <div className="empty-state">
+          <Globe size={36} />
+          <h2>You’re Offline</h2>
+          <p>Turn Wi-Fi on in Control Center to browse.</p>
+        </div>
+      ) : url === "about:bookmarks" ? (
+        <div className="safari-start">
+          <h1>Favorites</h1>
+          <p>Products I’ve worked on</p>
+          <div className="safari-favorites">
+            {bookmarks.map((bookmark, index) => (
+              <button
+                key={bookmark.url}
+                onClick={() => navigate(bookmark.url)}
+                title={bookmark.description}
+              >
+                <span
+                  style={{
+                    background: ["#0a66c2", "#6366f1", "#c08a50", "#303034"][
+                      index % 4
+                    ],
+                  }}
                 >
-                  Open in other tab instead
-                </button>
-              </div>
-            )}
-
-            <iframe
-              key={activeTab.id} // Force re-render when tab changes
-              src={activeTab.url}
-              className="flex-1 w-full border-0"
-              title="Website Content"
-              onLoad={() => {
-                console.log("Page loaded:", activeTab.url);
-                updateActiveTab({ isLoading: false });
-              }}
-            />
+                  {bookmark.name.charAt(0)}
+                </span>
+                <strong>{bookmark.name}</strong>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-
+          <h2>Reading List</h2>
+          <p>Explore a project to see it in action.</p>
+        </div>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="safari-external">
+            <span>Some websites open best in a separate tab.</span>
+            <a
+              className="mac-button"
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open website <ExternalLink size={12} />
+            </a>
+          </div>
+          <iframe
+            key={`${activeId}-${reload}`}
+            src={url}
+            title={title(url)}
+            className="min-h-0 w-full flex-1 border-0 bg-white"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
+      )}
     </div>
   );
 }

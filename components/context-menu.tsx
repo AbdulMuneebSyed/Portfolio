@@ -33,10 +33,18 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       onClose();
     };
 
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    menuRef.current
+      ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
+      ?.focus();
+    document.addEventListener("keydown", handleKey);
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("contextmenu", handleContextMenu);
 
     return () => {
+      document.removeEventListener("keydown", handleKey);
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("contextmenu", handleContextMenu);
     };
@@ -47,7 +55,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   const menuHeight = items.length * 24 + 8;
   const left =
     typeof window !== "undefined" && x + menuWidth > window.innerWidth
-      ? x - menuWidth
+      ? Math.max(4, x - menuWidth)
       : x;
   const top =
     typeof window !== "undefined" && y + menuHeight > window.innerHeight
@@ -57,6 +65,23 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   return (
     <motion.div
       ref={menuRef}
+      role="menu"
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+        e.preventDefault();
+        const buttons = Array.from(
+          e.currentTarget.querySelectorAll<HTMLButtonElement>(
+            "button:not(:disabled)",
+          ),
+        );
+        const index = buttons.indexOf(
+          document.activeElement as HTMLButtonElement,
+        );
+        buttons[
+          (index + (e.key === "ArrowDown" ? 1 : -1) + buttons.length) %
+            buttons.length
+        ]?.focus();
+      }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, transition: { duration: 0.1 } }}
@@ -67,12 +92,18 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
     >
       {items.map((item, index) => {
         if (item.separator) {
-          return <div key={index} className="mx-2 my-1 h-px bg-black/10 dark:bg-white/10" />;
+          return (
+            <div
+              key={index}
+              className="mx-2 my-1 h-px bg-black/10 dark:bg-white/10"
+            />
+          );
         }
 
         return (
           <button
             key={index}
+            role="menuitem"
             className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-[2px] text-left enabled:hover:bg-[#0a82ff] enabled:hover:text-white disabled:text-black/30 dark:disabled:text-white/30"
             onClick={(e) => {
               e.stopPropagation();

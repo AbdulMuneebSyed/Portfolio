@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Search, Folder, FileText, ExternalLink } from "lucide-react";
+import {
+  ChevronLeft,
+  Search,
+  Folder,
+  ExternalLink,
+  LayoutGrid,
+  List,
+  Briefcase,
+} from "lucide-react";
+import { AppIcon } from "@/lib/app-icons";
 
 interface Project {
   id: string;
@@ -20,7 +29,15 @@ const projects: Project[] = [
     title: "AiResumate",
     description:
       "Co-founded AI resume platform integrating Gemini, GPT, and Claude for real-time scoring, rewriting, and ATS optimization. Cashfree payments, Vercel deploy.",
-    techStack: ["Next.js", "TypeScript", "Gemini", "OpenAI", "Claude", "Cashfree", "Vercel"],
+    techStack: [
+      "Next.js",
+      "TypeScript",
+      "Gemini",
+      "OpenAI",
+      "Claude",
+      "Cashfree",
+      "Vercel",
+    ],
     demoLink: "https://airesumate.com",
     category: "AI / SaaS",
     highlights: [
@@ -83,7 +100,13 @@ const projects: Project[] = [
     title: "Muneeb OS (this portfolio)",
     description:
       "The site you're on right now — a macOS-style desktop built in React with a window manager, Dock, Spotlight, and mini-apps.",
-    techStack: ["Next.js", "TypeScript", "Zustand", "Framer Motion", "Tailwind"],
+    techStack: [
+      "Next.js",
+      "TypeScript",
+      "Zustand",
+      "Framer Motion",
+      "Tailwind",
+    ],
     demoLink: "https://github.com/AbdulMuneebSyed",
     category: "Interactive",
   },
@@ -92,159 +115,184 @@ const projects: Project[] = [
 export function ProjectsExplorer() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [breadcrumb] = useState(["Muneeb's Mac", "Projects"]);
-
-  const filteredProjects = projects.filter(
+  const [category, setCategory] = useState("All Projects");
+  const [view, setView] = useState<"icons" | "list">("icons");
+  const categories = [
+    "All Projects",
+    ...Array.from(new Set(projects.map((p) => p.category))),
+  ];
+  const filtered = projects.filter(
     (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.techStack.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
+      (category === "All Projects" || p.category === category) &&
+      `${p.title} ${p.description} ${p.techStack.join(" ")}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
   );
-
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="border-b border-black/10 bg-[#f6f6f6]">
-        <div className="flex items-center gap-2 px-3 py-2">
-          <div className="flex items-center gap-1 flex-1 bg-white border border-gray-300 rounded px-2 py-1">
-            <Folder className="w-4 h-4 text-gray-600" />
-            {breadcrumb.map((item, index) => (
-              <div key={index} className="flex items-center gap-1">
-                {index > 0 && <ChevronRight className="w-3 h-3 text-gray-400" />}
-                <span className="text-sm text-gray-700">{item}</span>
-              </div>
-            ))}
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search Projects"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48 px-3 py-1 pr-8 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-auto p-4">
-        {selectedProject ? (
-          <div className="max-w-4xl mx-auto">
+    <div className="mac-split">
+      <aside className="mac-sidebar">
+        <div className="sidebar-heading">Portfolio</div>
+        <nav aria-label="Project categories">
+          {categories.map((name) => (
             <button
-              className="mb-4 text-blue-600 hover:underline text-sm flex items-center gap-1"
-              onClick={() => setSelectedProject(null)}
+              key={name}
+              className="sidebar-item"
+              data-selected={category === name}
+              onClick={() => {
+                setCategory(name);
+                setSelectedProject(null);
+              }}
             >
-              <ChevronRight className="w-4 h-4 rotate-180" />
-              Back to Projects
+              <Briefcase />
+              <span className="truncate">{name}</span>
             </button>
-
-            <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
-              {selectedProject.image && (
-                <img
-                  src={selectedProject.image}
-                  alt={selectedProject.title}
-                  className="w-full h-64 object-cover"
-                />
-              )}
-
-              <div className="p-6">
-                <div className="text-xs text-blue-600 mb-1">
-                  {selectedProject.category}
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {selectedProject.title}
-                </h2>
-                <p className="text-gray-700 mb-4">{selectedProject.description}</p>
-
-                {selectedProject.highlights && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                      Highlights
-                    </h3>
-                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                      {selectedProject.highlights.map((h) => (
-                        <li key={h}>{h}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                    Tech Stack
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.techStack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedProject.demoLink && (
-                  <a
-                    href={selectedProject.demoLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Visit
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredProjects.map((project) => (
+          ))}
+        </nav>
+        <div className="px-3 mt-8 text-[11px] leading-relaxed mac-muted">
+          Selected work by
+          <br />
+          Syed Abdul Muneeb
+        </div>
+      </aside>
+      <main className="finder-main">
+        <div className="mac-toolbar">
+          <button
+            className="mac-icon-button"
+            aria-label="Back to projects"
+            disabled={!selectedProject}
+            onClick={() => setSelectedProject(null)}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <h2>{selectedProject?.title ?? "Projects"}</h2>
+          {!selectedProject && (
+            <>
               <button
-                key={project.id}
-                className="text-left border border-gray-300 rounded-lg overflow-hidden hover:border-blue-400 hover:shadow-md transition-all bg-white p-4"
-                onClick={() => setSelectedProject(project)}
+                className="mac-icon-button"
+                aria-label="Icon view"
+                aria-pressed={view === "icons"}
+                onClick={() => setView("icons")}
               >
-                <div className="flex items-start gap-2 mb-2">
-                  <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {project.title}
-                    </h3>
-                    <p className="text-xs text-blue-600">{project.category}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                  {project.description}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {project.techStack.slice(0, 4).map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[11px]"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                  {project.techStack.length > 4 && (
-                    <span className="px-2 py-0.5 text-gray-500 text-[11px]">
-                      +{project.techStack.length - 4}
-                    </span>
-                  )}
-                </div>
+                <LayoutGrid size={16} />
               </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="border-t border-gray-300 bg-gradient-to-b from-gray-50 to-white px-3 py-1">
-        <span className="text-xs text-gray-600">
-          {filteredProjects.length} items
-        </span>
-      </div>
+              <button
+                className="mac-icon-button"
+                aria-label="List view"
+                aria-pressed={view === "list"}
+                onClick={() => setView("list")}
+              >
+                <List size={18} />
+              </button>
+            </>
+          )}
+          <label className="mac-search">
+            <Search size={14} />
+            <input
+              aria-label="Search projects"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSelectedProject(null);
+              }}
+            />
+          </label>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
+          {selectedProject ? (
+            <article className="project-detail">
+              <AppIcon appId="projects" size={80} />
+              <div className="mac-muted text-xs mt-3">
+                {selectedProject.category}
+              </div>
+              <h1>{selectedProject.title}</h1>
+              <p>{selectedProject.description}</p>
+              {selectedProject.highlights && (
+                <>
+                  <h3>Highlights</h3>
+                  <ul>
+                    {selectedProject.highlights.map((h) => (
+                      <li key={h}>{h}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <h3>Built with</h3>
+              <div className="project-tech">
+                {selectedProject.techStack.map((tech) => (
+                  <span key={tech}>{tech}</span>
+                ))}
+              </div>
+              {selectedProject.demoLink && (
+                <a
+                  className="mac-button primary"
+                  href={selectedProject.demoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open project <ExternalLink size={13} />
+                </a>
+              )}
+            </article>
+          ) : !filtered.length ? (
+            <div className="empty-state">
+              <Search size={32} />
+              <p>No projects found</p>
+            </div>
+          ) : view === "icons" ? (
+            <div className="finder-grid">
+              {filtered.map((p) => (
+                <button
+                  key={p.id}
+                  className="finder-file"
+                  onClick={() => setSelectedProject(p)}
+                >
+                  <AppIcon appId="projects" size={72} />
+                  <span>{p.title}</span>
+                  <span className="mac-muted text-[10px]">{p.category}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div>
+              {filtered.map((p) => (
+                <button
+                  key={p.id}
+                  className="project-list-row"
+                  onClick={() => setSelectedProject(p)}
+                >
+                  <AppIcon appId="projects" size={36} />
+                  <span>
+                    <strong>{p.title}</strong>
+                    <small>{p.category}</small>
+                  </span>
+                  <span className="mac-muted">{p.techStack[0]}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="finder-path">
+          <Folder size={12} />
+          <span>Portfolio</span>
+          <span>›</span>
+          <span>Projects</span>
+          {selectedProject && (
+            <>
+              <span>›</span>
+              <span>{selectedProject.title}</span>
+            </>
+          )}
+        </div>
+        <div className="mac-statusbar">
+          <span>
+            {selectedProject
+              ? "1 project selected"
+              : `${filtered.length} projects`}
+          </span>
+          <span>Portfolio</span>
+        </div>
+      </main>
     </div>
   );
 }

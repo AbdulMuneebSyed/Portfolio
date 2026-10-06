@@ -103,7 +103,7 @@ export function GitHubActivityViewer() {
   const [events, setEvents] = useState<GitHubEvent[]>(fallbackEvents);
   const [repos, setRepos] = useState<GitHubRepo[]>(fallbackRepos);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
-    "idle"
+    "idle",
   );
   const [message, setMessage] = useState("Showing fallback activity.");
 
@@ -118,7 +118,7 @@ export function GitHubActivityViewer() {
       const [eventsResponse, reposResponse] = await Promise.all([
         fetch(`https://api.github.com/users/${cleanUsername}/events/public`),
         fetch(
-          `https://api.github.com/users/${cleanUsername}/repos?sort=updated&per_page=20`
+          `https://api.github.com/users/${cleanUsername}/repos?sort=updated&per_page=20`,
         ),
       ]);
 
@@ -130,24 +130,28 @@ export function GitHubActivityViewer() {
       const nextRepos = (await reposResponse.json()) as GitHubRepo[];
 
       const codingEvents = nextEvents.filter((event) =>
-        MEANINGFUL_EVENT_TYPES.has(event.type)
+        MEANINGFUL_EVENT_TYPES.has(event.type),
       );
       const ownRepos = nextRepos.filter((repo) => !repo.fork).slice(0, 8);
 
-      setEvents(codingEvents.length ? codingEvents.slice(0, 12) : fallbackEvents);
+      setEvents(
+        codingEvents.length ? codingEvents.slice(0, 12) : fallbackEvents,
+      );
       setRepos(ownRepos.length ? ownRepos : fallbackRepos);
       setUsername(cleanUsername);
       setStatus("ready");
       setMessage(
         nextEvents.length || nextRepos.length
           ? `Loaded public activity for ${cleanUsername}.`
-          : "No recent public activity found, showing fallback data."
+          : "No recent public activity found, showing fallback data.",
       );
     } catch {
       setEvents(fallbackEvents);
       setRepos(fallbackRepos);
       setStatus("error");
-      setMessage("GitHub could not be reached. Showing portfolio fallback data.");
+      setMessage(
+        "GitHub could not be reached. Showing portfolio fallback data.",
+      );
     }
   }, []);
 
@@ -165,131 +169,91 @@ export function GitHubActivityViewer() {
   }, [events, repos]);
 
   return (
-    <div className="flex h-full flex-col bg-[#f2f5f8] text-slate-900">
-      <div className="border-b border-slate-300 bg-gradient-to-b from-white to-[#e0e9f4] px-3 py-2">
+    <div className="github-app">
+      <div className="mac-toolbar">
+        <Github size={18} />
+        <h2>GitHub</h2>
         <form
-          className="flex items-center gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
+          className="flex min-w-0 items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
             void loadGitHub(query);
           }}
         >
-          <div className="flex items-center gap-2 rounded border border-slate-300 bg-white px-2 py-1 text-sm">
-            <Github className="size-4 text-slate-700" />
-            <span>https://github.com/</span>
+          <label className="mac-search">
+            <Search size={14} />
             <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className="w-48 bg-transparent font-medium outline-none"
               aria-label="GitHub username"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
-          </div>
+          </label>
           <button
+            className="mac-icon-button"
             type="submit"
-            className="flex items-center gap-2 rounded border border-sky-400 bg-[#e4f3ff] px-3 py-1 text-sm font-medium hover:bg-[#d3ebff]"
+            aria-label="Refresh GitHub"
+            disabled={status === "loading"}
           >
-            {status === "loading" ? (
-              <RefreshCw className="size-4 animate-spin" />
-            ) : (
-              <Search className="size-4" />
-            )}
-            Load
+            <RefreshCw
+              size={16}
+              className={status === "loading" ? "animate-spin" : ""}
+            />
           </button>
         </form>
       </div>
-
-      <div className="grid min-h-0 flex-1 grid-cols-[250px_minmax(300px,1fr)]">
-        <aside className="border-r border-slate-300 bg-[#eaf2fb] p-4">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex size-12 items-center justify-center rounded border border-slate-300 bg-white">
-              <Github className="size-7 text-slate-800" />
-            </div>
-            <div>
-              <div className="font-semibold">{username}</div>
-              <div className="text-xs text-slate-500">Public activity</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded border border-slate-300 bg-white p-3">
-              <div className="text-2xl font-semibold">{totals.repos}</div>
-              <div className="text-xs text-slate-500">Repos</div>
-            </div>
-            <div className="rounded border border-slate-300 bg-white p-3">
-              <div className="text-2xl font-semibold">{totals.pushes}</div>
-              <div className="text-xs text-slate-500">Pushes</div>
-            </div>
-            <div className="rounded border border-slate-300 bg-white p-3">
-              <div className="flex items-center gap-1 text-2xl font-semibold">
-                {totals.stars}
-                <Star className="size-4 text-amber-500" />
-              </div>
-              <div className="text-xs text-slate-500">Stars</div>
-            </div>
-            <div className="rounded border border-slate-300 bg-white p-3">
-              <div className="flex items-center gap-1 text-2xl font-semibold">
-                {totals.forks}
-                <GitFork className="size-4 text-sky-700" />
-              </div>
-              <div className="text-xs text-slate-500">Forks</div>
-            </div>
-          </div>
-          <div className="mt-4 flex items-start gap-2 rounded border border-slate-300 bg-white p-3 text-xs text-slate-600">
-            <AlertCircle className="mt-0.5 size-4 shrink-0 text-sky-700" />
-            <span>{message}</span>
-          </div>
-        </aside>
-
-        <main className="grid min-h-0 grid-rows-[1fr_210px]">
-          <section className="min-h-0 overflow-auto bg-white">
-            <div className="sticky top-0 border-b border-slate-300 bg-[#edf5fc] px-3 py-2 text-xs font-semibold uppercase text-slate-500">
-              Recent Activity
-            </div>
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-start gap-3 border-b border-slate-200 px-4 py-3"
-              >
-                <div className="mt-0.5 flex size-8 items-center justify-center rounded border border-slate-300 bg-[#f6fbff]">
-                  <GitCommit className="size-4 text-sky-700" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">{eventLabel(event.type)}</div>
-                  <div className="truncate text-sm text-slate-600">
-                    {event.repo.name}
-                  </div>
-                </div>
-                <div className="text-xs text-slate-500">
-                  {formatDate(event.created_at)}
-                </div>
+      <div className="mac-split min-h-0 flex-1">
+        <aside className="mac-sidebar github-sidebar">
+          <Github size={32} className="mb-4" />
+          <strong className="block break-all text-sm">{username}</strong>
+          <p className="mac-muted text-xs mt-1">Public activity</p>
+          <div className="github-counts">
+            {[
+              [totals.repos, "Repositories"],
+              [totals.stars, "Stars"],
+              [totals.forks, "Forks"],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <span>{label}</span>
+                <strong>{value}</strong>
               </div>
             ))}
-          </section>
-
-          <section className="border-t border-slate-300 bg-[#f8fbff]">
-            <div className="border-b border-slate-300 px-3 py-2 text-xs font-semibold uppercase text-slate-500">
-              Updated Repositories
+          </div>
+          <p className="text-[11px] leading-relaxed mac-muted" role="status">
+            {message}
+          </p>
+        </aside>
+        <main className="github-main">
+          <h2>Recent Activity</h2>
+          {!events.length && (
+            <p className="mac-muted text-xs py-5">No recent public activity.</p>
+          )}
+          {events.map((event) => (
+            <div className="github-event" key={event.id}>
+              <GitCommit size={17} />
+              <div>
+                <strong>{eventLabel(event.type)}</strong>
+                <p>{event.repo.name}</p>
+              </div>
+              <time>{formatDate(event.created_at)}</time>
             </div>
-            <div className="grid h-[170px] grid-cols-2 gap-2 overflow-auto p-3">
-              {repos.map((repo) => (
-                <a
-                  key={repo.id}
-                  href={repo.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded border border-slate-300 bg-white p-3 hover:border-sky-400 hover:bg-sky-50"
-                >
-                  <div className="truncate font-semibold">{repo.name}</div>
-                  <div className="line-clamp-2 text-xs leading-5 text-slate-600">
-                    {repo.description ?? "No repository description available."}
-                  </div>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                    <span>{repo.language ?? "Code"}</span>
-                    <span>{formatDate(repo.updated_at)}</span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </section>
+          ))}
+          <h2 className="mt-8">Repositories</h2>
+          {repos.map((repo) => (
+            <a
+              className="github-repo"
+              key={repo.id}
+              href={repo.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <strong>{repo.name} ↗</strong>
+              <p>{repo.description ?? "No description available."}</p>
+              <span>
+                {repo.language ?? "Code"} · Updated{" "}
+                {formatDate(repo.updated_at)}
+              </span>
+            </a>
+          ))}
         </main>
       </div>
     </div>

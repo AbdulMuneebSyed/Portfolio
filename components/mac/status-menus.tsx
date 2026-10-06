@@ -410,7 +410,7 @@ export function ControlCenter({
 
   return (
     <div
-      className="w-[396px] select-none"
+      className="w-[396px] max-w-[calc(100vw-24px)] max-h-[calc(100dvh-50px)] overflow-y-auto select-none"
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="grid grid-cols-4 gap-3">
@@ -611,7 +611,7 @@ export function NotificationCenter({ onClose }: { onClose: () => void }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 380, opacity: 0 }}
       transition={{ type: "spring", stiffness: 380, damping: 36 }}
-      className="w-[348px] space-y-2.5 text-[#1d1d1f] dark:text-white [text-shadow:none]"
+      className="w-[348px] max-w-[calc(100vw-20px)] max-h-[calc(100dvh-50px)] overflow-y-auto space-y-2.5 text-[#1d1d1f] dark:text-white [text-shadow:none]"
       onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
     >
       {focusOn ? (

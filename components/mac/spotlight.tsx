@@ -4,9 +4,10 @@ import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
-import { searchApps } from "@/lib/app-registry";
+import { searchApps, getApp } from "@/lib/app-registry";
 import { AppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
+import { useWindowManager } from "@/lib/window-manager";
 
 interface SpotlightProps {
   open: boolean;
@@ -18,7 +19,20 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const results = useMemo(() => searchApps(query).slice(0, 8), [query]);
+  const windows = useWindowManager((s) => s.windows);
+  const results = useMemo(
+    () => [
+      ...searchApps(query),
+      ...windows
+        .filter(
+          (w) =>
+            !getApp(w.appId ?? w.id) &&
+            w.title.toLowerCase().includes(query.toLowerCase()),
+        )
+        .map((w) => ({ id: w.id, title: w.title, description: "Open window" })),
+    ],
+    [query, windows],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +46,8 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
   useEffect(() => setSelected(0), [query]);
 
   const launch = (appId: string) => {
-    launchApp(appId);
+    if (getApp(appId)) launchApp(appId);
+    else useWindowManager.getState().restoreWindow(appId);
     onClose();
   };
 
@@ -72,12 +87,12 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Spotlight Search"
-                className="flex-1 bg-transparent text-[22px] font-light text-[#1d1d1f] outline-none dark:text-white placeholder:text-[#8e8e93]"
+                className="min-w-0 flex-1 bg-transparent text-[22px] font-light text-[#1d1d1f] outline-none dark:text-white placeholder:text-[#8e8e93]"
                 aria-label="Search apps"
               />
             </div>
             {results.length > 0 ? (
-              <ul className="max-h-[360px] overflow-y-auto border-t border-black/10 p-1.5 dark:border-white/10">
+              <ul className="max-h-[min(360px,55dvh)] overflow-y-auto border-t border-black/10 p-1.5 dark:border-white/10">
                 {results.map((app, index) => (
                   <li key={app.id}>
                     <button

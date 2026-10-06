@@ -1,876 +1,392 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
-  ChevronRight,
   ChevronLeft,
+  ChevronRight,
+  Search,
+  LayoutGrid,
+  List,
+  Home,
+  Monitor,
+  FileText,
+  Music,
+  Image,
+  AppWindow,
   Folder,
   HardDrive,
-  FileText,
-  ImageIcon,
-  Music,
-  Search,
   Gamepad2,
-  Monitor,
-  Settings,
-  ArrowLeft,
-  ArrowRight,
-  ChevronDown,
-  Star,
-  LayoutGrid,
-  List as ListIcon,
-  Menu,
-  Video,
-  Download,
-  Printer,
-  Info,
+  ArrowUp,
 } from "lucide-react";
+import { AppIcon } from "@/lib/app-icons";
+import { getLaunchableApps } from "@/lib/app-registry";
+import { launchApp } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
 
-interface FolderItem {
+interface Item {
   id: string;
   name: string;
-  type: "folder" | "file" | "application" | "drive";
-  icon: React.ComponentType<{ className?: string }> | string;
-  size?: string;
-  totalSize?: string; // For drives
-  freeSpace?: string; // For drives
-  percentFull?: number; // For drives
-  modified?: string;
-  component?: string; // For applications
-  description?: string;
+  kind: string;
+  folder?: string;
+  app?: string;
+  image?: string;
+  song?: string;
 }
-
-interface ComputerExplorerProps {
-  initialFolder?: string;
-  initialPath?: string[];
-}
-
-const libraryStructure: Record<string, FolderItem[]> = {
-  "Muneeb's Mac": [
-    {
-      id: "local-disk-c",
-      name: "Macintosh HD",
-      type: "drive",
-      icon: HardDrive,
-      totalSize: "499 GB",
-      freeSpace: "120 GB",
-      percentFull: 76,
-    },
-    {
-      id: "local-disk-d",
-      name: "Data",
-      type: "drive",
-      icon: HardDrive,
-      totalSize: "931 GB",
-      freeSpace: "850 GB",
-      percentFull: 9,
-    },
+const folder = (name: string): Item => ({
+  id: name,
+  name,
+  kind: "Folder",
+  folder: name,
+});
+const portfolio: Item[] = [
+  { id: "about", name: "About Me", kind: "Application", app: "about" },
+  { id: "projects", name: "Projects", kind: "Folder", app: "projects" },
+  { id: "resume", name: "Resume.pdf", kind: "PDF document", app: "resume" },
+  { id: "contact", name: "Contact", kind: "Application", app: "contact" },
+];
+const library: Record<string, Item[]> = {
+  Home: [
+    folder("Desktop"),
+    folder("Documents"),
+    folder("Applications"),
+    folder("Pictures"),
+    folder("Music"),
+    folder("Games"),
   ],
-  "Macintosh HD": [
-    {
-      id: "program-files",
-      name: "Applications",
-      type: "folder",
-      icon: Folder,
-      modified: "10/26/2009 8:00 AM",
-    },
-    {
-      id: "windows",
-      name: "System",
-      type: "folder",
-      icon: Folder,
-      modified: "10/26/2009 8:00 AM",
-    },
-    {
-      id: "users",
-      name: "Users",
-      type: "folder",
-      icon: Folder,
-      modified: "10/26/2009 8:00 AM",
-    },
-    {
-      id: "perflogs",
-      name: "Library",
-      type: "folder",
-      icon: Folder,
-      modified: "07/13/2009 10:20 PM",
-    },
-  ],
-  "Applications": [
-    {
-      id: "games",
-      name: "Games",
-      type: "folder",
-      icon: Gamepad2,
-      modified: "10/26/2009 8:00 AM",
-    },
-    {
-      id: "microsoft-office",
-      name: "Utilities",
-      type: "folder",
-      icon: Folder,
-      modified: "10/26/2009 8:00 AM",
-    },
-    {
-      id: "internet-explorer",
-      name: "Safari",
-      type: "folder",
-      icon: Monitor,
-      modified: "10/26/2009 8:00 AM",
-    },
-    {
-      id: "windows-media-player",
-      name: "Music",
-      type: "folder",
-      icon: Folder,
-      modified: "10/26/2009 8:00 AM",
-    },
-  ],
-  Games: [
-    {
-      id: "minesweeper",
-      name: "Minesweeper",
-      type: "application",
-      icon: "💣",
-      size: "1.2 MB",
-      modified: "10/15/2009",
-      component: "Minesweeper",
-    },
-    {
-      id: "snake",
-      name: "Snake",
-      type: "application",
-      icon: "🐍",
-      size: "890 KB",
-      modified: "10/15/2009",
-      component: "Snake",
-    },
-  ],
+  Desktop: portfolio,
   Documents: [
-    {
-      id: "resume",
-      name: "2Syed Abdul Muneeb's SE Resume.pdf",
-      type: "file",
-      icon: FileText,
-      size: "245 KB",
-      modified: "2025-01-15",
-    },
-    {
-      id: "project-notes",
-      name: "Project Notes.txt",
-      type: "file",
-      icon: FileText,
-      size: "12 KB",
-      modified: "2025-01-10",
-    },
+    portfolio[2],
+    { id: "notes", name: "Project Notes", kind: "Text document", app: "notes" },
   ],
   Pictures: [
     {
       id: "profile",
       name: "profile.jpg",
-      type: "file",
-      icon: ImageIcon,
-      size: "2.4 MB",
-      modified: "2024-12-20",
+      kind: "JPEG image",
+      image: "/profile.jpg",
     },
     {
-      id: "vacation",
-      name: "vacation.png",
-      type: "file",
-      icon: ImageIcon,
-      size: "3.1 MB",
-      modified: "2024-08-15",
+      id: "avatar",
+      name: "avatar.jpg",
+      kind: "JPEG image",
+      image: "/avatar-1200.jpg",
     },
   ],
   Music: [
     {
-      id: "for-a-reason",
-      name: "ForAReason.mp3",
-      type: "file",
-      icon: Music,
-      size: "4.2 MB",
-      modified: "2024-12-15",
+      id: "music",
+      name: "For A Reason",
+      kind: "MP3 audio",
+      app: "music",
+      song: "ForAReason.mp3",
     },
     {
       id: "regrets",
-      name: "regrets.mp3",
-      type: "file",
-      icon: Music,
-      size: "3.8 MB",
-      modified: "2024-12-20",
-    },
-    {
-      id: "memories",
-      name: "memories.mp3",
-      type: "file",
-      icon: Music,
-      size: "2.1 MB",
-      modified: "2009-10-22",
+      name: "Regrets",
+      kind: "MP3 audio",
+      app: "music",
+      song: "regrets.mp3",
     },
   ],
-  Videos: [
+  Games: [
+    { id: "snake", name: "Snake", kind: "Application", app: "snake" },
     {
-      id: "sample-video",
-      name: "Wildlife.wmv",
-      type: "file",
-      icon: Video,
-      size: "25.6 MB",
-      modified: "2009-10-22",
+      id: "minesweeper",
+      name: "Minesweeper",
+      kind: "Application",
+      app: "minesweeper",
     },
   ],
-  Downloads: [
-    {
-      id: "installer",
-      name: "setup-installer.exe",
-      type: "file",
-      icon: FileText,
-      size: "156 MB",
-      modified: "2025-01-20",
-    },
-    {
-      id: "archive",
-      name: "project-backup.zip",
-      type: "file",
-      icon: Folder,
-      size: "45 MB",
-      modified: "2025-01-18",
-    },
-  ],
+  "Macintosh HD": [folder("Home"), folder("Applications")],
 };
+const locations = [
+  { name: "Home", icon: Home },
+  { name: "Desktop", icon: Monitor },
+  { name: "Documents", icon: FileText },
+  { name: "Applications", icon: AppWindow },
+  { name: "Pictures", icon: Image },
+  { name: "Music", icon: Music },
+  { name: "Games", icon: Gamepad2 },
+];
 
 export function ComputerExplorer({
   initialFolder,
-  initialPath,
-}: ComputerExplorerProps = {}) {
-  const { openWindow } = useWindowManager();
-
-  const getInitialPath = () => {
-    if (initialPath && Array.isArray(initialPath)) {
-      return initialPath;
+}: { initialFolder?: string; initialPath?: string[] } = {}) {
+  const [history, setHistory] = useState([
+    initialFolder && library[initialFolder] ? initialFolder : "Home",
+  ]);
+  const [cursor, setCursor] = useState(0);
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string | null>(null);
+  const [view, setView] = useState<"icons" | "list">("icons");
+  const [sortAsc, setSortAsc] = useState(true);
+  const current = history[cursor];
+  useEffect(() => {
+    if (initialFolder) {
+      setHistory([initialFolder]);
+      setCursor(0);
+      setQuery("");
+      setSelected(null);
     }
-    if (initialFolder && libraryStructure[initialFolder]) {
-      return ["Muneeb's Mac", initialFolder];
-    }
-    return ["Muneeb's Mac"];
+  }, [initialFolder]);
+  const navigate = (name: string) => {
+    setHistory([...history.slice(0, cursor + 1), name]);
+    setCursor(cursor + 1);
+    setQuery("");
+    setSelected(null);
   };
-
-  const [currentPath, setCurrentPath] = useState<string[]>(getInitialPath());
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"details" | "tiles" | "icons">(
-    "details"
-  );
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof FolderItem;
-    direction: "asc" | "desc";
-  } | null>(null);
-
-  const currentFolder = currentPath[currentPath.length - 1];
-  const items = libraryStructure[currentFolder] || [];
-
-  const filteredItems = useMemo(() => {
-    let result = items.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const step = (delta: number) => {
+    setCursor(Math.max(0, Math.min(history.length - 1, cursor + delta)));
+    setQuery("");
+    setSelected(null);
+  };
+  const items: Item[] =
+    current === "Applications"
+      ? getLaunchableApps()
+          .filter((app) => !app.externalUrl)
+          .map((app) => ({
+            id: app.id,
+            name: app.title,
+            kind: "Application",
+            app: app.id,
+          }))
+      : (library[current] ?? []);
+  const filtered = items
+    .filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
+    .sort((a, b) => (sortAsc ? 1 : -1) * a.name.localeCompare(b.name));
+  const open = (item: Item) => {
+    if (item.folder) navigate(item.folder);
+    else if (item.app)
+      launchApp(item.app, item.song ? { fileName: item.song } : undefined);
+    else if (item.image)
+      useWindowManager
+        .getState()
+        .openWindow({
+          id: `preview-${item.id}`,
+          title: item.name,
+          icon: item.image,
+          component: "PhotoPreview",
+          isMinimized: false,
+          isMaximized: false,
+          position: { x: 160, y: 70 },
+          size: { width: 640, height: 500 },
+          metadata: { fileName: item.name, filePath: item.image },
+        });
+  };
+  const art = (item: Item, size: number) =>
+    item.image ? (
+      <img
+        src={item.image}
+        alt=""
+        className="rounded object-cover"
+        style={{ width: size, height: size }}
+      />
+    ) : (
+      <AppIcon
+        appId={
+          item.folder || item.id === "projects"
+            ? "projects"
+            : (item.app ?? "resume")
+        }
+        size={size}
+      />
     );
-
-    if (sortConfig) {
-      result.sort((a, b) => {
-        const aValue = a[sortConfig.key] || "";
-        const bValue = b[sortConfig.key] || "";
-
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-    return result;
-  }, [items, searchQuery, sortConfig]);
-
-  const selectedItem = useMemo(
-    () => items.find((i) => i.id === selectedItemId),
-    [items, selectedItemId]
-  );
-
-  const handleSort = (key: keyof FolderItem) => {
-    let direction: "asc" | "desc" = "asc";
-    if (
-      sortConfig &&
-      sortConfig.key === key &&
-      sortConfig.direction === "asc"
-    ) {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const handleItemAction = (item: FolderItem) => {
-    if (item.type === "folder" || item.type === "drive") {
-      navigateToFolder(item.name);
-    } else if (item.type === "application" && item.component) {
-      openWindow({
-        id: item.id,
-        title: item.name,
-        icon: item.icon,
-        component: item.component,
-        isMinimized: false,
-        isMaximized: false,
-        position: { x: 150 + Math.random() * 100, y: 80 + Math.random() * 50 },
-        size: { width: 600, height: 700 },
-      });
-    } else if (item.type === "file" && item.name.endsWith(".mp3")) {
-      openWindow({
-        id: `music-player-${item.id}`,
-        title: `Music Player - ${item.name}`,
-        icon: Music,
-        component: "MusicPlayer",
-        isMinimized: false,
-        isMaximized: false,
-        disableMaximize: true,
-        position: { x: 200 + Math.random() * 100, y: 100 + Math.random() * 50 },
-        size: { width: 480, height: 600 },
-        metadata: {
-          fileName: item.name,
-          filePath: `/${item.name}`,
-        },
-      });
-    } else if (
-      item.type === "file" &&
-      (item.name.endsWith(".jpg") ||
-        item.name.endsWith(".jpeg") ||
-        item.name.endsWith(".png") ||
-        item.name.endsWith(".gif"))
-    ) {
-      openWindow({
-        id: `photo-preview-${item.id}`,
-        title: `Photo Preview - ${item.name}`,
-        icon: ImageIcon,
-        component: "PhotoPreview",
-        isMinimized: false,
-        isMaximized: false,
-        position: { x: 150 + Math.random() * 100, y: 80 + Math.random() * 50 },
-        size: { width: 700, height: 500 },
-        metadata: {
-          fileName: item.name,
-          filePath: `/${item.name}`,
-        },
-      });
-    } else if (item.type === "file" && item.name.endsWith(".pdf")) {
-      openWindow({
-        id: `resume-${item.id}`,
-        title: `Resume - ${item.name}`,
-        icon: FileText,
-        component: "ResumeWindow",
-        isMinimized: false,
-        isMaximized: false,
-        position: { x: 150 + Math.random() * 100, y: 80 + Math.random() * 50 },
-        size: { width: 900, height: 700 },
-      });
-    }
-  };
-
-  const navigateToFolder = (folderName: string) => {
-    setCurrentPath([...currentPath, folderName]);
-    setSearchQuery("");
-    setSelectedItemId(null);
-  };
-
-  const navigateBack = () => {
-    if (currentPath.length > 1) {
-      setCurrentPath(currentPath.slice(0, -1));
-      setSelectedItemId(null);
-    }
-  };
-
-  const navigateToBreadcrumb = (index: number) => {
-    setCurrentPath(currentPath.slice(0, index + 1));
-    setSelectedItemId(null);
-  };
-
-  // Group items for "Muneeb's Mac" view
-  const hardDrives = filteredItems.filter(
-    (item) => item.type === "drive" && item.icon === HardDrive
-  );
-  const removableDrives = filteredItems.filter(
-    (item) => item.type === "drive" && item.icon !== HardDrive
-  );
-  const otherItems = filteredItems.filter((item) => item.type !== "drive");
-
   return (
-    <div className="flex flex-col h-full bg-white select-none font-segoe">
-      {/* Top Navigation Bar */}
-      <div className="flex items-center gap-2 px-2 py-1 bg-[#F0F0F0] border-b border-[#D9D9D9]">
-        <div className="flex items-center gap-1">
+    <div
+      className="mac-split"
+      onKeyDown={(e) => {
+        if ((e.target as HTMLElement).matches("input")) return;
+        const mod = e.metaKey || e.ctrlKey;
+        if (mod && ["1", "2"].includes(e.key)) {
+          e.preventDefault();
+          setView(e.key === "1" ? "icons" : "list");
+        } else if (mod && e.key === "ArrowUp") {
+          e.preventDefault();
+          navigate("Home");
+        } else if (mod && (e.key === "[" || e.key === "]")) {
+          e.preventDefault();
+          step(e.key === "[" ? -1 : 1);
+        } else if (
+          (e.key === "Enter" ||
+            (mod && (e.key === "o" || e.key === "ArrowDown"))) &&
+          selected
+        ) {
+          e.preventDefault();
+          const item = items.find((i) => i.id === selected);
+          if (item) open(item);
+        } else if (
+          ["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)
+        ) {
+          e.preventDefault();
+          const index = filtered.findIndex((i) => i.id === selected);
+          const next = Math.max(
+            0,
+            Math.min(
+              filtered.length - 1,
+              index + (["ArrowDown", "ArrowRight"].includes(e.key) ? 1 : -1),
+            ),
+          );
+          setSelected(filtered[next]?.id ?? null);
+        }
+      }}
+      tabIndex={0}
+    >
+      <aside className="mac-sidebar">
+        <div className="sidebar-heading">Favorites</div>
+        <nav aria-label="Finder favorites">
+          {locations.map((loc) => (
+            <button
+              key={loc.name}
+              className="sidebar-item"
+              data-selected={current === loc.name}
+              onClick={() => navigate(loc.name)}
+            >
+              <loc.icon />
+              <span>{loc.name}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-heading mt-5">Locations</div>
+        <button
+          className="sidebar-item"
+          data-selected={current === "Macintosh HD"}
+          onClick={() => navigate("Macintosh HD")}
+        >
+          <HardDrive />
+          <span>Macintosh HD</span>
+        </button>
+      </aside>
+      <main className="finder-main">
+        <div className="mac-toolbar">
           <button
-            onClick={navigateBack}
-            disabled={currentPath.length === 1}
-            className="p-1 rounded-full hover:bg-[#D9D9D9] disabled:opacity-30 transition-colors"
+            className="mac-icon-button"
+            aria-label="Back"
+            disabled={cursor === 0}
+            onClick={() => step(-1)}
           >
-            <ArrowLeft className="w-5 h-5 text-[#3C3C3C]" />
+            <ChevronLeft size={18} />
           </button>
-          <button className="p-1 rounded-full hover:bg-[#D9D9D9] disabled:opacity-30 transition-colors">
-            <ArrowRight className="w-5 h-5 text-[#3C3C3C]" />
+          <button
+            className="mac-icon-button"
+            aria-label="Forward"
+            disabled={cursor === history.length - 1}
+            onClick={() => step(1)}
+          >
+            <ChevronRight size={18} />
           </button>
-          <button className="p-1 rounded-full hover:bg-[#D9D9D9] transition-colors">
-            <ChevronDown className="w-4 h-4 text-[#3C3C3C]" />
+          <h2>{current}</h2>
+          <button
+            className="mac-icon-button"
+            aria-label="Icon view"
+            aria-pressed={view === "icons"}
+            onClick={() => setView("icons")}
+          >
+            <LayoutGrid size={16} />
           </button>
+          <button
+            className="mac-icon-button"
+            aria-label="List view"
+            aria-pressed={view === "list"}
+            onClick={() => setView("list")}
+          >
+            <List size={18} />
+          </button>
+          <label className="mac-search">
+            <Search size={14} />
+            <input
+              aria-label="Search folder"
+              placeholder="Search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
         </div>
-
-        {/* Address Bar */}
-        <div className="flex-1 flex items-center bg-white border border-[#7F9DB9] rounded-[2px] h-[26px] px-1 mx-2 shadow-inner relative">
-          <HardDrive className="w-4 h-4 text-[#3C3C3C] mr-2 ml-1" />
-          <div className="flex items-center text-sm flex-1 overflow-hidden">
-            {currentPath.map((item, index) => (
-              <div key={index} className="flex items-center h-full group">
-                {index > 0 && (
-                  <span className="text-[#666666] mx-0.5">
-                    <ChevronRight className="w-3 h-3" />
-                  </span>
-                )}
+        <div className="min-h-0 flex-1 overflow-auto">
+          {!filtered.length ? (
+            <div className="empty-state">
+              <Search size={32} />
+              <p>No items found</p>
+              <span className="text-xs">Try a different search.</span>
+            </div>
+          ) : view === "icons" ? (
+            <div className="finder-grid">
+              {filtered.map((item) => (
                 <button
-                  onClick={() => navigateToBreadcrumb(index)}
-                  className="hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] px-1 rounded-[2px] transition-colors whitespace-nowrap border border-transparent flex items-center"
+                  key={item.id}
+                  className="finder-file"
+                  data-selected={selected === item.id}
+                  onFocus={() => setSelected(item.id)}
+                  onClick={() => setSelected(item.id)}
+                  onDoubleClick={() => open(item)}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    open(item);
+                  }}
                 >
-                  {item}
-                  <ChevronDown className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 text-[#3C3C3C]" />
+                  {art(item, 64)}
+                  <span>{item.name}</span>
                 </button>
-              </div>
-            ))}
-          </div>
-          <div className="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center hover:bg-[#E5F3FB] cursor-pointer border-l border-transparent hover:border-[#7DA2CE]">
-            <ChevronDown className="w-4 h-4 text-[#3C3C3C]" />
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative w-64">
-          <input
-            type="text"
-            placeholder={`Search ${currentFolder}`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-[26px] pl-2 pr-8 border border-[#7F9DB9] rounded-[2px] text-sm focus:outline-none focus:border-[#3399FF] shadow-inner italic text-gray-500"
-          />
-          <div className="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center bg-gradient-to-b from-white to-[#F0F0F0] border-l border-[#D9D9D9] rounded-r-[2px]">
-            <Search className="w-4 h-4 text-[#1E528C]" />
-          </div>
-        </div>
-      </div>
-
-      {/* Command Bar */}
-      <div className="flex items-center gap-0 px-2 py-1.5 bg-[#F5F6F7] border-b border-[#D9D9D9] text-sm text-[#1E1E1E]">
-        <div className="flex-1" />
-        <div className="flex items-center gap-1 border-l border-[#D9D9D9] pl-2 ml-2">
-          <button
-            className={`p-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors ${
-              viewMode === "details" ? "bg-[#CDE6F7] border-[#7DA2CE]" : ""
-            }`}
-            onClick={() => setViewMode("details")}
-            title="Details view"
-          >
-            <ListIcon className="w-4 h-4 text-[#1E1E1E]" />
-          </button>
-          <button
-            className={`p-1 hover:bg-[#E5F3FB] hover:border hover:border-[#7DA2CE] border border-transparent rounded-[2px] transition-colors ${
-              viewMode === "tiles" ? "bg-[#CDE6F7] border-[#7DA2CE]" : ""
-            }`}
-            onClick={() => setViewMode("tiles")}
-            title="Tiles view"
-          >
-            <LayoutGrid className="w-4 h-4 text-[#1E1E1E]" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-[200px] bg-[#F0F0F0] border-r border-[#D9D9D9] overflow-y-auto p-2 text-sm">
-          <div className="space-y-1">
-            {/* Favorites */}
-            <div>
-              <div className="flex items-center gap-1 px-1 py-0.5 text-[#1E1E1E] hover:bg-[#E5F3FB] cursor-pointer group">
-                <div className="w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="w-0 h-0 border-l-[4px] border-l-[#444] border-y-[3px] border-y-transparent transform rotate-45"></div>
-                </div>
-                <Star className="w-3 h-3 text-[#FACC2E] fill-[#FACC2E]" />
-                <span className="font-medium ml-1">Favorites</span>
-              </div>
-              <div className="pl-6 space-y-0.5 mt-0.5">
-                <div
-                  className="flex items-center gap-2 px-1 py-0.5 hover:bg-[#E5F3FB] cursor-pointer"
-                  onClick={() => setCurrentPath(["Muneeb's Mac", "Desktop"])}
-                >
-                  <Monitor className="w-4 h-4 text-[#3C3C3C]" />
-                  <span>Desktop</span>
-                </div>
-                <div
-                  className="flex items-center gap-2 px-1 py-0.5 hover:bg-[#E5F3FB] cursor-pointer"
-                  onClick={() => setCurrentPath(["Muneeb's Mac", "Downloads"])}
-                >
-                  <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
-                    <ArrowRight className="w-3 h-3 text-white" />
-                  </div>
-                  <span>Downloads</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Libraries */}
-            <div>
-              <div className="flex items-center gap-1 px-1 py-0.5 text-[#1E1E1E] hover:bg-[#E5F3FB] cursor-pointer group">
-                <div className="w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="w-0 h-0 border-l-[4px] border-l-[#444] border-y-[3px] border-y-transparent transform rotate-45"></div>
-                </div>
-                <Folder className="w-3 h-3 text-[#3C3C3C]" />
-                <span className="font-medium ml-1">Libraries</span>
-              </div>
-              <div className="pl-6 space-y-0.5 mt-0.5">
-                {["Documents", "Music", "Pictures", "Videos"].map((lib) => (
-                  <div
-                    key={lib}
-                    className={`flex items-center gap-2 px-1 py-0.5 cursor-pointer ${
-                      currentFolder === lib
-                        ? "bg-[#CDE6F7] border border-[#7DA2CE] rounded-[2px]"
-                        : "hover:bg-[#E5F3FB] border border-transparent"
-                    }`}
-                    onClick={() => setCurrentPath(["Muneeb's Mac", lib])}
-                  >
-                    <Folder className="w-4 h-4 text-[#FACC2E] fill-[#FACC2E]" />
-                    <span>{lib}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Computer */}
-            <div>
-              <div
-                className={`flex items-center gap-1 px-1 py-0.5 text-[#1E1E1E] cursor-pointer group ${
-                  currentFolder === "Muneeb's Mac"
-                    ? "bg-[#CDE6F7] border border-[#7DA2CE] rounded-[2px]"
-                    : "hover:bg-[#E5F3FB] border border-transparent"
-                }`}
-                onClick={() => setCurrentPath(["Muneeb's Mac"])}
-              >
-                <div className="w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="w-0 h-0 border-l-[4px] border-l-[#444] border-y-[3px] border-y-transparent transform rotate-45"></div>
-                </div>
-                <HardDrive className="w-3 h-3 text-[#3C3C3C]" />
-                <span className="font-medium ml-1">Computer</span>
-              </div>
-              <div className="pl-6 space-y-0.5 mt-0.5">
-                <div
-                  className="flex items-center gap-2 px-1 py-0.5 hover:bg-[#E5F3FB] cursor-pointer"
-                  onClick={() =>
-                    setCurrentPath(["Muneeb's Mac", "Macintosh HD"])
-                  }
-                >
-                  <HardDrive className="w-4 h-4 text-[#3C3C3C]" />
-                  <span>Macintosh HD</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Network */}
-            <div>
-              <div className="flex items-center gap-1 px-1 py-0.5 text-[#1E1E1E] hover:bg-[#E5F3FB] cursor-pointer group">
-                <div className="w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <div className="w-0 h-0 border-l-[4px] border-l-[#444] border-y-[3px] border-y-transparent transform rotate-45"></div>
-                </div>
-                <Monitor className="w-3 h-3 text-[#3C3C3C]" />
-                <span className="font-medium ml-1">Network</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 bg-white overflow-y-auto p-0">
-          {currentFolder === "Muneeb's Mac" ? (
-            <div className="space-y-6 p-4">
-              {/* Hard Disk Drives */}
-              {hardDrives.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2 border-b border-[#D9D9D9] pb-1">
-                    <ChevronDown className="w-3 h-3 text-[#1E528C]" />
-                    <span className="text-[#1E528C] font-medium text-sm">
-                      Hard Disk Drives ({hardDrives.length})
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {hardDrives.map((drive) => (
-                      <div
-                        key={drive.id}
-                        className={`flex gap-3 p-2 border border-transparent hover:bg-[#E5F3FB] hover:border-[#7DA2CE] rounded-[2px] cursor-pointer ${
-                          selectedItemId === drive.id
-                            ? "bg-[#CDE6F7] border-[#7DA2CE]"
-                            : ""
-                        }`}
-                        onClick={() => setSelectedItemId(drive.id)}
-                        onDoubleClick={() => handleItemAction(drive)}
-                      >
-                        <HardDrive className="w-10 h-10 text-[#3C3C3C]" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-[#1E1E1E]">
-                            {drive.name}
-                          </div>
-                          <div className="w-full h-3 bg-[#E6E6E6] border border-[#BCBCBC] mt-1 rounded-[2px] overflow-hidden">
-                            <div
-                              className={`h-full ${
-                                (drive.percentFull || 0) > 90
-                                  ? "bg-red-500"
-                                  : "bg-[#4891FF]"
-                              }`}
-                              style={{ width: `${drive.percentFull}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-[#666666] mt-0.5">
-                            {drive.freeSpace} free of {drive.totalSize}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Devices with Removable Storage */}
-              {removableDrives.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2 border-b border-[#D9D9D9] pb-1">
-                    <ChevronDown className="w-3 h-3 text-[#1E528C]" />
-                    <span className="text-[#1E528C] font-medium text-sm">
-                      Devices with Removable Storage ({removableDrives.length})
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {removableDrives.map((drive) => (
-                      <div
-                        key={drive.id}
-                        className={`flex gap-3 p-2 border border-transparent hover:bg-[#E5F3FB] hover:border-[#7DA2CE] rounded-[2px] cursor-pointer ${
-                          selectedItemId === drive.id
-                            ? "bg-[#CDE6F7] border-[#7DA2CE]"
-                            : ""
-                        }`}
-                        onClick={() => setSelectedItemId(drive.id)}
-                        onDoubleClick={() => handleItemAction(drive)}
-                      >
-                        <div className="w-10 h-10 flex items-center justify-center text-3xl">
-                          {typeof drive.icon === "string" ? (
-                            drive.icon
-                          ) : (
-                            <drive.icon className="w-10 h-10" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                          <div className="font-medium text-sm text-[#1E1E1E]">
-                            {drive.name}
-                          </div>
-                          {drive.description && (
-                            <div className="text-xs text-[#666666]">
-                              {drive.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
           ) : (
-            // Standard Folder View
-            <div className="h-full">
-              {viewMode === "details" ? (
-                <div className="w-full text-sm">
-                  {/* Table Header */}
-                  <div className="flex items-center px-4 py-1 border-b border-[#D9D9D9] bg-white text-[#1E1E1E] font-medium sticky top-0 z-10">
-                    <div
-                      className="flex-1 border-r border-[#D9D9D9] px-2 hover:bg-[#E5F3FB] cursor-pointer flex items-center gap-1"
-                      onClick={() => handleSort("name")}
-                    >
-                      Name{" "}
-                      {sortConfig?.key === "name" &&
-                        (sortConfig.direction === "asc" ? "▲" : "▼")}
-                    </div>
-                    <div
-                      className="w-40 border-r border-[#D9D9D9] px-2 hover:bg-[#E5F3FB] cursor-pointer flex items-center gap-1"
-                      onClick={() => handleSort("modified")}
-                    >
-                      Date modified{" "}
-                      {sortConfig?.key === "modified" &&
-                        (sortConfig.direction === "asc" ? "▲" : "▼")}
-                    </div>
-                    <div
-                      className="w-32 border-r border-[#D9D9D9] px-2 hover:bg-[#E5F3FB] cursor-pointer flex items-center gap-1"
-                      onClick={() => handleSort("type")}
-                    >
-                      Type{" "}
-                      {sortConfig?.key === "type" &&
-                        (sortConfig.direction === "asc" ? "▲" : "▼")}
-                    </div>
-                    <div
-                      className="w-24 px-2 hover:bg-[#E5F3FB] cursor-pointer flex items-center gap-1"
-                      onClick={() => handleSort("size")}
-                    >
-                      Size{" "}
-                      {sortConfig?.key === "size" &&
-                        (sortConfig.direction === "asc" ? "▲" : "▼")}
-                    </div>
-                  </div>
-                  {/* Table Body */}
-                  <div className="p-2">
-                    {filteredItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className={`flex items-center px-2 py-1 border border-transparent hover:bg-[#E5F3FB] hover:border-[#7DA2CE] rounded-[2px] cursor-pointer ${
-                          selectedItemId === item.id
-                            ? "bg-[#CDE6F7] border-[#7DA2CE]"
-                            : ""
-                        }`}
-                        onClick={() => setSelectedItemId(item.id)}
-                        onDoubleClick={() => handleItemAction(item)}
-                      >
-                        <div className="flex-1 flex items-center gap-2 min-w-0">
-                          {typeof item.icon === "string" ? (
-                            <span className="w-4 h-4 flex items-center justify-center text-sm">
-                              {item.icon}
-                            </span>
-                          ) : (
-                            <item.icon
-                              className={`w-4 h-4 ${
-                                item.type === "folder"
-                                  ? "text-[#FACC2E] fill-[#FACC2E]"
-                                  : "text-[#3C3C3C]"
-                              }`}
-                            />
-                          )}
-                          <span className="truncate">{item.name}</span>
-                        </div>
-                        <div className="w-40 text-[#666666] px-2 truncate">
-                          {item.modified || "-"}
-                        </div>
-                        <div className="w-32 text-[#666666] px-2 truncate">
-                          {item.type === "folder"
-                            ? "File folder"
-                            : item.type === "application"
-                            ? "Application"
-                            : `${item.name
-                                .split(".")
-                                .pop()
-                                ?.toUpperCase()} File`}
-                        </div>
-                        <div className="w-24 text-[#666666] px-2 truncate">
-                          {item.size || "-"}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 p-4">
-                  {filteredItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`flex items-center gap-2 p-1 border border-transparent hover:bg-[#E5F3FB] hover:border-[#7DA2CE] rounded-[2px] cursor-pointer ${
-                        selectedItemId === item.id
-                          ? "bg-[#CDE6F7] border-[#7DA2CE]"
-                          : ""
-                      }`}
-                      onClick={() => setSelectedItemId(item.id)}
-                      onDoubleClick={() => handleItemAction(item)}
-                    >
-                      {typeof item.icon === "string" ? (
-                        <span className="w-5 h-5 flex items-center justify-center text-lg">
-                          {item.icon}
-                        </span>
-                      ) : (
-                        <item.icon
-                          className={`w-5 h-5 ${
-                            item.type === "folder"
-                              ? "text-[#FACC2E] fill-[#FACC2E]"
-                              : "text-[#3C3C3C]"
-                          }`}
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[#1E1E1E] truncate">
-                          {item.name}
-                        </div>
-                        <div className="text-xs text-[#666666] truncate">
-                          {item.type === "folder"
-                            ? "File folder"
-                            : item.type === "application"
-                            ? "Application"
-                            : item.size}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {filteredItems.length === 0 && (
-                <div className="col-span-full text-center py-12 text-gray-400">
-                  <Folder className="w-12 h-12 mx-auto mb-2 opacity-20" />
-                  <p>This folder is empty.</p>
-                </div>
-              )}
-            </div>
+            <table className="finder-list">
+              <thead>
+                <tr>
+                  <th>
+                    <button onClick={() => setSortAsc(!sortAsc)}>
+                      Name {sortAsc ? "⌃" : "⌄"}
+                    </button>
+                  </th>
+                  <th className="optional-column">Kind</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((item) => (
+                  <tr
+                    key={item.id}
+                    tabIndex={0}
+                    data-selected={selected === item.id}
+                    onFocus={() => setSelected(item.id)}
+                    onClick={() => setSelected(item.id)}
+                    onDoubleClick={() => open(item)}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      open(item);
+                    }}
+                  >
+                    <td>
+                      <span className="flex items-center gap-2">
+                        {art(item, 26)}
+                        {item.name}
+                      </span>
+                    </td>
+                    <td className="optional-column">{item.kind}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
-      </div>
-
-      {/* Details Pane (Bottom) */}
-      <div className="bg-[#F0F0F0] border-t border-[#D9D9D9] p-3 flex items-center gap-4 h-16">
-        {selectedItem ? (
-          <>
-            <div className="w-10 h-10 flex items-center justify-center">
-              {typeof selectedItem.icon === "string" ? (
-                <span className="text-3xl">{selectedItem.icon}</span>
-              ) : (
-                <selectedItem.icon
-                  className={`w-10 h-10 ${
-                    selectedItem.type === "folder"
-                      ? "text-[#FACC2E] fill-[#FACC2E]"
-                      : "text-[#3C3C3C]"
-                  }`}
-                />
-              )}
-            </div>
-            <div className="flex flex-col justify-center">
-              <div className="font-medium text-[#1E1E1E]">
-                {selectedItem.name}
-              </div>
-              <div className="text-xs text-[#666666] flex gap-4">
-                <span>
-                  {selectedItem.type === "folder"
-                    ? "File folder"
-                    : selectedItem.type === "application"
-                    ? "Application"
-                    : `${selectedItem.name
-                        .split(".")
-                        .pop()
-                        ?.toUpperCase()} File`}
-                </span>
-                {selectedItem.modified && (
-                  <span>Date modified: {selectedItem.modified}</span>
-                )}
-                {selectedItem.size && <span>Size: {selectedItem.size}</span>}
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 flex items-center justify-center">
-              <span className="text-xs text-[#666666]">
-                {filteredItems.length} items
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
+        <div className="finder-path">
+          <button
+            onClick={() => navigate("Home")}
+            className="flex items-center gap-1"
+          >
+            <Home size={12} />
+            muneeb
+          </button>
+          <ChevronRight size={12} />
+          <span>{current}</span>
+        </div>
+        <div className="mac-statusbar">
+          <span>
+            {filtered.length} items{selected ? ", 1 selected" : ""}
+          </span>
+          <button onClick={() => navigate("Home")} aria-label="Go to Home">
+            <ArrowUp size={13} />
+          </button>
+        </div>
+      </main>
     </div>
   );
 }

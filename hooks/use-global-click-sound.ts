@@ -10,7 +10,7 @@ export function useGlobalClickSound() {
     const playClickSound = () => {
       // Control Center's Sound slider scales this; 0 means muted.
       const volume = useSystemControls.getState().volume;
-      if (volume <= 0) return;
+      if (volume <= 0 || !useSystemControls.getState().systemSounds) return;
       try {
         const audio = new Audio("/click.mp3");
         audio.volume = 0.3 * volume;

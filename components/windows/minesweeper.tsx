@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Smile, Frown, Meh, RefreshCw } from "lucide-react";
+import { Flag, RefreshCw } from "lucide-react";
 
 interface Cell {
   isMine: boolean;
@@ -25,7 +25,7 @@ export function Minesweeper() {
   const [gameStatus, setGameStatus] = useState<GameStatus>("playing");
   const [mineCount, setMineCount] = useState(0);
   const [timer, setTimer] = useState(0);
-  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [flagMode, setFlagMode] = useState(false);
 
   const initializeGame = useCallback(() => {
     const { rows, cols, mines } = DIFFICULTIES[difficulty];
@@ -37,7 +37,7 @@ export function Minesweeper() {
           isRevealed: false,
           isFlagged: false,
           neighborMines: 0,
-        })
+        }),
       );
 
     // Place mines
@@ -188,108 +188,80 @@ export function Minesweeper() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#C0C0C0] p-1 select-none font-sans">
-      {/* Menu Bar */}
-      <div className="flex bg-[#ECE9D8] border-b border-white px-1 text-xs mb-1">
-        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
-          Game
-        </div>
-        <div className="px-2 py-0.5 hover:bg-[#316AC5] hover:text-white cursor-pointer">
-          Help
-        </div>
-      </div>
-
-      {/* Game Container */}
-      <div className="border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] p-2 bg-[#C0C0C0] flex flex-col gap-2">
-        {/* Header (Score & Face) */}
-        <div className="border-l-2 border-t-2 border-l-[#808080] border-t-[#808080] border-r-2 border-b-2 border-r-white border-b-white p-2 flex justify-between items-center bg-[#C0C0C0]">
-          {/* Mine Counter */}
-          <div className="bg-black text-red-600 font-mono text-2xl px-1 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-16 text-center leading-none py-0.5">
-            {Math.max(-99, Math.min(999, mineCount))
-              .toString()
-              .padStart(3, "0")}
-          </div>
-
-          {/* Face Button */}
-          <button
-            onClick={initializeGame}
-            onMouseDown={() => setIsMouseDown(true)}
-            onMouseUp={() => setIsMouseDown(false)}
-            onMouseLeave={() => setIsMouseDown(false)}
-            className="w-8 h-8 border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] active:border-l-[#808080] active:border-t-[#808080] active:border-r-white active:border-b-white bg-[#C0C0C0] flex items-center justify-center active:translate-y-[1px] active:translate-x-[1px]"
-          >
-            {gameStatus === "won" ? (
-              <div className="text-yellow-400 drop-shadow-sm text-xl">😎</div>
-            ) : gameStatus === "lost" ? (
-              <div className="text-yellow-400 drop-shadow-sm text-xl">😵</div>
-            ) : isMouseDown ? (
-              <div className="text-yellow-400 drop-shadow-sm text-xl">😮</div>
-            ) : (
-              <div className="text-yellow-400 drop-shadow-sm text-xl">🙂</div>
-            )}
-          </button>
-
-          {/* Timer */}
-          <div className="bg-black text-red-600 font-mono text-2xl px-1 border-l border-t border-l-[#808080] border-t-[#808080] border-r border-b border-r-white border-b-white w-16 text-center leading-none py-0.5">
-            {timer.toString().padStart(3, "0")}
-          </div>
-        </div>
-
-        {/* Grid */}
-        <div
-          className="border-l-4 border-t-4 border-l-[#808080] border-t-[#808080] border-r-4 border-b-4 border-r-white border-b-white bg-[#C0C0C0] mx-auto"
-          onMouseDown={() => setIsMouseDown(true)}
-          onMouseUp={() => setIsMouseDown(false)}
-          onMouseLeave={() => setIsMouseDown(false)}
+    <div className="game-app">
+      <div className="mac-toolbar">
+        <h2>Minesweeper</h2>
+        <span className="mac-muted text-xs">
+          {mineCount} mines · {timer}s
+        </span>
+        <button
+          className="mac-icon-button"
+          aria-label="Flag mode"
+          aria-pressed={flagMode}
+          onClick={() => setFlagMode(!flagMode)}
         >
+          <Flag size={16} />
+        </button>
+        <button
+          className="mac-icon-button"
+          aria-label="New game"
+          onClick={initializeGame}
+        >
+          <RefreshCw size={16} />
+        </button>
+      </div>
+      <div className="game-body">
+        <div className="mac-segmented mb-6">
+          {(["beginner", "intermediate", "expert"] as Difficulty[]).map((d) => (
+            <button
+              key={d}
+              className="capitalize"
+              aria-pressed={difficulty === d}
+              onClick={() => setDifficulty(d)}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+        <div className="mine-scroll">
           <div
-            className="grid gap-0"
+            className="mine-board"
             style={{
-              gridTemplateColumns: `repeat(${DIFFICULTIES[difficulty].cols}, 20px)`,
+              gridTemplateColumns: `repeat(${DIFFICULTIES[difficulty].cols}, 28px)`,
             }}
           >
             {grid.map((row, r) =>
               row.map((cell, c) => (
-                <div
+                <button
                   key={`${r}-${c}`}
-                  onClick={() => revealCell(r, c)}
-                  onContextMenu={(e) => toggleFlag(e, r, c)}
-                  className={`w-5 h-5 flex items-center justify-center text-sm font-bold cursor-default
-                    ${
-                      cell.isRevealed
-                        ? "border-[0.5px] border-[#808080] bg-[#C0C0C0]" // Revealed
-                        : "border-l-2 border-t-2 border-l-white border-t-white border-r-2 border-b-2 border-r-[#808080] border-b-[#808080] bg-[#C0C0C0] hover:bg-[#D0D0D0]" // Unrevealed
-                    }
-                    ${
-                      cell.isMine && cell.isRevealed && gameStatus === "lost"
-                        ? "bg-red-500"
-                        : ""
-                    }
-                  `}
+                  aria-label={`Row ${r + 1}, column ${c + 1}${cell.isFlagged ? ", flagged" : cell.isRevealed ? ", revealed" : ""}`}
+                  className="mine-cell"
+                  data-revealed={cell.isRevealed}
+                  onClick={(e) =>
+                    flagMode ? toggleFlag(e, r, c) : revealCell(r, c)
+                  }
+                  onContextMenu={(e) => {
+                    e.stopPropagation();
+                    toggleFlag(e, r, c);
+                  }}
                 >
                   {getCellContent(cell)}
-                </div>
-              ))
+                </button>
+              )),
             )}
           </div>
         </div>
+        <p role="status" className="mt-5 text-sm">
+          {gameStatus === "won"
+            ? "You cleared the board!"
+            : gameStatus === "lost"
+              ? "You found a mine. Try a new game."
+              : "Reveal a square. Flag a suspected mine."}
+        </p>
       </div>
-
-      {/* Difficulty Selector (Simple footer for now) */}
-      <div className="mt-2 flex justify-center gap-2 text-xs">
-        {(Object.keys(DIFFICULTIES) as Difficulty[]).map((diff) => (
-          <button
-            key={diff}
-            onClick={() => setDifficulty(diff)}
-            className={`px-2 py-1 border border-[#808080] rounded ${
-              difficulty === diff
-                ? "bg-[#316AC5] text-white"
-                : "bg-[#ECE9D8] hover:bg-[#E0E0E0]"
-            }`}
-          >
-            {diff.charAt(0).toUpperCase() + diff.slice(1)}
-          </button>
-        ))}
+      <div className="mac-statusbar">
+        <span>Right-click or use Flag mode to flag</span>
+        <span className="capitalize">{difficulty}</span>
       </div>
     </div>
   );

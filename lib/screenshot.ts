@@ -1,8 +1,14 @@
+import { notify } from "./notifications";
+
 // Real screenshot of the page via the browser's screen-capture prompt
 // (the visitor picks this tab), saved as a PNG like macOS does.
 export async function takeScreenshot() {
   if (!navigator.mediaDevices?.getDisplayMedia) {
-    alert("Screenshots aren't supported in this browser.");
+    notify({
+      appId: "computer",
+      title: "Screenshot unavailable",
+      body: "This browser doesn't support screen capture.",
+    });
     return;
   }
 
@@ -33,6 +39,11 @@ export async function takeScreenshot() {
     link.download = `Screenshot ${stamp}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
+    notify({
+      appId: "computer",
+      title: "Screenshot saved",
+      body: `${link.download} is in your Downloads folder.`,
+    });
   } catch {
     /* visitor cancelled the share prompt */
   } finally {

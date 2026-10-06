@@ -17,7 +17,7 @@
 - Menu bar height: 28px. Dock reserved height: 88px. Windows may not be dragged above the menu bar.
 - Storage key for shell state: `muneebos-mac-state-v1`.
 - `tsc --noEmit` must report no errors beyond the 20 pre-existing ones (all in `muneebOS.tsx` and `components/ui/button.tsx`).
-- Commit after each task; messages end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- Commit after each task.
 
 **Testing note:** the repo has no test runner, and this work is visual. Each
 task's "test" is a browser check in the preview pane at 1440×900, using

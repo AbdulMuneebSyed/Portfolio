@@ -12,6 +12,7 @@ export function PhotoPreview({
   fileName = "photo.jpg",
   filePath = "/photo.jpg",
 }: PhotoPreviewProps) {
+  const [failed, setFailed] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
 
@@ -35,13 +36,13 @@ export function PhotoPreview({
   };
 
   return (
-    <div className="h-full bg-gray-100 flex flex-col">
+    <div className="h-full flex flex-col">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 p-3 bg-white border-b border-gray-200">
+      <div className="mac-toolbar">
         <button
           onClick={handleZoomOut}
           disabled={zoom <= 25}
-          className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mac-icon-button"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
@@ -52,7 +53,7 @@ export function PhotoPreview({
         <button
           onClick={handleZoomIn}
           disabled={zoom >= 200}
-          className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mac-icon-button"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
@@ -60,44 +61,45 @@ export function PhotoPreview({
         <div className="w-px h-6 bg-gray-300 mx-2" />
         <button
           onClick={handleRotate}
-          className="p-2 rounded hover:bg-gray-100"
+          className="mac-icon-button"
           title="Rotate"
         >
           <RotateCw className="w-4 h-4" />
         </button>
         <button
           onClick={handleDownload}
-          className="p-2 rounded hover:bg-gray-100"
+          className="mac-icon-button"
           title="Download"
         >
           <Download className="w-4 h-4" />
         </button>
         <div className="flex-1" />
-        <span className="text-sm text-gray-600">{fileName}</span>
+        <span className="text-xs mac-muted truncate">{fileName}</span>
       </div>
 
       {/* Image Display Area */}
-      <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
-        <div className="relative">
-          <img
-            src={filePath}
-            alt={fileName}
-            className="max-w-none shadow-lg"
-            style={{
-              transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-              transformOrigin: "center",
-              transition: "transform 0.2s ease",
-            }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "/placeholder.jpg";
-            }}
-          />
+      <div className="photo-canvas min-h-0 flex-1 overflow-auto flex items-center justify-center p-4">
+        <div className="relative max-w-full">
+          {failed ? (
+            <p className="mac-muted">This image could not be opened.</p>
+          ) : (
+            <img
+              src={filePath}
+              alt={fileName}
+              className="max-w-full max-h-[65vh] object-contain shadow-lg"
+              style={{
+                transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                transformOrigin: "center",
+                transition: "transform 0.2s ease",
+              }}
+              onError={() => setFailed(true)}
+            />
+          )}
         </div>
       </div>
 
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-white border-t border-gray-200 text-sm text-gray-600">
+      <div className="mac-statusbar">
         <span>Ready</span>
         <span>
           {zoom}% • {rotation}°

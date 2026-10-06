@@ -3,6 +3,34 @@ import { gridCell } from "./desktop-grid";
 
 export const APP_REGISTRY: AppRegistryEntry[] = [
   {
+    id: "notes",
+    title: "Notes",
+    icon: "/icons/mac/notes.png",
+    component: "Notepad",
+    category: "Utilities",
+    description: "A place for project notes, saved in this browser.",
+    defaultSize: { width: 650, height: 500 },
+    launchAliases: ["notes", "notepad"],
+  },
+  {
+    id: "snake",
+    title: "Snake",
+    icon: "/games.png",
+    component: "Snake",
+    category: "Games",
+    description: "Play a round of Snake.",
+    defaultSize: { width: 620, height: 650 },
+  },
+  {
+    id: "minesweeper",
+    title: "Minesweeper",
+    icon: "/games.png",
+    component: "Minesweeper",
+    category: "Games",
+    description: "Find every mine.",
+    defaultSize: { width: 620, height: 650 },
+  },
+  {
     id: "about",
     title: "About Me",
     icon: "/avatar-256.jpg",
@@ -42,7 +70,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "contact",
     title: "Contact",
-    icon: "/mail-client.svg",
+    icon: "/icons/mac/mail.png",
     component: "ContactWindow",
     category: "Portfolio",
     description: "Send Syed Abdul Muneeb a message.",
@@ -59,7 +87,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     category: "Portfolio",
     description: "Recent GitHub activity and repositories.",
     defaultSize: { width: 920, height: 600 },
-    launchAliases: ["github", "git", "activity", "repos"],
+    launchAliases: ["github", "git", "repos"],
   },
   {
     id: "linkedin",
@@ -75,7 +103,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "terminal",
     title: "Terminal",
-    icon: "/terminal-app.svg",
+    icon: "/icons/mac/terminal.png",
     component: "TerminalWindow",
     category: "System",
     description: "Run shell commands and launch apps by name.",
@@ -85,7 +113,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "ie",
     title: "Safari",
-    icon: "/internet_explorer.png",
+    icon: "/icons/mac/safari.png",
     component: "InternetExplorer",
     category: "Utilities",
     description: "Browse project links and live demos.",
@@ -95,7 +123,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "computer",
     title: "Finder",
-    icon: "/thispc.png",
+    icon: "/icons/mac/finder.png",
     component: "ComputerExplorer",
     category: "System",
     description: "Browse folders, files, music, and games.",
@@ -105,7 +133,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "settings",
     title: "System Settings",
-    icon: "/settings.png",
+    icon: "/icons/mac/system-settings.png",
     component: "SettingsWindow",
     category: "System",
     description: "Change the wallpaper and shell preferences.",
@@ -115,7 +143,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "feedback",
     title: "Feedback",
-    icon: "/contact.png",
+    icon: "/icons/mac/notes.png",
     component: "FeedbackWindow",
     category: "Portfolio",
     description: "Send portfolio feedback, bugs, and reviews.",
@@ -135,12 +163,17 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "task-manager",
     title: "Activity Monitor",
-    icon: "/settings.png",
+    icon: "/icons/mac/system-settings.png",
     component: "TaskManagerWindow",
     category: "System",
     description: "Monitor running apps, focus windows, and quit them.",
     defaultSize: { width: 760, height: 500 },
-    launchAliases: ["activity", "activity monitor", "processes", "task manager"],
+    launchAliases: [
+      "activity",
+      "activity monitor",
+      "processes",
+      "task manager",
+    ],
   },
   {
     id: "music",
@@ -155,34 +188,12 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "calculator",
     title: "Calculator",
-    icon: "/calc.png",
+    icon: "/icons/mac/calculator.png",
     component: "Calculator",
     category: "Utilities",
     description: "A classic calculator.",
-    defaultSize: { width: 400, height: 550 },
+    defaultSize: { width: 320, height: 460 },
     launchAliases: ["calc", "calculator"],
-  },
-  // Demo apps with placeholder data — kept out of the Dock and search
-  // until they show real content.
-  {
-    id: "projects-pro",
-    title: "Projects Explorer Pro",
-    icon: "/projects-pro.svg",
-    component: "ProjectsExplorerPro",
-    category: "Portfolio",
-    description: "Inspect featured projects with filters, notes, and launch details.",
-    defaultSize: { width: 960, height: 640 },
-    searchable: false,
-  },
-  {
-    id: "mail-client",
-    title: "Mail Contact Client",
-    icon: "/mail-client.svg",
-    component: "MailContactClient",
-    category: "Productivity",
-    description: "Compose contact messages and manage local contact notes.",
-    defaultSize: { width: 900, height: 610 },
-    searchable: false,
   },
 ];
 
@@ -204,7 +215,7 @@ export const DOCK_APP_IDS = [
 ] as const;
 
 export const APP_REGISTRY_BY_ID = new Map(
-  APP_REGISTRY.map((app) => [app.id, app])
+  APP_REGISTRY.map((app) => [app.id, app]),
 );
 
 export function getApp(appId: string) {

@@ -102,12 +102,16 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
-        const savedIcons = Array.isArray(parsed.desktopIcons)
-          && parsed.desktopLayoutVersion === DESKTOP_LAYOUT_VERSION
-          ? parsed.desktopIcons
-          : DEFAULT_ICONS;
+        const savedIcons =
+          Array.isArray(parsed.desktopIcons) &&
+          parsed.desktopLayoutVersion === DESKTOP_LAYOUT_VERSION
+            ? parsed.desktopIcons
+            : DEFAULT_ICONS;
+        // Drop windows of apps that no longer exist in the registry.
         const savedWindows = Array.isArray(parsed.windows)
-          ? (parsed.windows as WindowState[])
+          ? (parsed.windows as WindowState[]).filter(
+              (window) => !window.appId || getApp(window.appId),
+            )
           : [];
         const nextProcessId = savedWindows.reduce(
           (nextId, window) => Math.max(nextId, (window.processId ?? 999) + 1),
@@ -201,6 +205,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
             w.id === window.id
               ? {
                   ...w,
+                  metadata: window.metadata ?? w.metadata,
                   isMinimized: false,
                   isActive: true,
                   status: "running",
@@ -241,22 +246,44 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   },
 
   closeWindow: (id) => {
-    set((state) => ({
-      windows: state.windows.filter((w) => w.id !== id),
-      activeWindowId: state.activeWindowId === id ? null : state.activeWindowId,
-    }));
+    set((state) => {
+      const remaining = state.windows.filter((w) => w.id !== id);
+      const next =
+        state.activeWindowId === id
+          ? ([...remaining]
+              .filter((w) => !w.isMinimized)
+              .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null)
+          : state.activeWindowId;
+      return {
+        windows: remaining.map((w) => ({ ...w, isActive: w.id === next })),
+        activeWindowId: next,
+      };
+    });
     get().saveState();
   },
 
   minimizeWindow: (id) => {
-    set((state) => ({
-      windows: state.windows.map((w) =>
-        w.id === id
-          ? { ...w, isMinimized: true, isActive: false, status: "minimized" }
-          : w,
-      ),
-      activeWindowId: state.activeWindowId === id ? null : state.activeWindowId,
-    }));
+    set((state) => {
+      const next =
+        state.activeWindowId === id
+          ? ([...state.windows]
+              .filter((w) => w.id !== id && !w.isMinimized)
+              .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null)
+          : state.activeWindowId;
+      return {
+        windows: state.windows.map((w) =>
+          w.id === id
+            ? {
+                ...w,
+                isMinimized: true,
+                isActive: false,
+                status: "minimized" as const,
+              }
+            : { ...w, isActive: w.id === next },
+        ),
+        activeWindowId: next,
+      };
+    });
     get().saveState();
   },
 
