@@ -8,11 +8,12 @@ import {
   type PointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Minus, Maximize2 } from "lucide-react";
+import { X, Minus, Maximize2, ChevronLeft } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
 import { useSystemControls } from "@/lib/system-controls";
 import { DOCK_RESERVED_HEIGHT, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import type { WindowState } from "@/lib/types";
+import { mobileAppTitle } from "@/lib/mobile-app-titles";
 
 // Where Mission Control places this window: a centre point and a box the
 // scaled-down window must fit in.
@@ -52,11 +53,13 @@ export function Window({
   children,
   mission,
   onMissionSelect,
+  onHome,
 }: {
   window: WindowState;
   children: ReactNode;
   mission?: MissionSlot | null;
   onMissionSelect?: () => void;
+  onHome?: () => void;
 }) {
   const wm = useWindowManager();
   const reduceMotion = useSystemControls((s) => s.reduceMotion);
@@ -88,11 +91,11 @@ export function Window({
     addEventListener("resize", resize);
     return () => removeEventListener("resize", resize);
   }, []);
-  const compact = viewport.width < 700;
-  const availableHeight = Math.max(
-    180,
-    viewport.height - MENU_BAR_HEIGHT - DOCK_RESERVED_HEIGHT,
-  );
+  const compact =
+    viewport.width < 700 || (viewport.width < 950 && viewport.height < 500);
+  const availableHeight = compact
+    ? Math.max(180, viewport.height - 44)
+    : Math.max(180, viewport.height - MENU_BAR_HEIGHT - DOCK_RESERVED_HEIGHT);
   const width = Math.min(win.size.width, viewport.width - 16);
   const height = Math.min(win.size.height, availableHeight - 8);
   const left = Math.max(
@@ -246,7 +249,7 @@ export function Window({
   // The frame as laid out, used to aim the minimize and Mission Control moves.
   const frameBox = {
     x: expanded ? 0 : left,
-    y: expanded ? MENU_BAR_HEIGHT : top,
+    y: expanded ? (compact ? 44 : MENU_BAR_HEIGHT) : top,
     width: expanded ? viewport.width : width,
     height: expanded ? availableHeight : height,
   };
@@ -362,7 +365,7 @@ export function Window({
         className={`mac-window absolute flex flex-col overflow-hidden ${expanded ? "rounded-none" : "rounded-[16px]"}`}
         style={{
           left: expanded ? 0 : left,
-          top: expanded ? MENU_BAR_HEIGHT : top,
+          top: expanded ? (compact ? 44 : MENU_BAR_HEIGHT) : top,
           width: expanded ? viewport.width : width,
           height: expanded ? availableHeight : height,
           zIndex: win.zIndex,
@@ -378,6 +381,13 @@ export function Window({
         }}
         onContextMenu={(e: React.MouseEvent) => e.stopPropagation()}
       >
+        <div className="ios-app-header">
+          <button onClick={onHome} aria-label="Back to Home Screen">
+            <ChevronLeft size={21} /> Home
+          </button>
+          <strong>{mobileAppTitle(win.appId ?? win.id, win.title)}</strong>
+          <span aria-hidden="true" />
+        </div>
         {chrome === "unified" ? (
           trafficLights
         ) : (

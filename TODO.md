@@ -1,13 +1,14 @@
 # Muneeb OS macOS redesign notes
 
 Status: active redesign work is implemented in the working tree. This file tracks what is done and what is left.
+Current direction: macOS on desktop/tablet; iOS 27-inspired presentation below 700px.
 
 Date: 2026-10-06
 
 ## What has been completed
 
-- Reworked the shell to use one responsive macOS-style desktop at every viewport size.
-- Removed the old separate mobile shell (`components/muneebOS.tsx`). Do not restore it unless the product direction changes; the responsive desktop now owns phone/tablet behavior.
+- Reworked the shell to use a macOS-style desktop on wide screens and an iPhone-inspired Home Screen on phones.
+- Removed the old mobile shell (`components/muneebOS.tsx`) and replaced it with `components/mobile-home.tsx` for the current phone design.
 - Added Big Sur-style menu bar, Dock, traffic lights, translucent windows, dark mode, reduced motion, keyboard focus states, compact mobile Dock, and desktop icon touch/keyboard support.
 - Added system shortcuts: Spotlight (`⌘K` / `Ctrl+K`, plus `⌘Space` when the browser passes it through), Settings (`⌘,`), minimize (`⌘M`), close (`⌘W`), cycle windows (`⌘\``), and Escape dismissal.
 - Rebuilt Finder in `components/windows/computer-explorer.tsx` with sidebar locations, folder history, search, icon/list views, sorting, keyboard navigation, file/app opening, and responsive layout.
@@ -74,3 +75,11 @@ Browser checks at 390 × 844 also passed for Calculator, Safari, Music, About, P
 - `aeroEffects` now controls transparency for the shared shell. `reduceMotion`, `systemSounds`, `darkMode`, brightness, volume, and network toggles live in `lib/system-controls.ts`.
 - The current working tree includes the intentional deletion of `components/muneebOS.tsx`. Preserve it unless the user explicitly asks for a separate mobile OS.
 - Do not reset or discard the working tree; all current changes are part of this redesign.
+
+## iPhone design pass (2026-10-06)
+
+- Apple released iOS 27 on September 14, 2026. Research sources: [iOS 27](https://www.apple.com/os/ios/), [Apple newsroom](https://www.apple.com/newsroom/2026/09/major-updates-for-apples-software-platforms-are-now-available/), [Designing for iOS](https://developer.apple.com/design/human-interface-guidelines/designing-for-ios), [Materials](https://developer.apple.com/design/human-interface-guidelines/materials), and [Layout](https://developer.apple.com/design/human-interface-guidelines/layout).
+- The Mac shell remains on tablet/desktop. Below 700px, `components/mobile-home.tsx` provides the iPhone-inspired home screen, app folders, Search, Dock, status area, and Control Center. `components/window.tsx` presents apps full screen with a Home control. `components/mac/lock-screen.tsx` has an iPhone lock layout and swipe-up unlock. Phone styles are at the end of `app/globals.css`.
+- Finder, Projects, and Settings use horizontally scrolling category navigation on phones. App icons use unique SVG gradient IDs to render correctly when many folder icons are present.
+- Browser checked at 390×844, 375×667, and 844×390: lock screen, home, folders, Projects list/detail, Finder, Settings in light/dark, Control Center, Search, Snake, About, Safari, Calculator, Contact, Music, Notes, Resume, Feedback, and GitHub. No horizontal content overflow in those app checks. Continue checking other apps if changing their internals.
+- Phone-specific polish completed: Settings hides Desktop & Dock, uses phone labels and keyboard shortcuts, and no longer shows desktop history controls. Files calls the Desktop folder “Portfolio” on phones; Notes, the tour, Activity, and Recently Deleted use phone-appropriate copy. The apps remain portfolio experiences rather than exact replicas of Apple’s native apps.

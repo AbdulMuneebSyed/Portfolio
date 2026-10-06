@@ -120,6 +120,10 @@ export function ComputerExplorer({
   const [view, setView] = useState<"icons" | "list">("icons");
   const [sortAsc, setSortAsc] = useState(true);
   const current = history[cursor];
+  const label = (name: string) =>
+    name === "Desktop" ? (
+      <><span className="desktop-only">Desktop</span><span className="mobile-only">Portfolio</span></>
+    ) : name;
   useEffect(() => {
     if (initialFolder) {
       setHistory([initialFolder]);
@@ -230,7 +234,7 @@ export function ComputerExplorer({
     >
       <aside className="mac-sidebar">
         <div className="sidebar-heading">Favorites</div>
-        <nav aria-label="Finder favorites">
+        <nav aria-label="File locations">
           {locations.map((loc) => (
             <button
               key={loc.name}
@@ -239,7 +243,7 @@ export function ComputerExplorer({
               onClick={() => navigate(loc.name)}
             >
               <loc.icon />
-              <span>{loc.name}</span>
+              <span>{label(loc.name)}</span>
             </button>
           ))}
         </nav>
@@ -273,7 +277,7 @@ export function ComputerExplorer({
               <ChevronRight size={18} />
             </button>
           </div>
-          <h2>{current}</h2>
+          <h2>{label(current)}</h2>
           <div className="toolbar-group">
             <button
               className="mac-icon-button"
@@ -325,7 +329,7 @@ export function ComputerExplorer({
                   }}
                 >
                   <span className="finder-file-art">{art(item, 64)}</span>
-                  <span className="finder-file-name">{item.name}</span>
+                  <span className="finder-file-name">{label(item.name)}</span>
                 </button>
               ))}
             </div>
@@ -358,7 +362,7 @@ export function ComputerExplorer({
                     <td>
                       <span className="flex items-center gap-2">
                         {art(item, 26)}
-                        {item.name}
+                        {label(item.name)}
                       </span>
                     </td>
                     <td className="optional-column">{item.kind}</td>

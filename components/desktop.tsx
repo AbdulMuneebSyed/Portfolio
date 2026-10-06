@@ -22,6 +22,7 @@ import { NotificationBanners } from "./mac/notification-banners";
 import { ContextMenu } from "./context-menu";
 import { MenuBar } from "./mac/menu-bar";
 import { Dock } from "./mac/dock";
+import { MobileHome } from "./mobile-home";
 import { Spotlight } from "./mac/spotlight";
 import { BootScreen } from "./mac/boot-screen";
 import { Tour } from "./mac/tour";
@@ -204,6 +205,14 @@ export function Desktop({ onLock }: DesktopProps) {
   }, []);
 
   const openSpotlight = useCallback(() => setIsSpotlightOpen(true), []);
+  const mobileAppOpen = windows.some((w) => w.isActive && !w.isMinimized);
+  const goMobileHome = useCallback(() => {
+    const manager = useWindowManager.getState();
+    manager.windows
+      .filter((w) => !w.isMinimized)
+      .forEach((w) => manager.minimizeWindow(w.id));
+    setIsSpotlightOpen(false);
+  }, []);
 
   // Opening or closing a window leaves Mission Control.
   useEffect(() => setMissionOpen(false), [windows.length, setMissionOpen]);
@@ -283,6 +292,7 @@ export function Desktop({ onLock }: DesktopProps) {
       <div
         data-reduce-motion={reduceMotion}
         data-transparency={aeroEffects}
+        data-mobile-app-open={mobileAppOpen}
         className="mac-desktop font-mac relative h-dvh w-dvw overflow-hidden bg-[#1e1b4b]"
         style={{
           backgroundImage: wallpaper,
@@ -306,6 +316,12 @@ export function Desktop({ onLock }: DesktopProps) {
           onStartTour={handleStartTour}
           onLock={onLock}
           onRestart={handleRestart}
+        />
+
+        <MobileHome
+          appOpen={mobileAppOpen}
+          onHome={goMobileHome}
+          onSearch={openSpotlight}
         />
 
         {/* Desktop files, anchored top-right */}
@@ -374,6 +390,7 @@ export function Desktop({ onLock }: DesktopProps) {
                 key={window.id}
                 window={window}
                 mission={missionSlots.get(window.id) ?? null}
+                onHome={goMobileHome}
                 onMissionSelect={() => {
                   useWindowManager.getState().setActiveWindow(window.id);
                   setMissionOpen(false);

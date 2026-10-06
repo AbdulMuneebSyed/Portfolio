@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { TouchEvent } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { BatteryCharging, BatteryFull, Keyboard, Wifi } from "lucide-react";
@@ -17,6 +18,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const [now, setNow] = useState<Date | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const hasUnlockedRef = useRef(false);
+  const touchStartY = useRef(0);
   const savedWallpaper = useWindowManager((state) => state.wallpaper);
   const battery = useBatteryStatus();
 
@@ -67,10 +69,17 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         backgroundPosition: "center",
       }}
       onClick={unlock}
+      onTouchStart={(event: TouchEvent<HTMLDivElement>) => {
+        touchStartY.current = event.touches[0]?.clientY ?? 0;
+      }}
+      onTouchEnd={(event: TouchEvent<HTMLDivElement>) => {
+        if (touchStartY.current - (event.changedTouches[0]?.clientY ?? 0) > 40)
+          unlock();
+      }}
     >
       {/* Status icons, top-right */}
-      <div className="absolute right-4 top-0 z-10 flex h-[30px] items-center gap-4 text-[13px] font-medium text-white">
-        <span className="flex items-center gap-1.5">
+      <div className="ios-lock-status absolute right-4 top-0 z-10 flex h-[30px] items-center gap-4 text-[13px] font-medium text-white">
+        <span className="ios-lock-keyboard flex items-center gap-1.5">
           ABC <Keyboard className="size-[15px]" strokeWidth={1.75} />
         </span>
         {battery?.charging ? (
@@ -81,7 +90,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         <Wifi className="size-4" strokeWidth={2.25} />
       </div>
 
-      <div className="relative z-10 mt-[8.5vh] flex flex-col items-center text-center">
+      <div className="ios-lock-clock relative z-10 mt-[8.5vh] flex flex-col items-center text-center">
         <div className={`text-[clamp(22px,3.3vh,34px)] font-semibold ${vibrantText}`}>
           {date}
         </div>
@@ -102,7 +111,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         )}
       </div>
 
-      <div className="relative z-10 mt-auto mb-[5.5vh] flex flex-col items-center">
+      <div className="ios-lock-profile relative z-10 mt-auto mb-[5.5vh] flex flex-col items-center">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -127,6 +136,10 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           Click or press Enter to unlock
         </div>
       </div>
+      <button className="ios-lock-open" onClick={unlock}>
+        Swipe up to open
+        <span aria-hidden="true" />
+      </button>
     </motion.div>
   );
 }

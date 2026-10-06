@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Search, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
 import { useSystemControls } from "@/lib/system-controls";
@@ -71,6 +71,7 @@ export function SettingsWindow({ section }: { section?: string }) {
     setCursor(cursor + 1);
   };
   const [search, setSearch] = useState("");
+  const navRef = useRef<HTMLElement>(null);
   const [system, setSystem] = useState({
     resolution: "",
     language: "",
@@ -96,6 +97,12 @@ export function SettingsWindow({ section }: { section?: string }) {
     });
   }, []);
   const title = sections.find((s) => s.id === active)?.name ?? "Appearance";
+  useEffect(() => {
+    if (window.innerWidth < 700 || (window.innerWidth < 950 && window.innerHeight < 500))
+      navRef.current
+        ?.querySelector('[data-selected="true"]')
+        ?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [active]);
   const query = search.toLowerCase();
   return (
     <div className="mac-split settings-app">
@@ -116,7 +123,7 @@ export function SettingsWindow({ section }: { section?: string }) {
             <span>Personal portfolio</span>
           </span>
         </button>
-        <nav aria-label="Settings categories">
+        <nav ref={navRef} aria-label="Settings categories">
           {sectionGroups.map((group, index) => {
             const matches = group.filter((s) =>
               s.name.toLowerCase().includes(query),
@@ -129,7 +136,7 @@ export function SettingsWindow({ section }: { section?: string }) {
                     key={s.id}
                     aria-label={s.name}
                     title={s.name}
-                    className="sidebar-item"
+                    className={`sidebar-item ${s.id === "dock" ? "settings-desktop-category" : ""}`}
                     data-selected={active === s.id}
                     onClick={() => setActive(s.id)}
                   >
@@ -140,7 +147,13 @@ export function SettingsWindow({ section }: { section?: string }) {
                       height={24}
                       className="-mx-0.5 shrink-0"
                     />
-                    <span>{s.name}</span>
+                    <span>
+                      {s.id === "display" ? (
+                        <><span className="desktop-only">Displays</span><span className="mobile-only">Display & Brightness</span></>
+                      ) : s.id === "sound" ? (
+                        <><span className="desktop-only">Sound</span><span className="mobile-only">Sounds</span></>
+                      ) : s.name}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -172,7 +185,13 @@ export function SettingsWindow({ section }: { section?: string }) {
               <ChevronRight size={18} />
             </button>
           </div>
-          <h2>{title}</h2>
+          <h2>
+            {active === "display" ? (
+              <><span className="desktop-only">Displays</span><span className="mobile-only">Display & Brightness</span></>
+            ) : active === "sound" ? (
+              <><span className="desktop-only">Sound</span><span className="mobile-only">Sounds</span></>
+            ) : title}
+          </h2>
         </div>
         <div className="settings-main">
           {active === "wifi" && (
@@ -210,7 +229,7 @@ export function SettingsWindow({ section }: { section?: string }) {
               </div>
               <p className="settings-caption">
                 {controls.bluetoothOn
-                  ? "Discoverable as “Muneeb’s Mac”."
+                  ? <><span className="desktop-only">Discoverable as “Muneeb’s Mac”.</span><span className="mobile-only">Bluetooth is on for this portfolio.</span></>
                   : "Bluetooth is off."}
               </p>
             </>
@@ -291,7 +310,8 @@ export function SettingsWindow({ section }: { section?: string }) {
                 </div>
               </div>
               <p className="settings-caption">
-                Choose the appearance of windows, menus, and apps.
+                <span className="desktop-only">Choose the appearance of windows, menus, and apps.</span>
+                <span className="mobile-only">Choose the appearance of this portfolio.</span>
               </p>
               <div className="settings-group">
                 <Row label="Accent color">
@@ -300,9 +320,9 @@ export function SettingsWindow({ section }: { section?: string }) {
                     Blue
                   </span>
                 </Row>
-                <Row label="Sidebar and Dock transparency">
+                <Row label="Interface transparency">
                   <Toggle
-                    label="Sidebar and Dock transparency"
+                    label="Interface transparency"
                     checked={aeroEffects}
                     onChange={setAeroEffects}
                   />
@@ -317,9 +337,9 @@ export function SettingsWindow({ section }: { section?: string }) {
                 style={{ backgroundImage: wallpaper }}
               >
                 <div />
-                <span>Desktop</span>
+                <span><span className="desktop-only">Desktop</span><span className="mobile-only">Home Screen</span></span>
               </div>
-              <h2>Desktop Pictures</h2>
+              <h2><span className="desktop-only">Desktop Pictures</span><span className="mobile-only">Wallpapers</span></h2>
               <div className="wallpaper-grid">
                 {MAC_WALLPAPERS.map((wp) => (
                   <button
@@ -408,7 +428,7 @@ export function SettingsWindow({ section }: { section?: string }) {
                 </Row>
               </div>
               <p className="settings-caption">
-                Reduce movement and use solid surfaces for a calmer desktop.
+                Reduce movement and use solid surfaces for a calmer experience.
                 Your device’s reduced motion preference is also respected.
               </p>
             </>
@@ -416,7 +436,7 @@ export function SettingsWindow({ section }: { section?: string }) {
           {active === "keyboard" && (
             <>
               <h2>Keyboard Shortcuts</h2>
-              <div className="settings-group">
+              <div className="settings-group desktop-only">
                 {[
                   ["Spotlight", "⌘K / ⌘Space"],
                   ["System Settings", "⌘,"],
@@ -434,10 +454,17 @@ export function SettingsWindow({ section }: { section?: string }) {
                   </Row>
                 ))}
               </div>
-              <p className="settings-caption">
+              <div className="settings-group mobile-only">
+                <Row label="Search"><kbd>⌘K</kbd></Row>
+                <Row label="Settings"><kbd>⌘,</kbd></Row>
+              </div>
+              <p className="settings-caption desktop-only">
                 Use Ctrl in place of ⌘ on Windows and Linux. Some shortcuts are
                 reserved by your browser or operating system; use the menus or
                 ⌘K if a shortcut is intercepted.
+              </p>
+              <p className="settings-caption mobile-only">
+                These shortcuts work with a connected keyboard when your browser allows them.
               </p>
             </>
           )}
@@ -446,7 +473,7 @@ export function SettingsWindow({ section }: { section?: string }) {
               <div className="about-system">
                 <img src="/icons/mac/finder.png" alt="" />
                 <h2>Muneeb OS</h2>
-                <p>A personal portfolio, inspired by macOS.</p>
+                <p><span className="desktop-only">A personal portfolio, inspired by macOS.</span><span className="mobile-only">A personal portfolio, inspired by iPhone.</span></p>
               </div>
               <div className="settings-group">
                 <Row label="Built with">

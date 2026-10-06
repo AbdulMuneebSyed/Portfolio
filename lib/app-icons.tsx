@@ -1,4 +1,5 @@
 import type React from "react";
+import { useId } from "react";
 import Image from "next/image";
 import {
   Activity,
@@ -166,25 +167,26 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
 
 // Finder-style blue folder.
 function FolderArt({ size }: { size: number }) {
+  const id = useId().replace(/:/g, "");
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
       <defs>
-        <linearGradient id="folder-back" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`${id}-back`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#4aa8f0" />
           <stop offset="1" stopColor="#2f86d8" />
         </linearGradient>
-        <linearGradient id="folder-front" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`${id}-front`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#8fd3ff" />
           <stop offset="1" stopColor="#5db6f6" />
         </linearGradient>
       </defs>
       <path
         d="M4 14a4 4 0 0 1 4-4h15l5 5h28a4 4 0 0 1 4 4v31a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z"
-        fill="url(#folder-back)"
+        fill={`url(#${id}-back)`}
       />
       <path
         d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4v27a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z"
-        fill="url(#folder-front)"
+        fill={`url(#${id}-front)`}
       />
       <path
         d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4"

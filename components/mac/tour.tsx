@@ -20,11 +20,14 @@ const steps = [
     app: "computer",
     title: "Make yourself at home",
     text: "Use the Dock to open apps. Drag windows by their title bars. The red, yellow, and green buttons close, minimize, and zoom.",
+    phoneText: "Open Files to browse the portfolio. Use the Home button to return to your apps, or swipe through the categories at the top of a screen.",
   },
   {
     app: "settings",
     title: "Your desktop, your way",
     text: "Change the wallpaper and appearance in System Settings. Press ⌘K or Ctrl+K to find any app with Spotlight.",
+    phoneTitle: "Make it yours",
+    phoneText: "Change the wallpaper and appearance in Settings. Tap Search on the Home Screen to find any app.",
   },
 ];
 export function Tour({
@@ -83,8 +86,14 @@ export function Tour({
           <X size={17} />
         </button>
         <AppIcon appId={step.app} size={86} />
-        <h1>{step.title}</h1>
-        <p>{step.text}</p>
+        <h1>
+          <span className={step.phoneTitle ? "desktop-only" : ""}>{step.title}</span>
+          {step.phoneTitle && <span className="mobile-only">{step.phoneTitle}</span>}
+        </h1>
+        <p>
+          <span className={step.phoneText ? "desktop-only" : ""}>{step.text}</span>
+          {step.phoneText && <span className="mobile-only">{step.phoneText}</span>}
+        </p>
         <div className="tour-dots">
           {steps.map((s, i) => (
             <span key={s.app} data-active={i === index} />

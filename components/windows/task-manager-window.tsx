@@ -32,7 +32,7 @@ export function TaskManagerWindow() {
         >
           <ExternalLink size={17} />
         </button>
-        <h2>All Processes</h2>
+        <h2><span className="desktop-only">All Processes</span><span className="mobile-only">Open Apps</span></h2>
         <label className="mac-search">
           <Search size={14} />
           <input
@@ -47,7 +47,7 @@ export function TaskManagerWindow() {
         <table className="finder-list">
           <thead>
             <tr>
-              <th>Process Name</th>
+              <th><span className="desktop-only">Process Name</span><span className="mobile-only">App</span></th>
               <th>Status</th>
               <th className="optional-column">PID</th>
             </tr>
@@ -71,7 +71,10 @@ export function TaskManagerWindow() {
                     {w.title}
                   </span>
                 </td>
-                <td>{w.isMinimized ? "Minimized" : "Running"}</td>
+                <td>
+                  <span className="desktop-only">{w.isMinimized ? "Minimized" : "Running"}</span>
+                  <span className="mobile-only">{w.isMinimized ? "Background" : "Open"}</span>
+                </td>
                 <td className="optional-column">{w.processId}</td>
               </tr>
             ))}
@@ -92,12 +95,12 @@ export function TaskManagerWindow() {
         </div>
         <div>
           <strong>{windows.filter((w) => w.isMinimized).length}</strong>
-          <span>Minimized</span>
+          <span><span className="desktop-only">Minimized</span><span className="mobile-only">Background</span></span>
         </div>
       </div>
       <div className="mac-statusbar">
         <span>Portfolio applications</span>
-        <span>Activity Monitor</span>
+        <span><span className="desktop-only">Activity Monitor</span><span className="mobile-only">Activity</span></span>
       </div>
     </div>
   );

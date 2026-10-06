@@ -57,9 +57,10 @@ Control Center, and windows they can drag, zoom, and minimize.
 
 ### Responsive behavior
 
-The same macOS desktop runs at every size. Below 700px, windows fill the
-available workspace, the Dock offers core apps plus Spotlight, and desktop
-files open with a tap. Window sidebars and toolbars adapt to their container.
+Desktop and tablet use the macOS workspace. Below 700px, the portfolio switches
+to an iPhone-inspired home screen with app folders, Search, a four-app Dock,
+Control Center, and a swipeable lock screen. Apps open full screen with a Home
+control; Finder, Projects, and Settings use horizontal categories on phones.
 
 ### Keyboard shortcuts
 

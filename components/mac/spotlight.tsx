@@ -68,13 +68,13 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[10001]" onMouseDown={onClose}>
+        <div className="ios-search-backdrop fixed inset-0 z-[10001]" onMouseDown={onClose}>
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.1 } }}
             transition={{ duration: 0.15 }}
-            className="font-mac absolute inset-x-0 top-[22%] mx-auto w-[680px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[14px] border border-black/10 bg-[#ececec]/80 dark:border-white/10 dark:bg-[#2c2c2e]/85 shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl backdrop-saturate-150"
+            className="ios-search-panel font-mac absolute inset-x-0 top-[22%] mx-auto w-[680px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[14px] border border-black/10 bg-[#ececec]/80 dark:border-white/10 dark:bg-[#2c2c2e]/85 shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl backdrop-saturate-150"
             onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
             role="dialog"
             aria-label="Spotlight search"
@@ -86,7 +86,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Spotlight Search"
+                placeholder="Search apps"
                 className="min-w-0 flex-1 bg-transparent text-[22px] font-light text-[#1d1d1f] outline-none dark:text-white placeholder:text-[#8e8e93]"
                 aria-label="Search apps"
               />

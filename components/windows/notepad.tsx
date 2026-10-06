@@ -27,7 +27,7 @@ export function Notepad() {
   return (
     <div className="mac-split notes-app">
       <aside className="mac-sidebar">
-        <div className="sidebar-heading">On My Mac</div>
+        <div className="sidebar-heading"><span className="desktop-only">On My Mac</span><span className="mobile-only">On My iPhone</span></div>
         <div className="sidebar-item" data-selected="true">
           <FileText />
           <span>All Notes</span>
