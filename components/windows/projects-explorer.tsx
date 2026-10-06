@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   ChevronLeft,
   Search,
-  Folder,
   ExternalLink,
   LayoutGrid,
   List,
@@ -156,17 +155,19 @@ export function ProjectsExplorer() {
       </aside>
       <main className="finder-main">
         <div className="mac-toolbar">
-          <button
-            className="mac-icon-button"
-            aria-label="Back to projects"
-            disabled={!selectedProject}
-            onClick={() => setSelectedProject(null)}
-          >
-            <ChevronLeft size={18} />
-          </button>
+          <div className="toolbar-group">
+            <button
+              className="mac-icon-button"
+              aria-label="Back to projects"
+              disabled={!selectedProject}
+              onClick={() => setSelectedProject(null)}
+            >
+              <ChevronLeft size={18} />
+            </button>
+          </div>
           <h2>{selectedProject?.title ?? "Projects"}</h2>
           {!selectedProject && (
-            <>
+            <div className="toolbar-group">
               <button
                 className="mac-icon-button"
                 aria-label="Icon view"
@@ -183,7 +184,7 @@ export function ProjectsExplorer() {
               >
                 <List size={18} />
               </button>
-            </>
+            </div>
           )}
           <label className="mac-search">
             <Search size={14} />
@@ -272,25 +273,10 @@ export function ProjectsExplorer() {
             </div>
           )}
         </div>
-        <div className="finder-path">
-          <Folder size={12} />
-          <span>Portfolio</span>
-          <span>›</span>
-          <span>Projects</span>
-          {selectedProject && (
-            <>
-              <span>›</span>
-              <span>{selectedProject.title}</span>
-            </>
-          )}
-        </div>
-        <div className="mac-statusbar">
-          <span>
-            {selectedProject
-              ? "1 project selected"
-              : `${filtered.length} projects`}
-          </span>
-          <span>Portfolio</span>
+        <div className="mac-statusbar finder-status">
+          {selectedProject
+            ? "1 project selected"
+            : `${filtered.length} ${filtered.length === 1 ? "project" : "projects"}`}
         </div>
       </main>
     </div>

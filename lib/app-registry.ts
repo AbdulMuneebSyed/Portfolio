@@ -192,7 +192,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     component: "Calculator",
     category: "Utilities",
     description: "A classic calculator.",
-    defaultSize: { width: 320, height: 460 },
+    defaultSize: { width: 250, height: 410 },
     launchAliases: ["calc", "calculator"],
   },
 ];

@@ -175,7 +175,7 @@ export function TerminalWindow() {
     addLines([
       {
         kind: "error",
-        text: `'${name}' is not recognized as an internal or external command.`,
+        text: `zsh: command not found: ${name}`,
       },
     ]);
   };
@@ -214,10 +214,6 @@ export function TerminalWindow() {
 
   return (
     <div className="flex h-full flex-col bg-[#1e1e1e] font-mono text-[13px] text-[#e5e5e7]">
-      <div className="flex items-center justify-between border-b border-white/10 bg-[#1d1d1d] px-3 py-2 text-xs text-[#d6d6d6]">
-        <span>muneeb — zsh — 80×24</span>
-        <span className="text-[#8e8e93]">Shell</span>
-      </div>
       <div
         className="flex-1 overflow-auto px-3 py-3"
         onClick={() => {
@@ -257,10 +253,6 @@ export function TerminalWindow() {
           />
         </form>
         <div ref={endRef} />
-      </div>
-      <div className="border-t border-white/10 bg-[#151515] px-3 py-1 text-[11px] text-[#8d8d8d]">
-        Commands are local to this portfolio shell. Use Arrow Up and Arrow Down
-        for history.
       </div>
     </div>
   );

@@ -27,6 +27,26 @@ type TileZone = "left" | "right" | "fill";
 
 const FRAME_EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 
+// Since Big Sur, an app with a toolbar has no separate title bar: the toolbar
+// is the title bar and the traffic lights float over the sidebar ("unified").
+// Apps without a toolbar keep a plain title bar, or none at all.
+const TITLE_BARS: Partial<
+  Record<string, { style: "titled" | "transparent"; title?: string }>
+> = {
+  TerminalWindow: { style: "titled", title: "muneeb — -zsh — 80×24" },
+  Calculator: { style: "transparent" },
+};
+const INTERACTIVE =
+  "button, input, textarea, select, a, label, [role='button'], [contenteditable='true']";
+
+// Unified windows are dragged by the empty parts of the toolbar and of the
+// sidebar's top strip, like a real title bar.
+function isDragRegion(target: HTMLElement, frameTop: number, clientY: number) {
+  if (target.closest(INTERACTIVE)) return false;
+  if (target.closest(".mac-toolbar")) return true;
+  return !!target.closest(".mac-sidebar") && clientY - frameTop < 52;
+}
+
 export function Window({
   window: win,
   children,
@@ -275,6 +295,44 @@ export function Window({
     };
   }
 
+  const titleBar = TITLE_BARS[win.component];
+  const chrome = titleBar?.style ?? "unified";
+  const zoom = () =>
+    !compact && !win.disableMaximize && wm.maximizeWindow(win.id);
+  const trafficLights = (
+    <div
+      className="traffic-lights group z-20 flex items-center"
+      onPointerDown={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+    >
+      <button
+        className="traffic-light close"
+        aria-label="Close"
+        title="Close (⌘W)"
+        onClick={() => wm.closeWindow(win.id)}
+      >
+        <X />
+      </button>
+      <button
+        className="traffic-light minimize"
+        aria-label="Minimize"
+        title="Minimize (⌘M)"
+        onClick={() => wm.minimizeWindow(win.id)}
+      >
+        <Minus />
+      </button>
+      <button
+        className="traffic-light zoom"
+        aria-label="Zoom"
+        title="Zoom"
+        disabled={compact || win.disableMaximize}
+        onClick={() => wm.maximizeWindow(win.id)}
+      >
+        <Maximize2 />
+      </button>
+    </div>
+  );
+
   return (
     <>
       <AnimatePresence>
@@ -297,10 +355,11 @@ export function Window({
         aria-label={`${win.title} window`}
         data-app={win.appId ?? win.id}
         data-active={win.isActive}
+        data-chrome={chrome}
         initial={{ opacity: 0, scale: 0.97, y: 8 }}
         animate={target}
         exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
-        className={`mac-window absolute flex flex-col overflow-hidden ${expanded ? "rounded-none" : "rounded-xl"}`}
+        className={`mac-window absolute flex flex-col overflow-hidden ${expanded ? "rounded-none" : "rounded-[16px]"}`}
         style={{
           left: expanded ? 0 : left,
           top: expanded ? MENU_BAR_HEIGHT : top,
@@ -319,51 +378,25 @@ export function Window({
         }}
         onContextMenu={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        <div
-          className="mac-titlebar relative flex h-11 shrink-0 select-none items-center px-4"
-          onPointerDown={(e) => begin(e)}
-          onPointerMove={move}
-          onPointerUp={end}
-          onPointerCancel={end}
-          onDoubleClick={() =>
-            !compact && !win.disableMaximize && wm.maximizeWindow(win.id)
-          }
-        >
+        {chrome === "unified" ? (
+          trafficLights
+        ) : (
           <div
-            className="traffic-lights group z-10 flex items-center gap-2"
-            onPointerDown={(e) => e.stopPropagation()}
-            onDoubleClick={(e) => e.stopPropagation()}
+            className="mac-titlebar relative flex h-7 shrink-0 select-none items-center px-[9px]"
+            onPointerDown={(e) => begin(e)}
+            onPointerMove={move}
+            onPointerUp={end}
+            onPointerCancel={end}
+            onDoubleClick={zoom}
           >
-            <button
-              className="traffic-light close"
-              aria-label="Close"
-              title="Close (⌘W)"
-              onClick={() => wm.closeWindow(win.id)}
-            >
-              <X />
-            </button>
-            <button
-              className="traffic-light minimize"
-              aria-label="Minimize"
-              title="Minimize (⌘M)"
-              onClick={() => wm.minimizeWindow(win.id)}
-            >
-              <Minus />
-            </button>
-            <button
-              className="traffic-light zoom"
-              aria-label="Zoom"
-              title="Zoom"
-              disabled={compact || win.disableMaximize}
-              onClick={() => wm.maximizeWindow(win.id)}
-            >
-              <Maximize2 />
-            </button>
+            {trafficLights}
+            {chrome === "titled" && (
+              <span className="pointer-events-none absolute inset-x-20 truncate text-center text-[13px] font-semibold">
+                {titleBar?.title ?? win.title}
+              </span>
+            )}
           </div>
-          <span className="pointer-events-none absolute inset-x-24 truncate text-center text-[13px] font-semibold">
-            {win.title}
-          </span>
-        </div>
+        )}
         <div
           ref={content}
           tabIndex={-1}
@@ -372,6 +405,27 @@ export function Window({
             if (e.target !== e.currentTarget)
               lastFocused.current = e.target as HTMLElement;
           }}
+          {...(chrome === "unified" && {
+            onPointerDown: (e: PointerEvent) => {
+              const top = frame.current?.getBoundingClientRect().top ?? 0;
+              if (isDragRegion(e.target as HTMLElement, top, e.clientY))
+                begin(e);
+            },
+            onPointerMove: move,
+            onPointerUp: end,
+            onPointerCancel: end,
+            onDoubleClick: (e: React.MouseEvent) => {
+              // Pointer capture retargets the click to this element, so look
+              // up what is actually under the pointer.
+              const hit = document.elementFromPoint(e.clientX, e.clientY);
+              const top = frame.current?.getBoundingClientRect().top ?? 0;
+              if (
+                hit instanceof HTMLElement &&
+                isDragRegion(hit, top, e.clientY)
+              )
+                zoom();
+            },
+          })}
         >
           {children}
         </div>

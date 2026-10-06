@@ -16,7 +16,6 @@ import {
   Folder,
   HardDrive,
   Gamepad2,
-  ArrowUp,
 } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
 import { getLaunchableApps } from "@/lib/app-registry";
@@ -159,19 +158,17 @@ export function ComputerExplorer({
     else if (item.app)
       launchApp(item.app, item.song ? { fileName: item.song } : undefined);
     else if (item.image)
-      useWindowManager
-        .getState()
-        .openWindow({
-          id: `preview-${item.id}`,
-          title: item.name,
-          icon: item.image,
-          component: "PhotoPreview",
-          isMinimized: false,
-          isMaximized: false,
-          position: { x: 160, y: 70 },
-          size: { width: 640, height: 500 },
-          metadata: { fileName: item.name, filePath: item.image },
-        });
+      useWindowManager.getState().openWindow({
+        id: `preview-${item.id}`,
+        title: item.name,
+        icon: item.image,
+        component: "PhotoPreview",
+        isMinimized: false,
+        isMaximized: false,
+        position: { x: 160, y: 70 },
+        size: { width: 640, height: 500 },
+        metadata: { fileName: item.name, filePath: item.image },
+      });
   };
   const art = (item: Item, size: number) =>
     item.image ? (
@@ -246,7 +243,7 @@ export function ComputerExplorer({
             </button>
           ))}
         </nav>
-        <div className="sidebar-heading mt-5">Locations</div>
+        <div className="sidebar-heading">Locations</div>
         <button
           className="sidebar-item"
           data-selected={current === "Macintosh HD"}
@@ -258,39 +255,43 @@ export function ComputerExplorer({
       </aside>
       <main className="finder-main">
         <div className="mac-toolbar">
-          <button
-            className="mac-icon-button"
-            aria-label="Back"
-            disabled={cursor === 0}
-            onClick={() => step(-1)}
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            className="mac-icon-button"
-            aria-label="Forward"
-            disabled={cursor === history.length - 1}
-            onClick={() => step(1)}
-          >
-            <ChevronRight size={18} />
-          </button>
+          <div className="toolbar-group">
+            <button
+              className="mac-icon-button"
+              aria-label="Back"
+              disabled={cursor === 0}
+              onClick={() => step(-1)}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              className="mac-icon-button"
+              aria-label="Forward"
+              disabled={cursor === history.length - 1}
+              onClick={() => step(1)}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
           <h2>{current}</h2>
-          <button
-            className="mac-icon-button"
-            aria-label="Icon view"
-            aria-pressed={view === "icons"}
-            onClick={() => setView("icons")}
-          >
-            <LayoutGrid size={16} />
-          </button>
-          <button
-            className="mac-icon-button"
-            aria-label="List view"
-            aria-pressed={view === "list"}
-            onClick={() => setView("list")}
-          >
-            <List size={18} />
-          </button>
+          <div className="toolbar-group">
+            <button
+              className="mac-icon-button"
+              aria-label="Icon view"
+              aria-pressed={view === "icons"}
+              onClick={() => setView("icons")}
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              className="mac-icon-button"
+              aria-label="List view"
+              aria-pressed={view === "list"}
+              onClick={() => setView("list")}
+            >
+              <List size={18} />
+            </button>
+          </div>
           <label className="mac-search">
             <Search size={14} />
             <input
@@ -323,8 +324,8 @@ export function ComputerExplorer({
                     open(item);
                   }}
                 >
-                  {art(item, 64)}
-                  <span>{item.name}</span>
+                  <span className="finder-file-art">{art(item, 64)}</span>
+                  <span className="finder-file-name">{item.name}</span>
                 </button>
               ))}
             </div>
@@ -367,24 +368,9 @@ export function ComputerExplorer({
             </table>
           )}
         </div>
-        <div className="finder-path">
-          <button
-            onClick={() => navigate("Home")}
-            className="flex items-center gap-1"
-          >
-            <Home size={12} />
-            muneeb
-          </button>
-          <ChevronRight size={12} />
-          <span>{current}</span>
-        </div>
-        <div className="mac-statusbar">
-          <span>
-            {filtered.length} items{selected ? ", 1 selected" : ""}
-          </span>
-          <button onClick={() => navigate("Home")} aria-label="Go to Home">
-            <ArrowUp size={13} />
-          </button>
+        <div className="mac-statusbar finder-status">
+          {filtered.length} {filtered.length === 1 ? "item" : "items"}
+          {selected ? ", 1 selected" : ""}
         </div>
       </main>
     </div>

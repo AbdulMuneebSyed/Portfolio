@@ -132,6 +132,8 @@
   --mac-accent: #007aff;
   --mac-hover: #00000007;
   --mac-selected: #007aff18;
+  --mac-glass: #fff;
+  --mac-glass-shadow: 0 0 0 0.5px #0000001f, 0 1px 4px #00000014;
 }
 .dark {
   --mac-surface: #252527;
@@ -142,6 +144,8 @@
   --mac-border: #ffffff18;
   --mac-hover: #ffffff09;
   --mac-selected: #007aff40;
+  --mac-glass: #ffffff14;
+  --mac-glass-shadow: 0 0 0 0.5px #ffffff1f, 0 1px 4px #0000004d;
 }
 body {
   margin: 0;
@@ -256,13 +260,28 @@ input[type="range"] {
   background: var(--mac-surface);
   font-size: 13px;
 }
+/* Calculator-style windows: the title bar takes the app's own colour. */
+.mac-window[data-chrome="transparent"] .mac-titlebar {
+  background: #29292c;
+  border-bottom: 0;
+}
+/* Unified windows: no title bar row. The traffic lights float over the
+   window's top-left corner, centred in the 52px toolbar. */
+.mac-window[data-chrome="unified"] > .traffic-lights {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+.traffic-lights {
+  gap: 8px;
+}
 .traffic-light {
   display: grid;
   place-items: center;
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  border: 1px solid #0002;
+  border: 0.5px solid #0000001f;
 }
 .traffic-light.close {
   background: #ff5f57;
@@ -274,8 +293,8 @@ input[type="range"] {
   background: #28c840;
 }
 .traffic-light svg {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   opacity: 0;
   color: #0009;
   stroke-width: 3;
@@ -361,23 +380,30 @@ input[type="range"] {
   width: 180px;
   flex-shrink: 0;
   overflow: auto;
-  padding: 14px 10px;
+  padding: 10px;
   background: var(--mac-sidebar);
   border-right: 1px solid var(--mac-border);
 }
+/* The window's sidebar runs to the top edge, under the traffic lights. */
+.mac-window[data-chrome="unified"] .mac-content > .mac-split > .mac-sidebar {
+  padding-top: 52px;
+}
 .sidebar-heading {
-  padding: 12px 10px 5px;
+  padding: 14px 8px 4px;
   color: var(--mac-secondary);
   font-size: 11px;
   font-weight: 600;
 }
+.sidebar-heading:first-child {
+  padding-top: 4px;
+}
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   width: 100%;
-  padding: 6px 9px;
-  margin: 2px 0;
+  min-height: 28px;
+  padding: 4px 8px;
   border-radius: 6px;
   text-align: left;
   font-size: 13px;
@@ -385,8 +411,8 @@ input[type="range"] {
 }
 .sidebar-item > svg {
   color: var(--mac-accent);
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 .sidebar-item:hover {
@@ -419,19 +445,29 @@ input[type="range"] {
 .mac-muted {
   color: var(--mac-secondary);
 }
+/* macOS toolbar: one 52px row that doubles as the title bar, on the same
+   background as the content, with no divider. */
 .mac-toolbar {
-  min-height: 48px;
+  min-height: 52px;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  background: var(--mac-chrome);
-  border-bottom: 1px solid var(--mac-border);
+  padding: 10px 12px;
+  background: transparent;
   flex-shrink: 0;
+  user-select: none;
+}
+/* With no sidebar under them, the traffic lights sit in the toolbar. */
+.mac-window[data-chrome="unified"]
+  .mac-content
+  > :first-child
+  > .mac-toolbar:first-child {
+  padding-left: 88px;
 }
 .mac-toolbar h2 {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  margin-left: 4px;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -452,6 +488,48 @@ input[type="range"] {
 .mac-icon-button[aria-pressed="true"] {
   background: var(--mac-hover);
   color: var(--mac-text);
+}
+/* Toolbar controls sit in capsules; related ones share a capsule. */
+.mac-toolbar > .mac-icon-button,
+.toolbar-group {
+  height: 32px;
+  border-radius: 999px;
+  background: var(--mac-glass);
+  box-shadow: var(--mac-glass-shadow);
+  color: var(--mac-text);
+}
+.mac-toolbar > .mac-icon-button {
+  width: 32px;
+}
+.toolbar-group {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 3px;
+}
+.toolbar-group .mac-icon-button {
+  width: 30px;
+  height: 26px;
+  border-radius: 999px;
+  color: var(--mac-text);
+}
+.mac-toolbar > .mac-icon-button:hover {
+  background: var(--mac-glass);
+  filter: brightness(0.96);
+}
+.mac-toolbar > .mac-icon-button:disabled,
+.toolbar-group .mac-icon-button:disabled {
+  opacity: 0.3;
+}
+.mac-toolbar .mac-button {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--mac-glass-shadow);
+}
+.mac-toolbar .mac-button:not(.primary) {
+  background: var(--mac-glass);
 }
 .mac-search {
   display: flex;
@@ -477,7 +555,16 @@ input[type="range"] {
   border-color: #007aff80;
 }
 .mac-toolbar .mac-search {
-  width: 155px;
+  width: 160px;
+  height: 32px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mac-glass);
+  box-shadow: var(--mac-glass-shadow);
+}
+.mac-toolbar .mac-search input {
+  font-size: 13px;
 }
 .mac-button {
   display: inline-flex;
@@ -552,17 +639,15 @@ input[type="range"] {
 .settings-sidebar nav {
   margin-top: 12px;
 }
+.settings-app .finder-main {
+  background: var(--mac-chrome);
+}
 .settings-main {
   flex: 1;
   min-width: 0;
-  padding: 24px 26px;
+  min-height: 0;
+  padding: 6px 24px 24px;
   overflow-y: auto;
-  background: var(--mac-chrome);
-}
-.settings-main h1 {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 24px;
 }
 .settings-main h2 {
   font-size: 13px;
@@ -796,20 +881,43 @@ kbd {
   border-radius: 6px;
   text-align: center;
 }
-.finder-file:hover {
-  background: var(--mac-hover);
-}
-.finder-file[data-selected="true"] {
-  background: var(--mac-selected);
-}
 .finder-file > span:last-child {
   font-size: 12px;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
+/* Finder selection: a grey box around the icon and a blue capsule around
+   the name, not a tinted tile. */
+.finder-file-art {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border-radius: 6px;
+}
+.finder-file-name {
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.35;
+}
+.finder-file[data-selected="true"] .finder-file-art {
+  background: #0000001a;
+}
+.dark .finder-file[data-selected="true"] .finder-file-art {
+  background: #ffffff1f;
+}
+.finder-file[data-selected="true"] .finder-file-name {
+  background: var(--mac-accent);
+  color: white;
+}
+.mac-statusbar.finder-status {
+  justify-content: center;
+  min-height: 24px;
+  padding: 3px 14px;
+}
 .finder-list {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 12px;
 }
 .finder-list th {
@@ -833,22 +941,17 @@ kbd {
   background: var(--mac-accent);
   color: white;
 }
+.finder-list tbody td:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.finder-list tbody td:last-child {
+  border-radius: 0 6px 6px 0;
+}
+.finder-list td {
+  height: 28px;
+}
 .finder-list tbody tr {
   cursor: default;
-}
-.finder-path {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  overflow: auto;
-  padding: 6px 12px;
-  font-size: 11px;
-  border-top: 1px solid var(--mac-border);
-  color: var(--mac-secondary);
-  flex-shrink: 0;
-}
-.finder-path button {
-  white-space: nowrap;
 }
 .empty-state {
   display: flex;
@@ -912,7 +1015,7 @@ kbd {
     align-items: flex-start;
   }
   .settings-main {
-    padding: 20px 16px;
+    padding: 6px 16px 20px;
   }
   .mac-toolbar {
     padding: 8px;
@@ -999,7 +1102,20 @@ kbd {
     margin-top: 0;
   }
   .settings-main {
-    padding: 20px 16px;
+    padding: 6px 16px 20px;
+  }
+  /* The sidebar is too narrow for the traffic lights; the toolbar clears them. */
+  .mac-window[data-chrome="unified"] .settings-app .finder-main > .mac-toolbar {
+    padding-left: 44px;
+  }
+  .mac-window[data-chrome="unified"]
+    .mac-content
+    > :first-child
+    > .mac-toolbar:first-child {
+    padding-left: 100px;
+  }
+  .mac-window[data-chrome="unified"] > .traffic-lights {
+    top: 18px;
   }
   .mac-button {
     min-height: 32px;
@@ -1053,17 +1169,19 @@ kbd {
 .project-list-row > span:last-child {
   font-size: 11px;
 }
+/* Calculator (Sequoia and later): one dark surface, round keys with gaps. */
 .calculator-app {
   display: flex;
   flex-direction: column;
   height: 100%;
   background: #29292c;
   color: white;
+  padding: 0 12px 12px;
 }
 .calculator-display {
-  padding: 18px 20px 14px;
+  padding: 4px 8px 10px;
   text-align: right;
-  min-height: 112px;
+  margin-top: auto;
 }
 .calculator-display small {
   display: block;
@@ -1073,42 +1191,48 @@ kbd {
 }
 .calculator-display output {
   display: block;
-  font-size: clamp(28px, 12cqw, 52px);
+  font-size: clamp(28px, 16cqw, 56px);
   font-weight: 300;
+  line-height: 1.1;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .calculator-keys {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, minmax(38px, 1fr));
-  gap: 1px;
-  flex: 1;
-  min-height: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  flex-shrink: 0;
 }
 .calculator-keys button {
-  background: #5b5b5e;
-  font-size: 24px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: #4e4e52;
+  font-size: 22px;
   font-weight: 400;
 }
 .calculator-keys button:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.15);
 }
 .calculator-keys button:active {
-  filter: brightness(1.4);
+  filter: brightness(1.35);
 }
 .calculator-keys .operator {
   background: #ff9f0a;
+  font-size: 26px;
 }
 .calculator-keys .operator[aria-pressed="true"] {
-  box-shadow: inset 0 0 0 2px #fff9;
+  background: #fff;
+  color: #ff9f0a;
 }
 .calculator-keys .utility {
-  background: #424245;
-  font-size: 20px;
+  background: #6f6f74;
+  font-size: 19px;
 }
 .calculator-keys .zero {
   grid-column: span 2;
+  aspect-ratio: auto;
+  text-align: left;
+  padding-left: 22px;
 }
 .notes-editor {
   flex: 1;
@@ -1319,13 +1443,13 @@ kbd {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 6px 10px;
-  background: var(--mac-surface);
-  border: 1px solid var(--mac-border);
-  border-radius: 7px;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--mac-glass);
+  border-radius: 999px;
   color: var(--mac-secondary);
   margin: 0 auto;
-  box-shadow: 0 1px 2px #0001;
+  box-shadow: var(--mac-glass-shadow);
 }
 .safari-address input {
   flex: 1;
@@ -1334,7 +1458,10 @@ kbd {
   outline: none;
   color: var(--mac-text);
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
+}
+.safari-tabs[hidden] {
+  display: none;
 }
 .safari-tabs {
   display: flex;

@@ -125,22 +125,24 @@ export function InternetExplorer() {
   return (
     <div className="safari-app">
       <div className="mac-toolbar">
-        <button
-          className="mac-icon-button"
-          aria-label="Back"
-          disabled={tab.cursor === 0}
-          onClick={() => step(-1)}
-        >
-          <ChevronLeft size={19} />
-        </button>
-        <button
-          className="mac-icon-button"
-          aria-label="Forward"
-          disabled={tab.cursor === tab.history.length - 1}
-          onClick={() => step(1)}
-        >
-          <ChevronRight size={19} />
-        </button>
+        <div className="toolbar-group">
+          <button
+            className="mac-icon-button"
+            aria-label="Back"
+            disabled={tab.cursor === 0}
+            onClick={() => step(-1)}
+          >
+            <ChevronLeft size={19} />
+          </button>
+          <button
+            className="mac-icon-button"
+            aria-label="Forward"
+            disabled={tab.cursor === tab.history.length - 1}
+            onClick={() => step(1)}
+          >
+            <ChevronRight size={19} />
+          </button>
+        </div>
         <button
           className="mac-icon-button"
           aria-label="Start page"
@@ -183,7 +185,8 @@ export function InternetExplorer() {
           <Plus size={18} />
         </button>
       </div>
-      <div className="safari-tabs" role="tablist">
+      {/* Like Safari, the tab bar appears once a second tab is open. */}
+      <div className="safari-tabs" role="tablist" hidden={tabs.length < 2}>
         {tabs.map((t) => (
           <div key={t.id} data-active={t.id === activeId}>
             <button
