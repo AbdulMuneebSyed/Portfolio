@@ -168,6 +168,8 @@ builds with `npm run build` and needs no environment variables.
 
 - Big Sur-style app icons (Finder, Safari, Terminal, Mail, System Settings,
   Calculator, Notes) from [PuruVJ/macos-web](https://github.com/PuruVJ/macos-web).
+- System Settings sidebar icons from the
+  [Alfred System Settings workflow](https://github.com/alfredapp/system-settings-workflow).
 - The default wallpaper is Apple's macOS Big Sur wallpaper.
 - Apple, macOS, Finder, Safari, and the Apple logo are trademarks of
   Apple Inc. This is a personal portfolio project and is not affiliated with

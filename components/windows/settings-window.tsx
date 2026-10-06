@@ -1,35 +1,33 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import {
-  Palette,
-  Image as ImageIcon,
-  Monitor,
-  Volume2,
-  Keyboard,
-  Info,
-  Search,
-  Check,
-  Accessibility,
-} from "lucide-react";
+import { Search, Check } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
 import { useSystemControls } from "@/lib/system-controls";
+import { useBatteryStatus } from "@/lib/use-battery";
 import { MAC_WALLPAPERS } from "@/lib/wallpapers";
+import { launchApp } from "@/lib/launch-app";
 
-const sections = [
-  { id: "appearance", name: "Appearance", icon: Palette, color: "#5856d6" },
-  { id: "wallpaper", name: "Wallpaper", icon: ImageIcon, color: "#30b0c7" },
-  { id: "display", name: "Displays", icon: Monitor, color: "#007aff" },
-  { id: "sound", name: "Sound", icon: Volume2, color: "#ff3b30" },
-  {
-    id: "accessibility",
-    name: "Accessibility",
-    icon: Accessibility,
-    color: "#007aff",
-  },
-  { id: "keyboard", name: "Keyboard", icon: Keyboard, color: "#8e8e93" },
-  { id: "about", name: "About", icon: Info, color: "#8e8e93" },
+// Same order, grouping, and icons as macOS System Settings. Icons are
+// from the Alfred System Settings workflow (public/icons/settings).
+const sectionGroups = [
+  [
+    { id: "wifi", name: "Wi-Fi", icon: "wifi" },
+    { id: "bluetooth", name: "Bluetooth", icon: "bluetooth" },
+    { id: "battery", name: "Battery", icon: "battery" },
+  ],
+  [
+    { id: "about", name: "General", icon: "general" },
+    { id: "accessibility", name: "Accessibility", icon: "accessibility" },
+    { id: "appearance", name: "Appearance", icon: "appearance" },
+    { id: "dock", name: "Desktop & Dock", icon: "dock" },
+    { id: "display", name: "Displays", icon: "displays" },
+    { id: "wallpaper", name: "Wallpaper", icon: "wallpaper" },
+  ],
+  [{ id: "sound", name: "Sound", icon: "sound" }],
+  [{ id: "keyboard", name: "Keyboard", icon: "keyboard" }],
 ];
+const sections = sectionGroups.flat();
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -71,6 +69,7 @@ export function SettingsWindow({ section }: { section?: string }) {
     timezone: "",
   });
   const controls = useSystemControls();
+  const battery = useBatteryStatus();
   const {
     wallpaper,
     setWallpaper,
@@ -89,16 +88,10 @@ export function SettingsWindow({ section }: { section?: string }) {
     });
   }, []);
   const title = sections.find((s) => s.id === active)?.name ?? "Appearance";
+  const query = search.toLowerCase();
   return (
     <div className="mac-split settings-app">
       <aside className="mac-sidebar settings-sidebar">
-        <div className="settings-profile">
-          <img src="/avatar-256.jpg" alt="" />
-          <div>
-            <strong>Syed Abdul Muneeb</strong>
-            <span>Personal portfolio</span>
-          </div>
-        </div>
         <label className="mac-search">
           <Search size={14} />
           <input
@@ -108,35 +101,138 @@ export function SettingsWindow({ section }: { section?: string }) {
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
+        <button className="settings-profile" onClick={() => launchApp("about")}>
+          <img src="/avatar-256.jpg" alt="" />
+          <span>
+            <strong>Syed Abdul Muneeb</strong>
+            <span>Personal portfolio</span>
+          </span>
+        </button>
         <nav aria-label="Settings categories">
-          {sections
-            .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
-            .map((s) => (
-              <button
-                key={s.id}
-                aria-label={s.name}
-                title={s.name}
-                className="sidebar-item"
-                data-selected={active === s.id}
-                onClick={() => setActive(s.id)}
-              >
-                <span
-                  className="settings-glyph"
-                  style={{ background: s.color }}
-                >
-                  <s.icon size={15} />
-                </span>
-                <span>{s.name}</span>
-              </button>
-            ))}
+          {sectionGroups.map((group, index) => {
+            const matches = group.filter((s) =>
+              s.name.toLowerCase().includes(query),
+            );
+            if (matches.length === 0) return null;
+            return (
+              <div key={index} className="settings-nav-group">
+                {matches.map((s) => (
+                  <button
+                    key={s.id}
+                    aria-label={s.name}
+                    title={s.name}
+                    className="sidebar-item"
+                    data-selected={active === s.id}
+                    onClick={() => setActive(s.id)}
+                  >
+                    <img
+                      src={`/icons/settings/${s.icon}.png`}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="-mx-0.5 shrink-0"
+                    />
+                    <span>{s.name}</span>
+                  </button>
+                ))}
+              </div>
+            );
+          })}
           {search &&
-            !sections.some((s) =>
-              s.name.toLowerCase().includes(search.toLowerCase()),
-            ) && <p className="mac-muted p-3 text-xs">No settings found.</p>}
+            !sections.some((s) => s.name.toLowerCase().includes(query)) && (
+              <p className="mac-muted p-3 text-xs">No settings found.</p>
+            )}
         </nav>
       </aside>
       <main className="settings-main">
         <h1>{title}</h1>
+        {active === "wifi" && (
+          <>
+            <div className="settings-group">
+              <Row label="Wi-Fi">
+                <Toggle
+                  label="Wi-Fi"
+                  checked={controls.wifiOn}
+                  onChange={controls.setWifiOn}
+                />
+              </Row>
+              {controls.wifiOn && (
+                <Row label="MuneebOS">
+                  <span className="mac-muted">Connected</span>
+                </Row>
+              )}
+            </div>
+            <p className="settings-caption">
+              Turning Wi-Fi off takes Safari offline in this portfolio. Your
+              real connection is not affected.
+            </p>
+          </>
+        )}
+        {active === "bluetooth" && (
+          <>
+            <div className="settings-group">
+              <Row label="Bluetooth">
+                <Toggle
+                  label="Bluetooth"
+                  checked={controls.bluetoothOn}
+                  onChange={controls.setBluetoothOn}
+                />
+              </Row>
+            </div>
+            <p className="settings-caption">
+              {controls.bluetoothOn
+                ? "Discoverable as “Muneeb’s Mac”."
+                : "Bluetooth is off."}
+            </p>
+          </>
+        )}
+        {active === "battery" && (
+          <>
+            <div className="settings-group">
+              <Row label="Battery level">
+                <span className="mac-muted">
+                  {battery ? `${battery.level}%` : "Not available"}
+                </span>
+              </Row>
+              <Row label="Power source">
+                <span className="mac-muted">
+                  {battery
+                    ? battery.charging
+                      ? "Power Adapter"
+                      : "Battery"
+                    : "Unknown"}
+                </span>
+              </Row>
+            </div>
+            <p className="settings-caption">
+              Read from your device where the browser allows it.
+            </p>
+          </>
+        )}
+        {active === "dock" && (
+          <>
+            <h2>Desktop</h2>
+            <div className="settings-group">
+              <Row label="Desktop files">
+                <button className="mac-button" onClick={resetIconPositions}>
+                  Clean Up
+                </button>
+              </Row>
+            </div>
+            <h2 className="mt-6">Windows</h2>
+            <div className="settings-group">
+              <Row label="Minimize windows using">
+                <span className="mac-muted">Scale effect</span>
+              </Row>
+              <Row label="Drag windows to screen edges to tile">
+                <span className="mac-muted">On</span>
+              </Row>
+              <Row label="Mission Control">
+                <kbd>⌃↑ / F3</kbd>
+              </Row>
+            </div>
+          </>
+        )}
         {active === "appearance" && (
           <>
             <div className="settings-group">
@@ -208,13 +304,6 @@ export function SettingsWindow({ section }: { section?: string }) {
                   <span>{wp.name}</span>
                 </button>
               ))}
-            </div>
-            <div className="settings-group mt-6">
-              <Row label="Desktop icons">
-                <button className="mac-button" onClick={resetIconPositions}>
-                  Clean Up
-                </button>
-              </Row>
             </div>
           </>
         )}
@@ -305,6 +394,7 @@ export function SettingsWindow({ section }: { section?: string }) {
                 ["Minimize window", "⌘M"],
                 ["Close window", "⌘W"],
                 ["Cycle windows", "⌘`"],
+                ["Mission Control", "⌃↑ / F3"],
                 ["Open selected file", "⌘O / Return"],
                 ["Finder: enclosing folder", "⌘↑"],
                 ["Finder: icon / list view", "⌘1 / ⌘2"],

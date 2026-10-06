@@ -114,7 +114,7 @@ export function BatteryMenu({
       <Separator />
       <MenuRow
         onClick={() => {
-          launchApp("settings");
+          launchApp("settings", { section: "battery" });
           onClose();
         }}
       >
@@ -189,7 +189,7 @@ export function WifiMenu({ onClose }: { onClose: () => void }) {
       <Separator />
       <MenuRow
         onClick={() => {
-          launchApp("settings");
+          launchApp("settings", { section: "wifi" });
           onClose();
         }}
       >
