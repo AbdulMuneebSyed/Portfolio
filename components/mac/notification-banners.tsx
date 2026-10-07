@@ -10,7 +10,8 @@ import { usePhone } from "@/lib/phone";
 import { useSwipeDismiss } from "@/lib/use-swipe-dismiss";
 
 // Banners slide in from the right edge below the menu bar, like macOS. On a
-// phone they drop down under the Dynamic Island and are swiped up to dismiss.
+// phone they drop down under the Dynamic Island; swipe one up to dismiss it
+// or pull it down to open it.
 export function NotificationBanners() {
   const banners = useNotifications((state) => state.banners);
   const phone = usePhone();
@@ -41,8 +42,13 @@ const Banner = forwardRef<HTMLDivElement, { banner: Notice; phone: boolean }>(fu
 ) {
   const dismiss = useNotifications((state) => state.dismiss);
   const remove = useNotifications((state) => state.remove);
-  // Swiped up, it moves to Notification Center, as on iOS.
-  const swipe = useSwipeDismiss("y", () => dismiss(banner.id));
+  const open = () => {
+    remove(banner.id);
+    launchApp(banner.appId);
+  };
+  // As on iOS: swiped up, it moves to Notification Center; pulled down, it
+  // stretches and opens.
+  const swipe = useSwipeDismiss("y", () => dismiss(banner.id), { onPull: open });
   const hidden = phone ? { y: -120, opacity: 0 } : { x: 380, opacity: 0 };
 
   return (
@@ -59,9 +65,7 @@ const Banner = forwardRef<HTMLDivElement, { banner: Notice; phone: boolean }>(fu
         <button
           className="flex w-full items-start gap-2.5 rounded-[18px] max-[699px]:items-center max-[699px]:rounded-[24px] max-[699px]:px-3.5 max-[699px]:py-3 bg-white/75 px-3 py-2.5 text-left text-[#1d1d1f] shadow-[0_0_0_0.5px_rgba(0,0,0,0.1),0_8px_28px_rgba(0,0,0,0.18)] backdrop-blur-3xl hover:bg-white/85 dark:bg-[#2c2c2e]/75 dark:text-white dark:hover:bg-[#3a3a3c]/80"
           onClick={() => {
-            if (swipe.wasSwiped()) return;
-            remove(banner.id);
-            launchApp(banner.appId);
+            if (!swipe.wasSwiped()) open();
           }}
         >
           {phone ? (
