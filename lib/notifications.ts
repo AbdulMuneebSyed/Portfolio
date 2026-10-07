@@ -3,8 +3,8 @@ import { useSystemControls } from "./system-controls";
 
 // Notifications, macOS/iOS style. Each one shows briefly as a banner and
 // stays in Notification Center and on the lock screen until it's opened or
-// cleared — including on the next visit. Focus mode skips the banner but
-// still delivers it, as iOS does.
+// cleared — including on the next visit. Focus mode skips the banner (and
+// its sound) but still delivers it, as iOS does.
 export interface Notice {
   id: string;
   appId: string;
@@ -32,6 +32,23 @@ interface NotificationState {
   loadNotifications: () => void;
 }
 
+// The chime when a banner drops in, at the Control Center Sound volume.
+// Browsers only allow it after the visitor has interacted with the page;
+// unlocking counts, so it's quietly skipped only before that.
+let chime: HTMLAudioElement | null = null;
+function playChime() {
+  const volume = useSystemControls.getState().volume;
+  if (volume <= 0 || typeof Audio === "undefined") return;
+  try {
+    chime ??= new Audio("/sounds/notification.m4a");
+    chime.volume = volume;
+    chime.currentTime = 0;
+    void chime.play().catch(() => {});
+  } catch {
+    /* audio unavailable */
+  }
+}
+
 const save = (notices: Notice[]) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notices));
@@ -51,6 +68,7 @@ export const useNotifications = create<NotificationState>((set, get) => ({
     save(notices);
     if (useSystemControls.getState().focusOn) return;
     set((state) => ({ banners: [full, ...state.banners].slice(0, MAX_BANNERS) }));
+    playChime();
     setTimeout(() => get().dismiss(full.id), BANNER_DURATION_MS);
   },
   dismiss: (id) =>
