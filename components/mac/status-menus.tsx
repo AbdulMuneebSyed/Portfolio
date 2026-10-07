@@ -342,7 +342,7 @@ function GlassSlider({
             value={value}
             onChange={(e) => onChange(Number(e.target.value))}
             aria-label={label}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            className="absolute inset-0 h-full w-full max-w-none cursor-pointer opacity-0"
           />
         </div>
         <EndIcon className="size-[19px] shrink-0" strokeWidth={2} />
