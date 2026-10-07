@@ -16,6 +16,8 @@ import { launchApp } from "@/lib/launch-app";
 import { useSystemControls } from "@/lib/system-controls";
 import { Search } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
+import { useInstalledApps } from "@/lib/app-store/installed";
+import { MUNEEBOS_VERSION } from "@/lib/app-store/version";
 
 // Icon canvas sizes; Big Sur artwork fills ~80% of the canvas.
 const BASE_SIZE = 56;
@@ -93,6 +95,13 @@ function DockItem({ appId, mouseX, isRunning }: DockItemProps) {
     s.windows.find((w) => (w.appId ?? w.id) === appId),
   );
   const app = getApp(appId) ?? runningWindow;
+  // The App Store shows a badge until the MuneebOS update is installed.
+  const loadInstalled = useInstalledApps((s) => s.load);
+  useEffect(loadInstalled, [loadInstalled]);
+  const badge = useInstalledApps(
+    (s) =>
+      appId === "app-store" && s.loaded && s.updatedTo !== MUNEEBOS_VERSION,
+  );
 
   const distance = useTransform(mouseX, (x) => {
     const rect = ref.current?.getBoundingClientRect();
@@ -165,6 +174,14 @@ function DockItem({ appId, mouseX, isRunning }: DockItemProps) {
       >
         <AppIcon appId={appId} size={renderSize} />
       </motion.span>
+      {badge && (
+        <span
+          className="absolute right-0 top-0 flex size-[18px] items-center justify-center rounded-full bg-[#ff3b30] text-[11px] font-bold text-white shadow"
+          aria-label="1 update available"
+        >
+          1
+        </span>
+      )}
       {isRunning && (
         <span className="absolute -bottom-[3px] size-[4px] rounded-full bg-black/75" />
       )}

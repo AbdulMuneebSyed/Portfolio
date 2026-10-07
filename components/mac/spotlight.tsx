@@ -4,7 +4,12 @@ import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search } from "lucide-react";
-import { searchApps, getApp } from "@/lib/app-registry";
+import {
+  APP_REGISTRY,
+  getApp,
+  isAppInstalled,
+  searchApps,
+} from "@/lib/app-registry";
 import { AppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
@@ -23,6 +28,21 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
   const results = useMemo(
     () => [
       ...searchApps(query),
+      // Apps not installed yet open on their App Store page.
+      ...(query.trim()
+        ? APP_REGISTRY.filter(
+            (app) =>
+              app.installable &&
+              !isAppInstalled(app.id) &&
+              [app.title, ...(app.launchAliases ?? [])].some((name) =>
+                name.toLowerCase().includes(query.trim().toLowerCase()),
+              ),
+          ).map((app) => ({
+            id: app.id,
+            title: app.title,
+            description: "Get in the App Store",
+          }))
+        : []),
       ...windows
         .filter(
           (w) =>

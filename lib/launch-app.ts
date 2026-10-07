@@ -1,7 +1,7 @@
-import { getApp } from "./app-registry";
+import { getApp, isAppInstalled } from "./app-registry";
 import { useWindowManager } from "./window-manager";
 
-export const MENU_BAR_HEIGHT = 30;
+export const MENU_BAR_HEIGHT = 24;
 export const DOCK_RESERVED_HEIGHT = 88;
 const CASCADE_STEP = 26;
 
@@ -10,6 +10,12 @@ const CASCADE_STEP = 26;
 export function launchApp(appId: string, metadata?: Record<string, unknown>) {
   const app = getApp(appId);
   if (!app) return;
+
+  // An app the visitor hasn't installed opens on its App Store page.
+  if (!isAppInstalled(appId)) {
+    openInAppStore(appId);
+    return;
+  }
 
   if (app.externalUrl) {
     window.open(app.externalUrl, "_blank", "noopener,noreferrer");
@@ -36,5 +42,14 @@ export function launchApp(appId: string, metadata?: Record<string, unknown>) {
     },
     size: { width, height },
     metadata: metadata ?? app.metadata,
+  });
+}
+
+// Opens the App Store on a product page, or on a tab when `itemId` is
+// omitted. `at` makes a repeat request for the same page still navigate.
+export function openInAppStore(itemId?: string, tab?: string) {
+  launchApp("app-store", {
+    route: itemId ? { kind: "product", id: itemId } : { kind: "tab", id: tab ?? "discover" },
+    at: Date.now(),
   });
 }

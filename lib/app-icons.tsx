@@ -1,14 +1,30 @@
 import type React from "react";
-import { useId } from "react";
 import Image from "next/image";
 import {
-  Activity,
   Gamepad2,
   AppWindow,
   Github,
   Linkedin,
-  Music,
-  Trash2,
+  Grid2x2,
+  Hash,
+  Brain,
+  BrickWall,
+  SpellCheck,
+  Disc3,
+  Keyboard,
+  Timer,
+  Brush,
+  Piano,
+  Palette,
+  Braces,
+  Sparkles,
+  Rocket,
+  Building2,
+  Monitor,
+  Activity,
+  GraduationCap,
+  Headset,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,7 +33,7 @@ import {
 // - "png": a ready-made Big Sur icon (already includes the margin)
 // - "photo": a photo placed on the squircle
 // - "glyph": a gradient squircle with a symbol
-// - "folder" / "document": drawn Finder-style file icons
+// - "document": a drawn file icon with a type label, like Finder generates
 type IconSpec =
   | { kind: "png"; src: string }
   | { kind: "photo"; src: string }
@@ -28,8 +44,9 @@ type IconSpec =
       to: string;
       color?: string;
     }
-  | { kind: "folder" }
-  | { kind: "document"; label: string; color: string };
+  | { kind: "document"; label: string; color: string }
+  | { kind: "logo"; src: string; background: string }
+  | { kind: "app-store" };
 
 const ICONS: Record<string, IconSpec> = {
   notes: { kind: "png", src: "/icons/mac/notes.png" },
@@ -41,7 +58,7 @@ const ICONS: Record<string, IconSpec> = {
     to: "#5154ae",
   },
   about: { kind: "photo", src: "/avatar-256.jpg" },
-  projects: { kind: "folder" },
+  projects: { kind: "png", src: "/icons/mac/folder.png" },
   resume: { kind: "document", label: "PDF", color: "#e5352b" },
   contact: { kind: "png", src: "/icons/mac/mail.png" },
   "github-activity": {
@@ -57,21 +74,39 @@ const ICONS: Record<string, IconSpec> = {
   settings: { kind: "png", src: "/icons/mac/system-settings.png" },
   feedback: { kind: "png", src: "/icons/mac/notes.png" },
   calculator: { kind: "png", src: "/icons/mac/calculator.png" },
-  music: { kind: "glyph", glyph: Music, from: "#ff6b81", to: "#f2263f" },
-  recycle: {
+  music: { kind: "png", src: "/icons/mac/music.png" },
+  recycle: { kind: "png", src: "/icons/mac/trash.png" },
+  "task-manager": { kind: "png", src: "/icons/mac/activity-monitor.png" },
+  "app-store": { kind: "app-store" },
+  // App Store: mini-apps
+  "game-2048": { kind: "glyph", glyph: Grid2x2, from: "#f7d154", to: "#e0a813" },
+  "tic-tac-toe": { kind: "glyph", glyph: Hash, from: "#ff6482", to: "#d7194a" },
+  memory: { kind: "glyph", glyph: Brain, from: "#d68cff", to: "#9a3fd8" },
+  breakout: { kind: "glyph", glyph: BrickWall, from: "#ffb340", to: "#f2640c" },
+  "word-guess": { kind: "glyph", glyph: SpellCheck, from: "#6fae69", to: "#3c6f37" },
+  simon: { kind: "glyph", glyph: Disc3, from: "#4be07c", to: "#14984a" },
+  "typing-test": { kind: "glyph", glyph: Keyboard, from: "#7fdcff", to: "#1b8fd6" },
+  pomodoro: { kind: "glyph", glyph: Timer, from: "#ff6b61", to: "#d42a1f" },
+  sketch: { kind: "glyph", glyph: Brush, from: "#ff5f86", to: "#c9124a" },
+  piano: { kind: "glyph", glyph: Piano, from: "#48484a", to: "#111113" },
+  "color-lab": {
     kind: "glyph",
-    glyph: Trash2,
-    from: "#fbfbfd",
-    to: "#d4d4da",
-    color: "#6b6b73",
+    glyph: Palette,
+    from: "#ffd60a",
+    to: "#ff375f",
   },
-  "task-manager": {
-    kind: "glyph",
-    glyph: Activity,
-    from: "#2b2b2e",
-    to: "#0e0e10",
-    color: "#5ce06a",
-  },
+  "json-formatter": { kind: "glyph", glyph: Braces, from: "#8583ff", to: "#4643c9" },
+  // App Store: projects and experience
+  airesumate: { kind: "glyph", glyph: Sparkles, from: "#9d84ff", to: "#5a33e6" },
+  getmarks: { kind: "photo", src: "/app-store/icons/getmarks.png" },
+  launchpad: { kind: "glyph", glyph: Rocket, from: "#ff9a5c", to: "#e84a12" },
+  capco: { kind: "glyph", glyph: Headset, from: "#3ccfcf", to: "#0d8585" },
+  ecell: { kind: "logo", src: "/app-store/icons/ecell.png", background: "#ffffff" },
+  muneebos: { kind: "glyph", glyph: Monitor, from: "#5ac8fa", to: "#0a5fd8" },
+  "exp-pulsegen": { kind: "glyph", glyph: Activity, from: "#8a88ff", to: "#3d3ab8" },
+  "exp-mathongo": { kind: "glyph", glyph: GraduationCap, from: "#5aa8ff", to: "#1662c9" },
+  "exp-capco-cs": { kind: "glyph", glyph: Building2, from: "#3ccfcf", to: "#0d8585" },
+  "exp-ecell-mjcet": { kind: "glyph", glyph: Users, from: "#ff6b8b", to: "#d1124a" },
 };
 
 const FALLBACK: IconSpec = {
@@ -115,10 +150,6 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
     </span>
   );
 
-  if (spec.kind === "folder") {
-    return frame(<FolderArt size={art} />);
-  }
-
   if (spec.kind === "document") {
     return frame(
       <DocumentArt size={art} label={spec.label} color={spec.color} />,
@@ -131,6 +162,28 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
     borderRadius: radius,
     boxShadow: "0 1px 2px rgba(0,0,0,0.25), 0 4px 10px rgba(0,0,0,0.15)",
   };
+
+  if (spec.kind === "app-store") {
+    return frame(<AppStoreArt size={art} radius={radius} />);
+  }
+
+  if (spec.kind === "logo") {
+    return frame(
+      <span
+        className="relative block overflow-hidden"
+        style={{ ...tileStyle, background: spec.background }}
+      >
+        <Image
+          src={spec.src}
+          alt=""
+          fill
+          sizes={`${art}px`}
+          className="object-contain p-[14%]"
+          draggable={false}
+        />
+      </span>,
+    );
+  }
 
   if (spec.kind === "photo") {
     return frame(
@@ -162,39 +215,6 @@ export function AppIcon({ appId, size = 48, className = "" }: AppIconProps) {
         strokeWidth={1.9}
       />
     </span>,
-  );
-}
-
-// Finder-style blue folder.
-function FolderArt({ size }: { size: number }) {
-  const id = useId().replace(/:/g, "");
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <defs>
-        <linearGradient id={`${id}-back`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#4aa8f0" />
-          <stop offset="1" stopColor="#2f86d8" />
-        </linearGradient>
-        <linearGradient id={`${id}-front`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8fd3ff" />
-          <stop offset="1" stopColor="#5db6f6" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M4 14a4 4 0 0 1 4-4h15l5 5h28a4 4 0 0 1 4 4v31a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z"
-        fill={`url(#${id}-back)`}
-      />
-      <path
-        d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4v27a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z"
-        fill={`url(#${id}-front)`}
-      />
-      <path
-        d="M4 23a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4"
-        stroke="#bfe6ff"
-        strokeWidth="1"
-        fill="none"
-      />
-    </svg>
   );
 }
 
@@ -232,5 +252,38 @@ function DocumentArt({
         {label}
       </text>
     </svg>
+  );
+}
+
+// Blue squircle with an "A" drawn from three rounded strokes.
+function AppStoreArt({ size, radius }: { size: number; radius: number }) {
+  return (
+    <span
+      className="flex items-center justify-center"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radius,
+        background: "linear-gradient(180deg, #1ecbff, #0866f0)",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.25), 0 4px 10px rgba(0,0,0,0.15)",
+      }}
+    >
+      <svg
+        width={size * 0.62}
+        height={size * 0.62}
+        viewBox="0 0 64 64"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="6"
+        strokeLinecap="round"
+        aria-hidden="true"
+      >
+        <path d="M37 10 18 44" />
+        <path d="M27 10l19 34" />
+        <path d="M12 36h40" />
+        <path d="m10 52 4-7" />
+        <path d="m50 45 4 7" />
+      </svg>
+    </span>
   );
 }

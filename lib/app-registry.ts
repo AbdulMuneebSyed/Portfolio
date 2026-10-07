@@ -1,5 +1,6 @@
 import type { AppRegistryEntry, DesktopIcon } from "./types";
 import { gridCell } from "./desktop-grid";
+import { installOverride } from "./app-store/installed";
 
 export const APP_REGISTRY: AppRegistryEntry[] = [
   {
@@ -17,8 +18,10 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     title: "Snake",
     icon: "/games.png",
     component: "Snake",
+    installable: true,
     category: "Games",
     description: "Play a round of Snake.",
+    launchAliases: ["snake"],
     defaultSize: { width: 620, height: 650 },
   },
   {
@@ -26,6 +29,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     title: "Minesweeper",
     icon: "/games.png",
     component: "Minesweeper",
+    installable: true,
     category: "Games",
     description: "Find every mine.",
     defaultSize: { width: 620, height: 650 },
@@ -195,6 +199,148 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     defaultSize: { width: 250, height: 410 },
     launchAliases: ["calc", "calculator"],
   },
+  {
+    id: "app-store",
+    title: "App Store",
+    icon: "/icons/mac/app-store.svg",
+    component: "AppStoreWindow",
+    category: "System",
+    description: "Browse Syed Abdul Muneeb's projects and get new apps.",
+    defaultSize: { width: 1120, height: 740 },
+    launchAliases: ["app store", "appstore", "store", "mac app store"],
+  },
+  {
+    id: "game-2048",
+    title: "2048",
+    icon: "/games.png",
+    component: "Game2048",
+    category: "Games",
+    description: "Slide tiles and merge them to reach 2048.",
+    defaultSize: { width: 440, height: 600 },
+    installable: true,
+    launchAliases: ["2048"],
+  },
+  {
+    id: "tic-tac-toe",
+    title: "Tic-Tac-Toe",
+    icon: "/games.png",
+    component: "TicTacToe",
+    category: "Games",
+    description: "Noughts and crosses against the computer or a friend.",
+    defaultSize: { width: 420, height: 560 },
+    installable: true,
+    launchAliases: ["tictactoe", "tic tac toe", "noughts and crosses"],
+  },
+  {
+    id: "memory",
+    title: "Memory",
+    icon: "/games.png",
+    component: "MemoryGame",
+    category: "Games",
+    description: "Flip cards and find every matching pair.",
+    defaultSize: { width: 520, height: 620 },
+    installable: true,
+    launchAliases: ["memory", "pairs", "concentration"],
+  },
+  {
+    id: "breakout",
+    title: "Breakout",
+    icon: "/games.png",
+    component: "Breakout",
+    category: "Games",
+    description: "Bounce the ball and clear every brick.",
+    defaultSize: { width: 620, height: 600 },
+    installable: true,
+    launchAliases: ["breakout", "bricks", "arkanoid"],
+  },
+  {
+    id: "word-guess",
+    title: "Word Guess",
+    icon: "/games.png",
+    component: "WordGuess",
+    category: "Games",
+    description: "Guess the five-letter developer word in six tries.",
+    defaultSize: { width: 460, height: 660 },
+    installable: true,
+    launchAliases: ["word guess", "wordle", "words"],
+  },
+  {
+    id: "simon",
+    title: "Simon",
+    icon: "/games.png",
+    component: "Simon",
+    category: "Games",
+    description: "Repeat the growing sequence of colours and tones.",
+    defaultSize: { width: 440, height: 560 },
+    installable: true,
+    launchAliases: ["simon", "simon says"],
+  },
+  {
+    id: "typing-test",
+    title: "Typing Test",
+    icon: "/games.png",
+    component: "TypingTest",
+    category: "Productivity",
+    description: "Measure your typing speed and accuracy.",
+    defaultSize: { width: 680, height: 480 },
+    installable: true,
+    launchAliases: ["typing", "typing test", "wpm"],
+  },
+  {
+    id: "pomodoro",
+    title: "Pomodoro",
+    icon: "/games.png",
+    component: "Pomodoro",
+    category: "Productivity",
+    description: "Focus for 25 minutes, then take a break.",
+    defaultSize: { width: 400, height: 520 },
+    installable: true,
+    launchAliases: ["pomodoro", "timer", "focus timer"],
+  },
+  {
+    id: "sketch",
+    title: "Sketch",
+    icon: "/games.png",
+    component: "Sketch",
+    category: "Creativity",
+    description: "Draw with brushes and colours, then save a PNG.",
+    defaultSize: { width: 760, height: 560 },
+    installable: true,
+    launchAliases: ["sketch", "draw", "paint"],
+  },
+  {
+    id: "piano",
+    title: "Piano",
+    icon: "/games.png",
+    component: "Piano",
+    category: "Creativity",
+    description: "Play a two-octave piano with the mouse or keyboard.",
+    defaultSize: { width: 720, height: 360 },
+    installable: true,
+    launchAliases: ["piano", "keyboard instrument"],
+  },
+  {
+    id: "color-lab",
+    title: "Color Lab",
+    icon: "/games.png",
+    component: "ColorLab",
+    category: "Developer Tools",
+    description: "Pick colours, convert formats, and check contrast.",
+    defaultSize: { width: 640, height: 520 },
+    installable: true,
+    launchAliases: ["color", "colour", "color lab", "color picker"],
+  },
+  {
+    id: "json-formatter",
+    title: "JSON Formatter",
+    icon: "/games.png",
+    component: "JsonFormatter",
+    category: "Developer Tools",
+    description: "Format, minify, and validate JSON.",
+    defaultSize: { width: 760, height: 540 },
+    installable: true,
+    launchAliases: ["json", "json formatter", "formatter"],
+  },
 ];
 
 // Dock order, left to right; "separator" draws a divider.
@@ -208,6 +354,7 @@ export const DOCK_APP_IDS = [
   "terminal",
   "ie",
   "computer",
+  "app-store",
   "settings",
   "separator",
   "linkedin",
@@ -222,8 +369,18 @@ export function getApp(appId: string) {
   return APP_REGISTRY_BY_ID.get(appId);
 }
 
+// Installable apps count as installed once the visitor gets them in the
+// App Store (or when they ship preinstalled and haven't been removed).
+export function isAppInstalled(appId: string) {
+  const app = getApp(appId);
+  if (!app?.installable) return true;
+  return installOverride(appId) ?? app.preinstalled === true;
+}
+
 export function getLaunchableApps() {
-  return APP_REGISTRY.filter((app) => app.searchable !== false);
+  return APP_REGISTRY.filter(
+    (app) => app.searchable !== false && isAppInstalled(app.id),
+  );
 }
 
 export function getDesktopIconsFromRegistry(): DesktopIcon[] {

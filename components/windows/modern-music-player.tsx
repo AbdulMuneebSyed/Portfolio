@@ -33,7 +33,6 @@ export function PixelMusicPlayer({
   return (
     <div className="music-app">
       <div className="mac-toolbar">
-        <Music size={17} className="text-[#fa4260]" />
         <h2>Listen Now</h2>
         <span className="mac-muted text-xs">Your Library</span>
       </div>

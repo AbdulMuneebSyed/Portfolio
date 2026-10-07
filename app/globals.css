@@ -244,6 +244,19 @@ input[type="range"] {
   outline: none;
   box-shadow: inset 0 0 0 6px #0a84ff;
 }
+/* The blurred, dimmed desktop behind Control Center, feathered at the
+   edges so it melts into the wallpaper. */
+.cc-backdrop {
+  background: rgb(0 0 0 / 0.1);
+  -webkit-backdrop-filter: blur(28px) saturate(1.1);
+  backdrop-filter: blur(28px) saturate(1.1);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 96px),
+    linear-gradient(to top, transparent, #000 80px);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 96px),
+    linear-gradient(to top, transparent, #000 80px);
+  mask-composite: intersect;
+}
 .mission-backdrop {
   background: #0000004d;
   backdrop-filter: blur(14px) saturate(1.2);
@@ -269,8 +282,8 @@ input[type="range"] {
    window's top-left corner, centred in the 52px toolbar. */
 .mac-window[data-chrome="unified"] > .traffic-lights {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 16px;
+  left: 18px;
 }
 .traffic-lights {
   gap: 8px;
@@ -278,8 +291,8 @@ input[type="range"] {
 .traffic-light {
   display: grid;
   place-items: center;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 0.5px solid #0000001f;
 }
@@ -293,8 +306,8 @@ input[type="range"] {
   background: #28c840;
 }
 .traffic-light svg {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   opacity: 0;
   color: #0009;
   stroke-width: 3;
@@ -864,12 +877,14 @@ kbd {
   min-width: 0;
   min-height: 0;
 }
+/* Finder icon view: 64pt icons on a fixed grid, filled from the left. */
 .finder-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+  grid-template-columns: repeat(auto-fill, 112px);
   align-content: start;
-  gap: 16px 8px;
-  padding: 22px 16px;
+  justify-content: start;
+  gap: 10px 6px;
+  padding: 14px 18px;
 }
 .finder-file {
   display: flex;
@@ -877,14 +892,19 @@ kbd {
   flex-direction: column;
   gap: 5px;
   min-width: 0;
-  padding: 8px 4px;
+  padding: 8px 2px;
   border-radius: 6px;
   text-align: center;
 }
-.finder-file > span:last-child {
+.finder-file > span:last-child,
+.finder-file-name {
   font-size: 12px;
   max-width: 100%;
   overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 /* Finder selection: a grey box around the icon and a blue capsule around
    the name, not a tinted tile. */
@@ -895,9 +915,15 @@ kbd {
   border-radius: 6px;
 }
 .finder-file-name {
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 4px;
   line-height: 1.35;
+}
+/* "Show item info": a small blue line under the name. */
+.finder-file > span.finder-file-info {
+  margin-top: -3px;
+  font-size: 11px;
+  color: var(--mac-accent);
 }
 .finder-file[data-selected="true"] .finder-file-art {
   background: #0000001a;
@@ -1018,7 +1044,7 @@ kbd {
     padding: 6px 16px 20px;
   }
   .mac-toolbar {
-    padding: 8px;
+    padding: 8px 12px;
     flex-wrap: wrap;
   }
   .mac-toolbar .mac-search {
@@ -1332,6 +1358,13 @@ kbd {
   overflow: auto;
   background: var(--mac-surface);
 }
+/* The toolbar stays put while the player and track list scroll. */
+.music-app > .mac-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--mac-surface);
+}
 .music-main {
   text-align: center;
   padding: 22px 28px 16px;
@@ -1429,27 +1462,151 @@ kbd {
   color: var(--mac-secondary);
   font-size: 11px;
 }
+/* Safari: optional sidebar, a toolbar with the Smart Search field centred,
+   and the Start Page on Safari's light grey. */
 .safari-app {
-  height: 100%;
+  position: relative;
+  --safari-page: #f2f2f4;
+  --safari-card: #fff;
+  --safari-stat: #f2f2f4;
+}
+.dark .safari-app {
+  --safari-page: #2a2a2c;
+  --safari-card: #3a3a3c;
+  --safari-stat: #1c1c1e;
+}
+.mac-window[data-chrome="unified"] .mac-content > .mac-split > .safari-sidebar {
   display: flex;
   flex-direction: column;
-  background: var(--mac-surface);
+  width: 230px;
+  padding: 0;
+  overflow: hidden;
 }
-.safari-address {
+.safari-sidebar-bar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  height: 52px;
+  padding: 0 10px 0 88px;
+}
+.safari-sidebar-bar .mac-icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+.safari-sidebar-list {
   flex: 1;
-  min-width: 0;
-  max-width: 520px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 10px;
+}
+.safari-sidebar-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  border-radius: 6px;
+}
+.safari-sidebar-row[data-active="true"] {
+  background: #0000000d;
+}
+.dark .safari-sidebar-row[data-active="true"] {
+  background: #ffffff15;
+}
+.safari-sidebar-row > .sidebar-item {
+  flex: 1;
+  min-width: 0;
+}
+.safari-sidebar-row > .sidebar-item:hover {
+  background: transparent;
+}
+.safari-sidebar-row:hover {
+  background: var(--mac-hover);
+}
+.safari-sidebar-row > button:not(.sidebar-item) {
+  display: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  border-radius: 5px;
+  color: var(--mac-secondary);
+}
+.safari-sidebar-row:hover > button:not(.sidebar-item) {
+  display: grid;
+}
+.safari-sidebar-row > button:not(.sidebar-item):hover {
+  background: var(--mac-hover);
+  color: var(--mac-text);
+}
+.safari-reading-row .sidebar-item {
+  min-height: 44px;
+}
+.safari-reading-row strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.safari-reading-row small,
+.safari-count {
+  font-size: 11px;
+  color: var(--mac-secondary);
+}
+.safari-sidebar-back {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.safari-sidebar-back > svg {
+  color: var(--mac-accent);
+}
+.safari-sidebar-empty {
+  padding: 12px 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--mac-secondary);
+}
+.safari-unread {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--mac-accent);
+}
+.safari-unread[data-read="true"] {
+  visibility: hidden;
+}
+.safari-main {
+  position: relative;
+  background: var(--safari-page);
+}
+.safari-main > .mac-toolbar {
+  position: relative;
+  background: var(--mac-surface);
+  border-bottom: 1px solid var(--mac-border);
+}
+.mac-window[data-chrome="unified"] .safari-app[data-sidebar="false"] .safari-main > .mac-toolbar {
+  padding-left: 88px;
+}
+.safari-address {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   height: 32px;
-  padding: 0 12px;
+  padding: 0 10px 0 12px;
+  margin: 0 auto;
   background: var(--mac-glass);
   border-radius: 999px;
   color: var(--mac-secondary);
-  margin: 0 auto;
   box-shadow: var(--mac-glass-shadow);
+}
+.safari-address[data-editing="true"] {
+  box-shadow: 0 0 0 3px #007aff55, var(--mac-glass-shadow);
 }
 .safari-address input {
   flex: 1;
@@ -1460,104 +1617,406 @@ kbd {
   text-align: center;
   font-size: 13px;
 }
-.safari-tabs[hidden] {
-  display: none;
+.safari-address[data-editing="true"] input {
+  text-align: left;
+}
+.safari-address > button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+.safari-address > button:hover {
+  background: var(--mac-hover);
+  color: var(--mac-text);
+}
+/* Safari's blue load bar along the bottom of the address field. */
+.safari-progress {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--mac-accent);
+  transform-origin: left;
+  animation: safari-load 6s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+}
+@keyframes safari-load {
+  from {
+    transform: scaleX(0.05);
+  }
+  to {
+    transform: scaleX(0.92);
+  }
+}
+.safari-favicon {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+}
+.safari-favicon img {
+  border-radius: 3px;
+}
+.safari-tile {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 22%;
+  color: white;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: 0 1px 3px #0000001f;
+}
+.safari-tile-icon {
+  background: var(--safari-card);
+}
+.safari-tile-icon img {
+  border-radius: 18%;
+}
+.safari-menu {
+  position: absolute;
+  z-index: 30;
+  min-width: 220px;
+  padding: 5px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mac-surface) 88%, transparent);
+  backdrop-filter: blur(30px) saturate(1.6);
+  box-shadow: 0 0 0 0.5px #00000033, 0 10px 30px #00000033;
+  color: var(--mac-text);
+  font-size: 13px;
+}
+.safari-menu button,
+.safari-menu li,
+.safari-menu label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  text-align: left;
+  cursor: default;
+}
+.safari-menu button:not(:disabled):hover,
+.safari-menu li[aria-selected="true"] {
+  background: var(--mac-accent);
+  color: white;
+}
+.safari-menu li[aria-selected="true"] small {
+  color: #ffffffcc;
+}
+.safari-menu button:disabled {
+  opacity: 0.4;
+}
+.safari-menu hr {
+  margin: 4px 9px;
+  border-color: var(--mac-border);
+}
+.safari-suggestions {
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+}
+.safari-suggestions small {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--mac-secondary);
+}
+.safari-share-menu {
+  top: calc(100% - 4px);
+  right: 60px;
+}
+.safari-dismiss {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
 }
 .safari-tabs {
   display: flex;
   flex-shrink: 0;
+  gap: 4px;
+  padding: 4px 6px;
   overflow-x: auto;
-  min-height: 32px;
   background: var(--mac-chrome);
   border-bottom: 1px solid var(--mac-border);
 }
 .safari-tabs > div {
+  position: relative;
   display: flex;
   flex: 1;
   align-items: center;
   min-width: 110px;
-  max-width: 260px;
-  border-right: 1px solid var(--mac-border);
-  padding-right: 8px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--mac-secondary);
+}
+.safari-tabs > div:hover {
+  background: var(--mac-hover);
 }
 .safari-tabs > div[data-active="true"] {
   background: var(--mac-surface);
+  color: var(--mac-text);
+  box-shadow: 0 0 0 0.5px #0000001a, 0 1px 2px #0000001a;
+}
+.safari-tabs > div > button:first-child {
+  position: absolute;
+  left: 6px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  opacity: 0;
+}
+.safari-tabs > div:hover > button:first-child {
+  opacity: 1;
+}
+.safari-tabs > div > button:first-child:hover {
+  background: var(--mac-hover);
 }
 .safari-tabs button[role="tab"] {
   flex: 1;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
   align-items: center;
-  padding: 8px;
-  overflow: hidden;
-  font-size: 11px;
+  min-width: 0;
+  padding: 0 26px;
+  font-size: 12px;
 }
 .safari-tabs button[role="tab"] span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.safari-start {
-  overflow: auto;
-  padding: 45px max(24px, 9%);
+.safari-body {
+  position: relative;
+  display: flex;
   flex: 1;
-  background: var(--mac-chrome);
+  min-height: 0;
+  flex-direction: column;
 }
-.safari-start h1,
+.safari-start {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 40px 24px 70px;
+}
+.safari-start-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.safari-start section + section {
+  margin-top: 34px;
+}
 .safari-start h2 {
-  font-size: 23px;
-  font-weight: 650;
+  margin-bottom: 14px;
+  font-size: 17px;
+  font-weight: 700;
 }
-.safari-start h2 {
-  font-size: 19px;
-  margin-top: 35px;
-}
-.safari-start p {
+.safari-hint {
   font-size: 12px;
   color: var(--mac-secondary);
-  margin-top: 6px;
 }
 .safari-favorites {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 26px 16px;
-  margin-top: 26px;
+  grid-template-columns: repeat(auto-fill, 76px);
+  gap: 16px 14px;
 }
 .safari-favorites button {
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  border-radius: 10px;
+}
+.safari-favorites button > span:last-child {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  width: 100%;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+}
+.safari-favorites button:active > .safari-tile {
+  filter: brightness(0.9);
+}
+.safari-card {
+  border-radius: 14px;
+  background: var(--safari-card);
+  box-shadow: 0 0 0 0.5px #0000000f, 0 1px 3px #0000000f;
+}
+.safari-privacy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+}
+.safari-privacy > div:first-child {
+  flex: 1 1 240px;
+}
+.safari-privacy p {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.safari-privacy-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1 1 260px;
+}
+.safari-privacy-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--safari-stat);
+  font-size: 12px;
+  color: var(--mac-secondary);
+}
+.safari-privacy-stats strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--mac-text);
+}
+.safari-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 10px;
 }
-.safari-favorites button > span {
-  display: grid;
-  place-items: center;
-  height: 62px;
-  width: 62px;
-  border-radius: 12px;
-  font-size: 30px;
-  font-weight: 600;
-  color: white;
-  box-shadow: 0 3px 8px #0002;
-  transition: transform 0.15s;
-}
-.safari-favorites button:hover > span {
-  transform: translateY(-3px);
-}
-.safari-favorites strong {
-  font-size: 11px;
-  font-weight: 500;
-}
-.safari-external {
+.safari-cards > .safari-card {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+.safari-cards strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.safari-cards small {
+  font-size: 11px;
+  color: var(--mac-secondary);
+}
+.safari-edit {
+  position: absolute;
+  z-index: 31;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.safari-edit .mac-button {
+  border-radius: 999px;
+  border: 0;
+  background: var(--safari-card);
+  box-shadow: 0 0 0 0.5px #0000001f, 0 1px 4px #0000001f;
+}
+.safari-edit-menu {
+  position: static;
+}
+.safari-page {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+.safari-page[hidden] {
+  display: none;
+}
+.safari-page iframe {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  background: white;
+}
+.safari-page-note {
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   font-size: 11px;
   color: var(--mac-secondary);
   background: var(--mac-chrome);
+  border-top: 1px solid var(--mac-border);
+}
+.safari-page-note a {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  color: var(--mac-accent);
+}
+/* Tab overview: every tab as a card. */
+.safari-overview {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 22px;
+  padding: 26px;
+  overflow-y: auto;
+}
+.safari-overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.safari-overview-preview,
+.safari-overview-new {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  border-radius: 12px;
+  background: var(--safari-card);
+  box-shadow: 0 0 0 0.5px #0000001a, 0 4px 14px #0000001a;
+}
+.safari-overview-card[data-active="true"] .safari-overview-preview {
+  box-shadow: 0 0 0 3px var(--mac-accent), 0 4px 14px #0000001a;
+}
+.safari-overview-new {
+  color: var(--mac-secondary);
+  box-shadow: inset 0 0 0 1.5px var(--mac-border);
+  background: transparent;
+}
+.safari-overview-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+}
+.safari-overview-title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.safari-overview-title button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mac-hover);
 }
 .mac-segmented {
   display: inline-flex;
@@ -1885,11 +2344,6 @@ kbd {
 }
 .tour-dots span[data-active="true"] {
   background: var(--mac-accent);
-}
-.github-app {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 .github-sidebar {
   width: 200px;
@@ -2426,14 +2880,28 @@ kbd {
   .mac-window .mac-split:focus-visible {
     outline: none;
   }
-  .safari-app > .mac-toolbar {
+  /* iPhone Safari: no sidebar, and the toolbar sits at the bottom. */
+  .mac-window .safari-sidebar,
+  .safari-main > .mac-toolbar > button[aria-label="Show sidebar"] {
+    display: none !important;
+  }
+  .safari-main > .mac-toolbar {
     order: 2;
     margin-top: auto;
+    padding-left: 12px !important;
     border-top: 1px solid var(--mac-border);
-    background: var(--mac-surface);
+    border-bottom: 0;
   }
-  .safari-app > .mac-toolbar > button[aria-label="Start page"] {
-    display: none;
+  .safari-main > .mac-toolbar .safari-menu {
+    top: auto;
+    bottom: calc(100% + 6px);
+  }
+  .safari-start {
+    padding: 28px 18px 70px;
+  }
+  .safari-favorites {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 8px;
   }
   .ios-lock-status {
     right: 23px;

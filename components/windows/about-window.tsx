@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   UserRound,
   Briefcase,
@@ -11,91 +11,13 @@ import {
 } from "lucide-react";
 import { launchApp } from "@/lib/launch-app";
 import Image from "next/image";
+import { awards, skillGroups, timeline } from "@/lib/portfolio-data";
 
-export function AboutWindow() {
-  const [tab, setTab] = useState("Overview");
-  const skillGroups = [
-    {
-      label: "Languages",
-      items: ["JavaScript", "TypeScript", "Python", "C++", "Java", "C", "Rust"],
-    },
-    {
-      label: "Frameworks & Frontend",
-      items: [
-        "React",
-        "Next.js",
-        "Node.js",
-        "ASP.NET Core",
-        "SignalR",
-        "Express",
-        "Tailwind CSS",
-        "Redux",
-      ],
-    },
-    {
-      label: "Databases & Infra",
-      items: [
-        "MongoDB",
-        "PostgreSQL",
-        "Redis",
-        "Supabase",
-        "AWS (S3, EC2, CloudFront)",
-        "Docker",
-        "Vercel",
-      ],
-    },
-    {
-      label: "Concepts",
-      items: ["DSA", "OOP", "System Design", "GenAI", "MCP"],
-    },
-  ];
-
-  const timeline = [
-    {
-      period: "Feb 2026 – Present",
-      title: "SDE Intern · Pulsegen",
-      location: "Hyderabad",
-      points: [
-        "MongoDB Atlas Search autocomplete pipeline with 3-tier scoring (exact → prefix → fuzzy) for a 400K+ account SaaS.",
-        "7-level user adoption tracking (L1–L7) with batch fetching, cron jobs, and Change Streams — cut DB round-trips by ~80%.",
-        "RBAC, onboarding, notifications, and MCP integration in a virtualized app rendering 100K+ elements per page.",
-      ],
-    },
-    {
-      period: "Jul 2025 – Jan 2026",
-      title: "SDE Intern · MathonGO (GetMarks)",
-      location: "Bengaluru",
-      points: [
-        "Built and optimized Leaderboard, League, and Horoscope modules — 1L+ weekly rank updates.",
-        "Led NEET v2 revamp: data flow, caching, UX — 300% rise in daily NEET aspirants.",
-        "Shipped the Courses (LMS) module supporting 30K+ daily active learners on launch.",
-      ],
-    },
-    {
-      period: "Dec 2024 – May 2025",
-      title: "Full Stack Developer · Capco-CS",
-      location: "Remote",
-      points: [
-        "Custom CRM + React/Supabase vendor portal — +30% client management, +25% vendor onboarding.",
-        "Gemini-powered support chatbot — 90% faster response time.",
-      ],
-    },
-    {
-      period: "Sep 2024 – Jul 2025",
-      title: "Tech Lead · E-Cell MJCET",
-      location: "Hyderabad",
-      points: [
-        "Led a 5-member team building E-Cell's hackathon platform (Next.js).",
-        "500K+ visitors, 127+ daily registrations, 440% growth to 30K users.",
-      ],
-    },
-  ];
-
-  const awards = [
-    "#1 College Rank · GeeksforGeeks",
-    "MasterBlaze Winner · Coding Ninjas (2024)",
-    "4-Star Coder · GeeksforGeeks",
-  ];
+export function AboutWindow({ tab: initialTab }: { tab?: string }) {
+  const [tab, setTab] = useState(initialTab ?? "Overview");
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div className="mac-split">

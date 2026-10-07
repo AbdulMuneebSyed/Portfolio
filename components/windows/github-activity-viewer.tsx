@@ -169,59 +169,58 @@ export function GitHubActivityViewer() {
   }, [events, repos]);
 
   return (
-    <div className="github-app">
-      <div className="mac-toolbar">
-        <Github size={18} />
-        <h2>GitHub</h2>
-        <form
-          className="flex min-w-0 items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void loadGitHub(query);
-          }}
-        >
-          <label className="mac-search">
-            <Search size={14} />
-            <input
-              aria-label="GitHub username"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </label>
-          <button
-            className="mac-icon-button"
-            type="submit"
-            aria-label="Refresh GitHub"
-            disabled={status === "loading"}
+    <div className="mac-split">
+      <aside className="mac-sidebar github-sidebar">
+        <Github size={32} className="mb-4" />
+        <strong className="block break-all text-sm">{username}</strong>
+        <p className="mac-muted text-xs mt-1">Public activity</p>
+        <div className="github-counts">
+          {[
+            [totals.repos, "Repositories"],
+            [totals.stars, "Stars"],
+            [totals.forks, "Forks"],
+          ].map(([value, label]) => (
+            <div key={label}>
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] leading-relaxed mac-muted" role="status">
+          {message}
+        </p>
+      </aside>
+      <div className="finder-main">
+        <div className="mac-toolbar">
+          <h2>GitHub</h2>
+          <form
+            className="flex min-w-0 items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void loadGitHub(query);
+            }}
           >
-            <RefreshCw
-              size={16}
-              className={status === "loading" ? "animate-spin" : ""}
-            />
-          </button>
-        </form>
-      </div>
-      <div className="mac-split min-h-0 flex-1">
-        <aside className="mac-sidebar github-sidebar">
-          <Github size={32} className="mb-4" />
-          <strong className="block break-all text-sm">{username}</strong>
-          <p className="mac-muted text-xs mt-1">Public activity</p>
-          <div className="github-counts">
-            {[
-              [totals.repos, "Repositories"],
-              [totals.stars, "Stars"],
-              [totals.forks, "Forks"],
-            ].map(([value, label]) => (
-              <div key={label}>
-                <span>{label}</span>
-                <strong>{value}</strong>
-              </div>
-            ))}
-          </div>
-          <p className="text-[11px] leading-relaxed mac-muted" role="status">
-            {message}
-          </p>
-        </aside>
+            <label className="mac-search">
+              <Search size={14} />
+              <input
+                aria-label="GitHub username"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+            <button
+              className="mac-icon-button"
+              type="submit"
+              aria-label="Refresh GitHub"
+              disabled={status === "loading"}
+            >
+              <RefreshCw
+                size={16}
+                className={status === "loading" ? "animate-spin" : ""}
+              />
+            </button>
+          </form>
+        </div>
         <main className="github-main">
           <h2>Recent Activity</h2>
           {!events.length && (

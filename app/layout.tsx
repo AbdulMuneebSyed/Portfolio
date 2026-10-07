@@ -3,6 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import "./app-store.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://portfolio-muneeb.vercel.app"),

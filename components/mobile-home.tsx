@@ -14,7 +14,8 @@ import {
   Wifi,
 } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
-import { getApp } from "@/lib/app-registry";
+import { getApp, getLaunchableApps } from "@/lib/app-registry";
+import { useInstalledApps } from "@/lib/app-store/installed";
 import { launchApp } from "@/lib/launch-app";
 import { useSystemControls } from "@/lib/system-controls";
 import { mobileAppTitle } from "@/lib/mobile-app-titles";
@@ -28,12 +29,25 @@ const homeApps = [
   "calculator",
   "feedback",
   "settings",
+  "app-store",
 ] as const;
 const dockApps = ["computer", "ie", "music", "contact"] as const;
-const folders = {
-  Games: ["snake", "minesweeper"],
-  Utilities: ["terminal", "task-manager", "recycle", "linkedin"],
-} as const;
+const UTILITIES = ["terminal", "task-manager", "recycle", "linkedin"];
+
+// Folders hold the built-in utilities plus whatever the visitor has
+// installed from the App Store; an empty folder is hidden.
+function useFolders(): Record<string, string[]> {
+  useInstalledApps((s) => s.overrides);
+  const installed = getLaunchableApps().filter((app) => app.installable);
+  const folders: Record<string, string[]> = {
+    Games: installed.filter((app) => app.category === "Games").map((app) => app.id),
+    Utilities: [
+      ...UTILITIES,
+      ...installed.filter((app) => app.category !== "Games").map((app) => app.id),
+    ],
+  };
+  return Object.fromEntries(Object.entries(folders).filter(([, ids]) => ids.length));
+}
 
 function MobileApp({ id, onOpen }: { id: string; onOpen?: () => void }) {
   const app = getApp(id);
@@ -66,7 +80,8 @@ export function MobileHome({
   onSearch: () => void;
 }) {
   const [now, setNow] = useState<Date | null>(null);
-  const [folder, setFolder] = useState<keyof typeof folders | null>(null);
+  const folders = useFolders();
+  const [folder, setFolder] = useState<string | null>(null);
   const [controlOpen, setControlOpen] = useState(false);
   const controls = useSystemControls();
 
@@ -106,7 +121,7 @@ export function MobileHome({
             </button>
             <div className="ios-home-grid" aria-label="Apps">
               {homeApps.map((id) => <MobileApp key={id} id={id} />)}
-              {(Object.keys(folders) as Array<keyof typeof folders>).map((name) => (
+              {Object.keys(folders).map((name) => (
                 <button
                   key={name}
                   className="ios-home-app"
@@ -135,7 +150,7 @@ export function MobileHome({
       <button className="ios-home-indicator" aria-label="Go to Home Screen" onClick={onHome} />
 
       <AnimatePresence>
-        {folder && !appOpen && (
+        {folder && folders[folder] && !appOpen && (
           <motion.div
             className="ios-folder-backdrop"
             initial={{ opacity: 0 }}

@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { MotionConfig, AnimatePresence, motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
@@ -12,6 +13,7 @@ import {
   DOCK_RESERVED_HEIGHT,
   launchApp,
   MENU_BAR_HEIGHT,
+  openInAppStore,
 } from "@/lib/launch-app";
 import { DesktopIconComponent } from "./desktop-icon";
 import { Window } from "./window";
@@ -45,6 +47,41 @@ import { GitHubActivityViewer } from "./windows/github-activity-viewer";
 import { RecycleBin } from "./windows/recycle-bin";
 import { TaskManagerWindow } from "./windows/task-manager-window";
 
+// App Store mini-apps load the first time one opens.
+const MINI_APP_NAMES = [
+  "Game2048",
+  "TicTacToe",
+  "MemoryGame",
+  "Breakout",
+  "WordGuess",
+  "Simon",
+  "TypingTest",
+  "Pomodoro",
+  "Sketch",
+  "Piano",
+  "ColorLab",
+  "JsonFormatter",
+];
+const MINI_APP_COMPONENTS = Object.fromEntries(
+  MINI_APP_NAMES.map((name) => [
+    name,
+    dynamic(
+      () =>
+        import("./windows/mini/registry").then(
+          (m) => m.MINI_APP_COMPONENTS[name],
+        ),
+      { ssr: false },
+    ),
+  ]),
+);
+
+// The App Store is the largest app; load it the first time it opens.
+const AppStoreWindow = dynamic(
+  () =>
+    import("./windows/app-store/app-store-window").then((m) => m.AppStoreWindow),
+  { ssr: false },
+);
+
 function PlaceholderWindow() {
   return (
     <div className="p-8">
@@ -54,7 +91,10 @@ function PlaceholderWindow() {
   );
 }
 
-const windowComponents: Record<string, React.ComponentType> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const windowComponents: Record<string, React.ComponentType<any>> = {
+  ...MINI_APP_COMPONENTS,
+  AppStoreWindow,
   ProjectsExplorer,
   ResumeWindow,
   AboutWindow,
@@ -112,6 +152,19 @@ export function Desktop({ onLock }: DesktopProps) {
     y1: number;
   } | null>(null);
   const filesRef = useRef<HTMLDivElement>(null);
+
+  // A shared App Store link (/?app=<id>) opens that product page once the
+  // Mac is unlocked; the parameter is then removed from the address bar.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const itemId = url.searchParams.get("app");
+    if (!itemId) return;
+    url.searchParams.delete("app");
+    window.history.replaceState(null, "", url);
+    void import("@/lib/app-store/catalog").then(
+      ({ getStoreItem }) => getStoreItem(itemId) && openInAppStore(itemId),
+    );
+  }, []);
 
   // Remember the first visit; the tour stays available without interrupting.
   useEffect(() => {

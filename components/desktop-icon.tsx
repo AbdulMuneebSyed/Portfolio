@@ -214,7 +214,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
           className={`pointer-events-none line-clamp-2 max-w-full rounded-[4px] px-1 text-center text-[12px] font-semibold leading-[15px] text-white ${
             isSelected
               ? "bg-[#0a63e1]"
-              : "[text-shadow:0_1px_2px_rgba(0,0,0,0.6)]"
+              : "[text-shadow:0_1px_2px_rgba(0,0,0,0.75),0_0_1px_rgba(0,0,0,0.6)]"
           }`}
         >
           {icon.title}

@@ -200,16 +200,20 @@ export function WifiMenu({ onClose }: { onClose: () => void }) {
 }
 
 // ---------------------------------------------------------------- Control Center
-// macOS Tahoe style: no panel, just floating Liquid Glass tiles.
+// macOS Tahoe Liquid Glass: there is no panel behind Control Center. Each
+// tile is its own piece of glass over a blurred, dimmed desktop (.cc-backdrop):
+// a further blur, a slight darkening so white text stays readable, and a
+// bright rim. Tiles
+// cast only a faint shadow so the gaps between them don't darken.
 
 const glass =
-  "border border-white/35 bg-white/[0.2] text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur-[30px] backdrop-saturate-[1.4] [text-shadow:0_1px_2px_rgba(0,0,0,0.18)]";
+  "border border-white/40 bg-white/[0.07] text-white backdrop-blur-[12px] backdrop-brightness-[0.98] backdrop-saturate-[1.2] shadow-[inset_1px_1px_0_rgba(255,255,255,0.3),inset_-1px_-1px_0_rgba(255,255,255,0.1),0_2px_8px_rgba(0,0,0,0.08)] [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]";
 
 function IconCircle({
   icon: Icon,
   on,
   activeColor = "#0a82ff",
-  size = 44,
+  size = 36,
 }: {
   icon: LucideIcon;
   on: boolean;
@@ -219,7 +223,7 @@ function IconCircle({
   return (
     <span
       className={`flex shrink-0 items-center justify-center rounded-full transition-colors ${
-        on ? "bg-white" : "bg-white/20"
+        on ? "bg-white shadow-[0_1px_3px_rgba(0,0,0,0.12)]" : "bg-white/20"
       }`}
       style={{ width: size, height: size }}
     >
@@ -251,19 +255,18 @@ function PillToggle({
 }) {
   // Like macOS: the icon toggles; the rest of the pill shows more options.
   return (
-    <div className={`${glass} flex h-[66px] items-center gap-3 rounded-full px-[11px]`}>
+    <div
+      className={`${glass} flex h-[64px] items-center gap-3 rounded-full px-[13px]`}
+    >
       <button onClick={onToggle} aria-pressed={on} aria-label={label}>
         <IconCircle icon={icon} on={on} activeColor={activeColor} />
       </button>
-      <button
-        onClick={onOpen ?? onToggle}
-        className="min-w-0 flex-1 text-left"
-      >
-        <span className="block text-[14px] font-semibold leading-tight">
+      <button onClick={onOpen ?? onToggle} className="min-w-0 flex-1 text-left">
+        <span className="block text-[13px] font-semibold leading-tight">
           {label}
         </span>
         {status && (
-          <span className="block truncate text-[12px] leading-tight text-white/80">
+          <span className="mt-px block truncate text-[12px] leading-tight text-white/75">
             {status}
           </span>
         )}
@@ -289,9 +292,9 @@ function CircleToggle({
       aria-pressed={on}
       aria-label={label}
       title={label}
-      className={`flex size-[66px] items-center justify-center justify-self-center rounded-full transition-colors ${
+      className={`flex size-[64px] items-center justify-center justify-self-center rounded-full transition-colors ${
         on
-          ? "bg-white text-black shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+          ? "border border-white bg-white text-black shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
           : glass
       }`}
     >
@@ -319,14 +322,16 @@ function GlassSlider({
 }) {
   const percent = ((value - min) / (1 - min)) * 100;
   return (
-    <div className={`${glass} col-span-4 rounded-[26px] px-5 pb-3.5 pt-3`}>
-      <div className="mb-2 text-[14px] font-semibold">{label}</div>
-      <div className="flex items-center gap-3">
-        <StartIcon className="size-[15px] shrink-0" strokeWidth={2.25} />
-        <div className="relative h-[22px] flex-1">
-          <div className="absolute inset-x-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-white/30" />
+    <div
+      className={`${glass} col-span-4 flex h-[64px] flex-col justify-center rounded-[32px] px-4`}
+    >
+      <div className="text-[13px] font-semibold leading-tight">{label}</div>
+      <div className="flex h-[22px] items-center gap-2.5">
+        <StartIcon className="size-[16px] shrink-0" strokeWidth={2.25} />
+        <div className="relative h-full flex-1">
+          <div className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-black/25" />
           <div
-            className="absolute left-0 top-1/2 h-[5px] -translate-y-1/2 rounded-full bg-white"
+            className="absolute left-0 top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-white"
             style={{ width: `${percent}%` }}
           />
           <input
@@ -340,7 +345,7 @@ function GlassSlider({
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           />
         </div>
-        <EndIcon className="size-[20px] shrink-0" strokeWidth={2} />
+        <EndIcon className="size-[19px] shrink-0" strokeWidth={2} />
         {accessory}
       </div>
     </div>
@@ -353,16 +358,16 @@ function NowPlayingTile({ onOpenMusic }: { onOpenMusic: () => void }) {
 
   return (
     <div
-      className={`${glass} col-span-2 row-span-2 flex flex-col justify-between rounded-[28px] p-3.5`}
+      className={`${glass} col-span-2 row-span-2 flex flex-col justify-between rounded-[32px] px-4 pb-3.5 pt-4`}
     >
       <button onClick={onOpenMusic} className="text-left">
-        <span className="mb-2 flex size-[40px] items-center justify-center rounded-[8px] bg-gradient-to-b from-[#ff6b81] to-[#f2263f] shadow">
-          <Music className="size-5" color="#ffffff" />
+        <span className="mb-2 flex size-[36px] items-center justify-center rounded-[8px] bg-gradient-to-b from-[#ff6b81] to-[#f2263f] shadow">
+          <Music className="size-[18px]" color="#ffffff" />
         </span>
-        <span className="block truncate text-[14px] font-semibold leading-tight">
+        <span className="block truncate text-[13px] font-semibold leading-tight">
           {song.title}
         </span>
-        <span className="block truncate text-[12px] leading-tight text-white/80">
+        <span className="mt-px block truncate text-[12px] leading-tight text-white/75">
           {song.artist}
         </span>
       </button>
@@ -409,124 +414,129 @@ export function ControlCenter({
   };
 
   return (
-    <div
-      className="w-[396px] max-w-[calc(100vw-24px)] max-h-[calc(100dvh-50px)] overflow-y-auto select-none"
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      <div className="grid grid-cols-4 gap-3">
-        <div className="col-span-2 row-span-2 grid gap-3">
-          <PillToggle
-            icon={controls.wifiOn ? Wifi : WifiOff}
-            on={controls.wifiOn}
-            label="Wi-Fi"
-            status={controls.wifiOn ? NETWORK_NAME : "Off"}
-            onToggle={() => controls.setWifiOn(!controls.wifiOn)}
-            onOpen={onShowWifi}
+    <div className="relative" onMouseDown={(e) => e.stopPropagation()}>
+      {/* Tahoe blurs and dims the desktop behind Control Center, fading
+          out to the left and bottom; the glass tiles sit on top of it. */}
+      <div
+        aria-hidden
+        className="cc-backdrop pointer-events-none absolute -bottom-20 -left-24 -right-3 -top-2"
+      />
+      <div className="relative w-[304px] max-w-[calc(100vw-24px)] max-h-[calc(100dvh-50px)] select-none overflow-y-auto p-1">
+        <div className="grid grid-cols-4 gap-3">
+          <div className="col-span-2 row-span-2 grid gap-3">
+            <PillToggle
+              icon={controls.wifiOn ? Wifi : WifiOff}
+              on={controls.wifiOn}
+              label="Wi-Fi"
+              status={controls.wifiOn ? NETWORK_NAME : "Off"}
+              onToggle={() => controls.setWifiOn(!controls.wifiOn)}
+              onOpen={onShowWifi}
+            />
+            <PillToggle
+              icon={Bluetooth}
+              on={controls.bluetoothOn}
+              label="Bluetooth"
+              status={controls.bluetoothOn ? "On" : "Off"}
+              onToggle={() => controls.setBluetoothOn(!controls.bluetoothOn)}
+            />
+          </div>
+          <NowPlayingTile
+            onOpenMusic={() => {
+              launchApp("music");
+              onClose();
+            }}
           />
-          <PillToggle
-            icon={Bluetooth}
-            on={controls.bluetoothOn}
-            label="Bluetooth"
-            status={controls.bluetoothOn ? "On" : "Off"}
-            onToggle={() => controls.setBluetoothOn(!controls.bluetoothOn)}
+
+          <div className="col-span-2">
+            <PillToggle
+              icon={Radio}
+              on={controls.airdropOn}
+              label="AirDrop"
+              status={controls.airdropOn ? "Contacts Only" : "Off"}
+              onToggle={() => controls.setAirdropOn(!controls.airdropOn)}
+            />
+          </div>
+          <CircleToggle
+            icon={PanelLeftDashed}
+            on={controls.stageManagerOn}
+            label="Stage Manager"
+            onClick={toggleStageManager}
+          />
+          <CircleToggle
+            icon={Copy}
+            on={controls.mirroringOn}
+            label="Screen Mirroring"
+            onClick={() => controls.setMirroringOn(!controls.mirroringOn)}
+          />
+
+          <CircleToggle
+            icon={Contrast}
+            on={controls.darkMode}
+            label="Dark Mode"
+            onClick={() => controls.setDarkMode(!controls.darkMode)}
+          />
+          <CircleToggle
+            icon={Camera}
+            on={false}
+            label="Screenshot"
+            onClick={() => {
+              onClose();
+              // Let Control Center disappear before capturing.
+              window.setTimeout(() => void takeScreenshot(), 150);
+            }}
+          />
+          <div className="col-span-2">
+            <PillToggle
+              icon={Moon}
+              on={controls.focusOn}
+              label="Focus"
+              status={controls.focusOn ? "Do Not Disturb" : undefined}
+              activeColor="#5e5ce6"
+              onToggle={() => controls.setFocusOn(!controls.focusOn)}
+            />
+          </div>
+
+          <GlassSlider
+            label="Display"
+            value={controls.brightness}
+            min={MIN_BRIGHTNESS}
+            onChange={controls.setBrightness}
+            startIcon={SunDim}
+            endIcon={Sun}
+          />
+          <GlassSlider
+            label="Sound"
+            value={controls.volume}
+            min={0}
+            onChange={controls.setVolume}
+            startIcon={controls.volume === 0 ? VolumeX : Volume}
+            endIcon={Volume2}
+            accessory={
+              <button
+                onClick={() => setAirplayOn(!airplayOn)}
+                aria-pressed={airplayOn}
+                aria-label="AirPlay"
+                className={`-my-1 flex size-[28px] items-center justify-center rounded-full ${
+                  airplayOn ? "bg-white text-[#0a82ff]" : "bg-white/20"
+                }`}
+              >
+                <Airplay className="size-[15px]" strokeWidth={2.25} />
+              </button>
+            }
           />
         </div>
-        <NowPlayingTile
-          onOpenMusic={() => {
-            launchApp("music");
-            onClose();
-          }}
-        />
 
-        <div className="col-span-2">
-          <PillToggle
-            icon={Radio}
-            on={controls.airdropOn}
-            label="AirDrop"
-            status={controls.airdropOn ? "Contacts Only" : "Off"}
-            onToggle={() => controls.setAirdropOn(!controls.airdropOn)}
-          />
+        <div className="mt-3 flex justify-center">
+          <button
+            onClick={() => {
+              launchApp("settings");
+              onClose();
+            }}
+            className={`${glass} rounded-full px-3.5 py-1 text-[13px] font-medium`}
+          >
+            Edit Controls
+          </button>
         </div>
-        <CircleToggle
-          icon={PanelLeftDashed}
-          on={controls.stageManagerOn}
-          label="Stage Manager"
-          onClick={toggleStageManager}
-        />
-        <CircleToggle
-          icon={Copy}
-          on={controls.mirroringOn}
-          label="Screen Mirroring"
-          onClick={() => controls.setMirroringOn(!controls.mirroringOn)}
-        />
-
-        <CircleToggle
-          icon={Contrast}
-          on={controls.darkMode}
-          label="Dark Mode"
-          onClick={() => controls.setDarkMode(!controls.darkMode)}
-        />
-        <CircleToggle
-          icon={Camera}
-          on={false}
-          label="Screenshot"
-          onClick={() => {
-            onClose();
-            // Let Control Center disappear before capturing.
-            window.setTimeout(() => void takeScreenshot(), 150);
-          }}
-        />
-        <div className="col-span-2">
-          <PillToggle
-            icon={Moon}
-            on={controls.focusOn}
-            label="Focus"
-            status={controls.focusOn ? "Do Not Disturb" : undefined}
-            activeColor="#5e5ce6"
-            onToggle={() => controls.setFocusOn(!controls.focusOn)}
-          />
-        </div>
-
-        <GlassSlider
-          label="Display"
-          value={controls.brightness}
-          min={MIN_BRIGHTNESS}
-          onChange={controls.setBrightness}
-          startIcon={SunDim}
-          endIcon={Sun}
-        />
-        <GlassSlider
-          label="Sound"
-          value={controls.volume}
-          min={0}
-          onChange={controls.setVolume}
-          startIcon={controls.volume === 0 ? VolumeX : Volume}
-          endIcon={Volume2}
-          accessory={
-            <button
-              onClick={() => setAirplayOn(!airplayOn)}
-              aria-pressed={airplayOn}
-              aria-label="AirPlay"
-              className={`ml-1 flex size-[34px] items-center justify-center rounded-full ${
-                airplayOn ? "bg-white text-[#0a82ff]" : "bg-white/20"
-              }`}
-            >
-              <Airplay className="size-[16px]" strokeWidth={2.25} />
-            </button>
-          }
-        />
-      </div>
-
-      <div className="mt-3 flex justify-center">
-        <button
-          onClick={() => {
-            launchApp("settings");
-            onClose();
-          }}
-          className={`${glass} rounded-full px-3.5 py-1 text-[13px] font-medium`}
-        >
-          Edit Controls
-        </button>
       </div>
     </div>
   );
@@ -566,7 +576,9 @@ function CalendarWidget({ now }: { now: Date }) {
     const firstWeekday = (new Date(year, month, 1).getDay() + 6) % 7;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     return {
-      monthName: now.toLocaleDateString("en-GB", { month: "long" }).toUpperCase(),
+      monthName: now
+        .toLocaleDateString("en-GB", { month: "long" })
+        .toUpperCase(),
       blanks: firstWeekday,
       days: Array.from({ length: daysInMonth }, (_, i) => i + 1),
     };
@@ -574,7 +586,9 @@ function CalendarWidget({ now }: { now: Date }) {
 
   return (
     <div className="rounded-[18px] bg-white/70 p-3.5 dark:bg-[#2c2c2e]/70 dark:text-white shadow-[0_0_0_0.5px_rgba(0,0,0,0.08)] backdrop-blur-3xl">
-      <div className="mb-2 text-[11px] font-bold text-[#f2263f]">{monthName}</div>
+      <div className="mb-2 text-[11px] font-bold text-[#f2263f]">
+        {monthName}
+      </div>
       <div className="grid grid-cols-7 gap-y-1 text-center text-[11px]">
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
           <span key={i} className="font-semibold opacity-45">
@@ -588,9 +602,7 @@ function CalendarWidget({ now }: { now: Date }) {
           <span
             key={day}
             className={`mx-auto flex size-[20px] items-center justify-center rounded-full ${
-              day === now.getDate()
-                ? "bg-[#f2263f] font-bold text-white"
-                : ""
+              day === now.getDate() ? "bg-[#f2263f] font-bold text-white" : ""
             }`}
           >
             {day}

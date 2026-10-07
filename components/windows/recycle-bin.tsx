@@ -6,7 +6,6 @@ export function RecycleBin() {
   return (
     <div className="flex h-full flex-col">
       <div className="mac-toolbar">
-        <Trash2 size={17} />
         <h2><span className="desktop-only">Trash</span><span className="mobile-only">Recently Deleted</span></h2>
         <button className="mac-button" disabled>
           Empty

@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import type { WindowState, DesktopIcon } from "./types";
-import { getApp, getDesktopIconsFromRegistry } from "./app-registry";
+import {
+  getApp,
+  getDesktopIconsFromRegistry,
+  isAppInstalled,
+} from "./app-registry";
 import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 
 interface WindowManagerState {
@@ -107,10 +111,13 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           parsed.desktopLayoutVersion === DESKTOP_LAYOUT_VERSION
             ? parsed.desktopIcons
             : DEFAULT_ICONS;
-        // Drop windows of apps that no longer exist in the registry.
+        // Drop windows of apps that no longer exist in the registry or
+        // were uninstalled in the App Store.
         const savedWindows = Array.isArray(parsed.windows)
           ? (parsed.windows as WindowState[]).filter(
-              (window) => !window.appId || getApp(window.appId),
+              (window) =>
+                !window.appId ||
+                (getApp(window.appId) && isAppInstalled(window.appId)),
             )
           : [];
         const nextProcessId = savedWindows.reduce(

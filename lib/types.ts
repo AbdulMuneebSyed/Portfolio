@@ -32,7 +32,14 @@ export interface AppRegistryEntry {
   title: string;
   icon: string | any;
   component: string;
-  category: "System" | "Portfolio" | "Productivity" | "Utilities" | "Games";
+  category:
+    | "System"
+    | "Portfolio"
+    | "Productivity"
+    | "Utilities"
+    | "Games"
+    | "Creativity"
+    | "Developer Tools";
   description: string;
   defaultPosition?: { x: number; y: number };
   defaultSize: { width: number; height: number };
@@ -43,4 +50,8 @@ export interface AppRegistryEntry {
   launchAliases?: string[];
   externalUrl?: string;
   metadata?: Record<string, any>;
+  // Installable apps can be added and removed in the App Store; they start
+  // installed only when `preinstalled` is true.
+  installable?: boolean;
+  preinstalled?: boolean;
 }

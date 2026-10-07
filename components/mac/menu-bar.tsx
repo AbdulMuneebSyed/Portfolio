@@ -91,7 +91,7 @@ export function MenuBar({
   const statusItemProps = (id: string, label: string) => ({
     "aria-label": label,
     "aria-expanded": openMenuId === id,
-    className: `my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] px-[7px] ${
+    className: `my-[2px] flex h-[calc(100%-4px)] items-center rounded-[5px] px-[7px] ${
       openMenuId === id ? "bg-white/25" : ""
     }`,
     onMouseDown: (e: React.MouseEvent) => {
@@ -307,7 +307,7 @@ export function MenuBar({
   return (
     <div
       ref={barRef}
-      className="mac-menubar font-mac fixed inset-x-0 top-0 z-[9500] flex select-none items-center justify-between bg-black/20 px-2.5 text-[13.5px] text-white backdrop-blur-3xl backdrop-saturate-150 [text-shadow:0_0_1px_rgba(0,0,0,0.25)]"
+      className="mac-menubar font-mac fixed inset-x-0 top-0 z-[9500] flex select-none items-center justify-between bg-black/20 px-2.5 text-[13px] text-white backdrop-blur-3xl backdrop-saturate-150 [text-shadow:0_0_1px_rgba(0,0,0,0.25)]"
       style={{ height: MENU_BAR_HEIGHT }}
     >
       <div className="flex h-full items-center">
@@ -318,7 +318,7 @@ export function MenuBar({
           >
             <button
               data-menu-id={menu.id}
-              className={`my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] ${
+              className={`my-[2px] flex h-[calc(100%-4px)] items-center rounded-[5px] ${
                 menu.id === "system" ? "px-3" : "px-[9px]"
               } ${menu.bold ? "font-bold" : "font-medium"} ${
                 openMenuId === menu.id ? "bg-white/25" : ""
@@ -385,7 +385,7 @@ export function MenuBar({
           )}
         </div>
         <button
-          className="my-[3px] flex h-[calc(100%-6px)] items-center rounded-[5px] px-[7px]"
+          className="my-[2px] flex h-[calc(100%-4px)] items-center rounded-[5px] px-[7px]"
           onClick={() => {
             closeMenus();
             onOpenSpotlight();
@@ -401,7 +401,7 @@ export function MenuBar({
         </div>
         <button
           {...statusItemProps("clock", "Notification Center")}
-          className={`menu-clock my-[3px] flex h-[calc(100%-6px)] items-center whitespace-nowrap rounded-[5px] px-[7px] tabular-nums ${
+          className={`menu-clock my-[2px] flex h-[calc(100%-4px)] items-center whitespace-nowrap rounded-[5px] px-[7px] tabular-nums ${
             openMenuId === "clock" ? "bg-white/25" : ""
           }`}
         >
@@ -424,8 +424,11 @@ export function MenuBar({
               <motion.div
                 key="control-center"
                 ref={panelRef}
-                initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                // No fade on the way in: while a parent's opacity animates,
+                // Chrome's backdrop blur can't see the desktop, and it can
+                // stay broken after the animation ends.
+                initial={{ y: -6, scale: 0.98 }}
+                animate={{ y: 0, scale: 1 }}
                 exit={{
                   opacity: 0,
                   y: -6,
@@ -497,7 +500,7 @@ function MenuDropdown({
           buttons[next]?.focus();
         } else if (e.key === "Escape") onClose();
       }}
-      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13.5px] font-normal text-[#1d1d1f] dark:border-white/10 dark:bg-[#2c2c2e]/95 dark:text-[#f5f5f7] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
+      className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13px] font-normal text-[#1d1d1f] dark:border-white/10 dark:bg-[#2c2c2e]/95 dark:text-[#f5f5f7] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
     >
       {items.map((item, index) =>
         "separator" in item ? (

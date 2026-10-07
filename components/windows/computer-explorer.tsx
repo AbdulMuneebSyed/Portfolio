@@ -18,7 +18,9 @@ import {
   Gamepad2,
 } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
+import { FinderLabel } from "@/components/finder-label";
 import { getLaunchableApps } from "@/lib/app-registry";
+import { useInstalledApps } from "@/lib/app-store/installed";
 import { launchApp } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
 
@@ -87,15 +89,8 @@ const library: Record<string, Item[]> = {
       song: "regrets.mp3",
     },
   ],
-  Games: [
-    { id: "snake", name: "Snake", kind: "Application", app: "snake" },
-    {
-      id: "minesweeper",
-      name: "Minesweeper",
-      kind: "Application",
-      app: "minesweeper",
-    },
-  ],
+  // Filled from the games installed in the App Store.
+  Games: [],
   "Macintosh HD": [folder("Home"), folder("Applications")],
 };
 const locations = [
@@ -122,8 +117,13 @@ export function ComputerExplorer({
   const current = history[cursor];
   const label = (name: string) =>
     name === "Desktop" ? (
-      <><span className="desktop-only">Desktop</span><span className="mobile-only">Portfolio</span></>
-    ) : name;
+      <>
+        <span className="desktop-only">Desktop</span>
+        <span className="mobile-only">Portfolio</span>
+      </>
+    ) : (
+      name
+    );
   useEffect(() => {
     if (initialFolder) {
       setHistory([initialFolder]);
@@ -143,17 +143,21 @@ export function ComputerExplorer({
     setQuery("");
     setSelected(null);
   };
+  // Applications and Games follow what's installed in the App Store.
+  useInstalledApps((s) => s.overrides);
+  const asItems = (apps: ReturnType<typeof getLaunchableApps>): Item[] =>
+    apps.map((app) => ({
+      id: app.id,
+      name: app.title,
+      kind: "Application",
+      app: app.id,
+    }));
   const items: Item[] =
     current === "Applications"
-      ? getLaunchableApps()
-          .filter((app) => !app.externalUrl)
-          .map((app) => ({
-            id: app.id,
-            name: app.title,
-            kind: "Application",
-            app: app.id,
-          }))
-      : (library[current] ?? []);
+      ? asItems(getLaunchableApps().filter((app) => !app.externalUrl))
+      : current === "Games"
+        ? asItems(getLaunchableApps().filter((app) => app.category === "Games"))
+        : (library[current] ?? []);
   const filtered = items
     .filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => (sortAsc ? 1 : -1) * a.name.localeCompare(b.name));
@@ -329,7 +333,13 @@ export function ComputerExplorer({
                   }}
                 >
                   <span className="finder-file-art">{art(item, 64)}</span>
-                  <span className="finder-file-name">{label(item.name)}</span>
+                  <span className="finder-file-name">
+                    {item.name === "Desktop" ? (
+                      label(item.name)
+                    ) : (
+                      <FinderLabel name={item.name} />
+                    )}
+                  </span>
                 </button>
               ))}
             </div>

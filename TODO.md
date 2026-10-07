@@ -68,6 +68,18 @@ Browser checks at 390 × 844 also passed for Calculator, Safari, Music, About, P
 3. Product decisions for the owner: keep the click sound opt-in? Auto-start the tour on first visit (`components/desktop.tsx`)?
 4. Note: running `npm run build` while `npm run dev` is running overwrites `.next` and leaves the dev server serving 404 CSS. Stop dev before building.
 
+## App Store (2026-10-07)
+
+Plan: `docs/superpowers/plans/2026-10-07-app-store.md`.
+
+- `components/windows/app-store/` — window (sidebar, history stack, search, scroll-aware toolbar, compact layout under 640px of content width), tab pages, product page, live previews, generated artwork and mock screens. Loaded with `next/dynamic` on first open.
+- `lib/app-store/` — `catalog.ts` (every item), `editorial.ts` (what each tab shows), `installed.ts` (install overrides and the Updates version, saved as `muneebos-app-store-v1`), `actions.ts` (Get, Delete, Update, gift codes), `version.ts`.
+- Registry entries can be `installable` (and `preinstalled`). `isAppInstalled()` gates `getLaunchableApps()`, so Finder, Spotlight and Terminal follow automatically; `launchApp()` sends an uninstalled app to its store page; saved windows of uninstalled apps are dropped on load.
+- Twelve mini-apps in `components/windows/mini/`, rules in `lib/games/` (covered by tests). Each takes `preview` for the store's live screenshots: no timers, input or sound.
+- Project and job data moved to `lib/portfolio-data.ts` (About, Projects and the store share it).
+- Screenshots: `public/app-store/shots/` (headless Chrome, 2026-10-07). airesumate.com no longer resolves and hackrevolution.in blocks automated browsers, so those use drawn screens. **`portfolio-muneeb.vercel.app` currently serves someone else's portfolio** — the README "Live" link needs checking.
+- Checked in the browser at 1440×900 (light and dark) and 375×812: every tab, product pages, Get/Open/Delete, Update and Dock badge, gift codes, search, Terminal install/open, Spotlight "Get in the App Store", `?app=` links, all twelve mini-apps rendering, 2048 and Tic-Tac-Toe play. `next build` passes; first-load JS for `/` is 279 kB.
+
 ## Important implementation notes
 
 - Keep the registry as the single launch source: use `launchApp()` instead of opening windows directly unless an app needs a file-specific preview.

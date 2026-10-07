@@ -4,7 +4,13 @@ import type React from "react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { launchApp } from "@/lib/launch-app";
-import { findAppByAlias, getLaunchableApps } from "@/lib/app-registry";
+import {
+  APP_REGISTRY,
+  findAppByAlias,
+  getLaunchableApps,
+  isAppInstalled,
+} from "@/lib/app-registry";
+import { installApp, uninstallApp } from "@/lib/app-store/actions";
 
 type TerminalLine = {
   id: string;
@@ -56,8 +62,44 @@ export function TerminalWindow() {
       return;
     }
 
+    if (!isAppInstalled(app.id)) {
+      addLines([
+        {
+          kind: "error",
+          text: `${app.title} isn't installed. Run 'install ${key}' or get it in the App Store.`,
+        },
+      ]);
+      return;
+    }
+
     launchApp(app.id);
     addLines([{ kind: "output", text: `Opening ${app.title}...` }]);
+  };
+
+  // install / uninstall: App Store apps from the command line.
+  const changeInstall = (key: string, install: boolean) => {
+    const app = findAppByAlias(key);
+    if (!app) {
+      addLines([{ kind: "error", text: `No app named '${key}'. Run 'store' to list them.` }]);
+      return;
+    }
+    if (!app.installable) {
+      addLines([{ kind: "error", text: `${app.title} is part of MuneebOS and can't be ${install ? "installed" : "removed"}.` }]);
+      return;
+    }
+    if (isAppInstalled(app.id) === install) {
+      addLines([{ kind: "output", text: `${app.title} is already ${install ? "installed" : "uninstalled"}.` }]);
+      return;
+    }
+    if (install) {
+      addLines([{ kind: "output", text: `==> Downloading ${app.title}...` }]);
+      void installApp(app.id).then(() =>
+        addLines([{ kind: "output", text: `==> ${app.title} installed. Run 'open ${key}'.` }]),
+      );
+    } else {
+      uninstallApp(app.id);
+      addLines([{ kind: "output", text: `Removed ${app.title}.` }]);
+    }
   };
 
   const runCommand = (rawCommand: string) => {
@@ -82,6 +124,10 @@ export function TerminalWindow() {
         {
           kind: "output",
           text: "  about, projects, skills, contact, github, apps, top, date, echo, open, clear",
+        },
+        {
+          kind: "output",
+          text: "  store, install <app>, uninstall <app>   (App Store apps)",
         },
         {
           kind: "output",
@@ -168,7 +214,32 @@ export function TerminalWindow() {
     }
 
     if (normalizedName === "open") {
-      openApp(args[0]?.toLowerCase() ?? "");
+      openApp(args.join(" ").toLowerCase());
+      return;
+    }
+
+    // "brew install x" works too.
+    const [verb, rest] =
+      normalizedName === "brew" ? [args[0]?.toLowerCase(), args.slice(1)] : [normalizedName, args];
+    if (verb === "install" || verb === "uninstall") {
+      const key = rest.join(" ").toLowerCase();
+      if (!key) {
+        addLines([{ kind: "error", text: `usage: ${verb} <app>` }]);
+        return;
+      }
+      changeInstall(key, verb === "install");
+      return;
+    }
+
+    if (normalizedName === "store" || normalizedName === "appstore") {
+      addLines([
+        { kind: "output", text: "App Store apps (install <name> / uninstall <name>):" },
+        ...APP_REGISTRY.filter((app) => app.installable).map((app) => ({
+          kind: "output" as const,
+          text: `  ${(app.launchAliases?.[0] ?? app.id).padEnd(16)} ${isAppInstalled(app.id) ? "✓ installed" : "  –"}  ${app.title}`,
+        })),
+      ]);
+      launchApp("app-store");
       return;
     }
 

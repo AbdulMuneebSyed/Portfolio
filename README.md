@@ -48,12 +48,29 @@ Control Center, and windows they can drag, zoom, and minimize.
 | Resume | PDF viewer with download |
 | Contact | Message form (saved to Supabase), email, phone, socials |
 | GitHub | Live public activity and repositories |
-| Terminal | `help`, `about`, `projects`, `open <app>`, … |
+| App Store | My projects, jobs and skills presented like the Mac App Store: Discover, Arcade, Create, Work, Play, Develop, Categories, Updates, Account, product pages and search |
+| Terminal | `help`, `about`, `projects`, `open <app>`, `install <app>`, `uninstall <app>`, `store`, … |
 | Safari | Links to products I've worked on |
-| Finder | Folders, music, and games (Minesweeper, Snake) |
+| Finder | Folders, music, and the games you've installed |
 | System Settings | Appearance, wallpaper, display, sound, accessibility, keyboard shortcuts |
 | Feedback | Reviews and bug reports (saved to Supabase) |
 | Trash, Activity Monitor, Calculator, Music | Small desktop utilities |
+
+#### App Store apps
+
+Fourteen apps start uninstalled. **Get** one in the App Store (or run
+`install <name>` in Terminal) and it joins Finder › Applications,
+Spotlight, the Dock while open, and the phone Home Screen. Remove it again
+from its product page or Account › My Apps.
+
+- **Games:** 2048, Tic-Tac-Toe (minimax computer), Memory, Breakout, Word
+  Guess, Simon, Snake, Minesweeper
+- **Tools:** Typing Test, Pomodoro, Sketch, Piano, Color Lab, JSON Formatter
+
+Product pages use real captures of the live sites where they load
+(GetMarks, Capco-CS), drawn screens where they don't, and live, scaled-down
+renders of the apps themselves. Share links (`/?app=<id>`) open a product
+page after unlock. Gift codes `ARCADE` and `HIREME` install sets of apps.
 
 ### Responsive behavior
 
