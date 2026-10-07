@@ -333,3 +333,136 @@ test("every project has an App Store page; the offered update matches MuneebOS's
   for (const p of projects) assert.equal(getStoreItem(p.id)?.kind, "project", p.id);
   assert.equal(getStoreItem("muneebos").versions[0].version, MUNEEBOS_VERSION);
 });
+
+test("a two-finger swipe is reported once; mouse-wheel notches and sideways drift are not", () => {
+  const { createSwipeDetector } = load("lib/trackpad-swipe.ts");
+  const feed = (detect, samples, start = 0) =>
+    samples.map((s, i) => detect({ deltaMode: 0, deltaX: 0, deltaY: 0, time: start + i * 16, ...s })).filter(Boolean);
+  // Fingers up (natural scrolling): many small positive deltaY, then momentum.
+  let detect = createSwipeDetector();
+  assert.deepEqual(feed(detect, Array(30).fill({ deltaY: 12 })), ["up"]);
+  // A new gesture after a pause is reported again.
+  assert.deepEqual(feed(detect, Array(20).fill({ deltaY: -14 }), 5000), ["down"]);
+  // One mouse-wheel notch, or line-mode scrolling, does nothing.
+  detect = createSwipeDetector();
+  assert.deepEqual(feed(detect, [{ deltaY: 120 }]), []);
+  assert.deepEqual(feed(detect, Array(10).fill({ deltaY: 40, deltaMode: 1 }), 1000), []);
+  // Mostly diagonal movement is ambiguous and ignored; clear sideways is left/right.
+  detect = createSwipeDetector();
+  assert.deepEqual(feed(detect, Array(20).fill({ deltaY: 10, deltaX: 9 })), []);
+  assert.deepEqual(feed(detect, Array(20).fill({ deltaX: -15 }), 5000), ["right"]);
+});
+
+// ---------- Desktops (Spaces), folders and Trash ----------
+test("new windows open on the current desktop; activating one elsewhere switches there", () => {
+  const s = () => wm.getState();
+  const a = s().addSpace();
+  launchApp("about");
+  s().switchSpace(a);
+  launchApp("contact");
+  assert.equal(s().windows.find((w) => w.id === "contact").spaceId, a);
+  assert.equal(s().activeWindowId, "contact");
+  s().restoreWindow("about");
+  assert.equal(s().activeSpaceId, "space-1");
+  s().switchSpace(a);
+  assert.equal(s().activeWindowId, "contact", "the desktop's front window becomes active");
+});
+
+test("removing a desktop moves its windows and files to its neighbour; at most six", () => {
+  const s = () => wm.getState();
+  const two = s().addSpace();
+  s().switchSpace(two);
+  launchApp("contact");
+  const folder = s().createFolder();
+  s().removeSpace(two);
+  assert.deepEqual(s().spaces, ["space-1"]);
+  assert.equal(s().activeSpaceId, "space-1");
+  assert.equal(s().windows.find((w) => w.id === "contact").spaceId, "space-1");
+  assert.equal(s().desktopIcons.find((i) => i.id === folder).spaceId, "space-1");
+  s().removeSpace("space-1");
+  assert.deepEqual(s().spaces, ["space-1"], "the last desktop can't be removed");
+  for (let i = 0; i < 10; i++) s().addSpace();
+  assert.equal(s().spaces.length, 6);
+});
+
+test("folders get unique names, rename safely, and go to the Trash and back", () => {
+  const s = () => wm.getState();
+  const a = s().createFolder();
+  const b = s().createFolder();
+  const title = (id) => s().desktopIcons.find((i) => i.id === id)?.title;
+  assert.equal(title(a), "untitled folder");
+  assert.equal(title(b), "untitled folder 2");
+  assert.equal(s().renamingIconId, b, "a new folder starts in rename mode");
+  s().renameIcon(b, "  Designs  ");
+  assert.equal(title(b), "Designs");
+  s().renameIcon(a, "Designs");
+  assert.equal(title(a), "Designs 2");
+  s().renameIcon(a, "   ");
+  assert.equal(title(a), "Designs 2", "a blank name is ignored");
+  // Folders on the same desktop never share a grid cell.
+  const pa = s().desktopIcons.find((i) => i.id === a).position;
+  const pb = s().desktopIcons.find((i) => i.id === b).position;
+  assert.notDeepEqual(pa, pb);
+
+  s().trashIcons([a, "about"]);
+  assert.ok(!s().desktopIcons.some((i) => i.id === a));
+  assert.ok(s().desktopIcons.some((i) => i.id === "about"), "portfolio files can't be trashed");
+  assert.deepEqual(s().trash.map((i) => i.id), [a]);
+  s().putBack([a]);
+  assert.ok(s().desktopIcons.some((i) => i.id === a));
+  s().trashIcons([a]);
+  s().emptyTrash();
+  assert.deepEqual(s().trash, []);
+});
+
+test("files move between desktops and everything survives a reload", () => {
+  const s = () => wm.getState();
+  const two = s().addSpace();
+  const folder = s().createFolder();
+  s().moveIconsToSpace([folder, "resume"], two);
+  launchApp("about");
+  s().moveWindowToSpace("about", two);
+  s().switchSpace(two);
+  wm.setState(initialWindows, true);
+  s().loadState();
+  assert.deepEqual(s().spaces, ["space-1", two]);
+  assert.equal(s().activeSpaceId, two);
+  assert.equal(s().desktopIcons.find((i) => i.id === folder).spaceId, two);
+  assert.equal(s().desktopIcons.find((i) => i.id === "resume").spaceId, two);
+  assert.equal(s().windows.find((w) => w.id === "about").spaceId, two);
+});
+
+test("every iPhone app setting names a real app, and every iOS icon file exists", () => {
+  const { PHONE_APPS, phoneTitle } = load("lib/phone.ts");
+  const { getApp } = load("lib/app-registry.ts");
+  for (const [id, spec] of Object.entries(PHONE_APPS)) {
+    assert.ok(getApp(id), `${id} is not in the app registry`);
+    if (spec.icon)
+      assert.ok(
+        fs.existsSync(path.resolve(__dirname, "..", "public/icons/ios", `${spec.icon}.png`)),
+        `missing icon ${spec.icon}.png`,
+      );
+  }
+  assert.equal(phoneTitle("computer", "Finder"), "Files");
+  assert.equal(phoneTitle("about", "About Me"), "About Me");
+});
+
+test("the phone breakpoint in lib/phone.ts matches every iPhone @media rule in the CSS", () => {
+  const { PHONE_QUERY } = load("lib/phone.ts");
+  const css = ["app/globals.css", "app/app-store.css"]
+    .map((file) => fs.readFileSync(path.resolve(__dirname, "..", file), "utf8"))
+    .join("\n");
+  assert.ok(css.includes(`@media ${PHONE_QUERY} {`), "globals.css has no rule for PHONE_QUERY");
+});
+
+test("the App Switcher puts the newest app in the middle and older ones to its left", () => {
+  const { switcherSlots } = load("lib/phone.ts");
+  const slots = switcherSlots(3, 393, 852, 0);
+  assert.equal(slots[2].cx, 393 / 2);
+  assert.ok(slots[1].cx < slots[2].cx && slots[0].cx < slots[1].cx);
+  // Cards never overlap: spacing is wider than a card.
+  assert.ok(slots[2].cx - slots[1].cx > slots[2].maxWidth);
+  // Dragging shifts every card by the same amount.
+  const panned = switcherSlots(3, 393, 852, 120);
+  panned.forEach((slot, i) => assert.equal(slot.cx - slots[i].cx, 120));
+});

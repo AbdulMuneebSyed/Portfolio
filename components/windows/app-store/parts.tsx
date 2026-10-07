@@ -3,6 +3,7 @@
 import type React from "react";
 import { ChevronRight, CloudDownload } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
+import { useAppName } from "@/lib/phone";
 import { getApp, isAppInstalled } from "@/lib/app-registry";
 import { launchApp } from "@/lib/launch-app";
 import { getStoreItem, type StoreItem } from "@/lib/app-store/catalog";
@@ -125,6 +126,7 @@ export function SectionHeader({
 
 export function AppRow({ item }: { item: StoreItem }) {
   const nav = useStoreNav();
+  const appName = useAppName();
   return (
     <div className="store-row">
       <button
@@ -134,7 +136,7 @@ export function AppRow({ item }: { item: StoreItem }) {
       >
         <AppIcon appId={item.id} size={64} />
         <span className="min-w-0">
-          <strong>{item.name}</strong>
+          <strong>{appName(item.id, item.name)}</strong>
           <small>{item.subtitle}</small>
         </span>
       </button>
@@ -234,6 +236,7 @@ export function Stories({ stories }: { stories: Feature[] }) {
 // An installed-apps tile for Account › My Apps.
 export function AppTile({ item, installedLabel }: { item: StoreItem; installedLabel: string }) {
   const nav = useStoreNav();
+  const appName = useAppName();
   const { action } = useItemAction(item);
   const app = item.appId ? getApp(item.appId) : undefined;
   return (
@@ -242,7 +245,7 @@ export function AppTile({ item, installedLabel }: { item: StoreItem; installedLa
         <AppIcon appId={item.id} size={112} />
       </button>
       <div className="min-w-0">
-        <strong>{item.name}</strong>
+        <strong>{appName(item.id, item.name)}</strong>
         <small>{app?.installable ? installedLabel : "Built in"}</small>
         {action === "get" ? (
           <button

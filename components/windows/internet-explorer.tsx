@@ -588,7 +588,9 @@ export function InternetExplorer({ url: requestedUrl, at }: { url?: string; at?:
                 />
                 <p>
                   Every website opens in a sandboxed frame, so it can’t read
-                  cookies or data from the rest of this Mac.
+                  cookies or data from the rest of this{" "}
+                  <span className="desktop-only">Mac</span>
+                  <span className="mobile-only">iPhone</span>.
                 </p>
               </div>
               <div className="safari-privacy-stats">

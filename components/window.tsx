@@ -8,12 +8,13 @@ import {
   type PointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Minus, Maximize2, ChevronLeft } from "lucide-react";
+import { X, Minus, Maximize2 } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
 import { useSystemControls } from "@/lib/system-controls";
 import { DOCK_RESERVED_HEIGHT, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import type { WindowState } from "@/lib/types";
-import { mobileAppTitle } from "@/lib/mobile-app-titles";
+import { launchRect, phoneApp, usePhone, useSwitcherPan } from "@/lib/phone";
+import { spaceTargetAt, useMissionControl } from "@/lib/mission-control";
 
 // Where Mission Control places this window: a centre point and a box the
 // scaled-down window must fit in.
@@ -53,13 +54,14 @@ export function Window({
   children,
   mission,
   onMissionSelect,
-  onHome,
+  offSpace = false,
 }: {
   window: WindowState;
   children: ReactNode;
   mission?: MissionSlot | null;
   onMissionSelect?: () => void;
-  onHome?: () => void;
+  // On another desktop: kept mounted (so the app keeps its state) but hidden.
+  offSpace?: boolean;
 }) {
   const wm = useWindowManager();
   const reduceMotion = useSystemControls((s) => s.reduceMotion);
@@ -73,7 +75,11 @@ export function Window({
     setTileZoneState(zone);
   };
   const untiled = useRef<{ width: number; height: number } | null>(null);
-  const [viewport, setViewport] = useState({ width: 1200, height: 800 });
+  const [viewport, setViewport] = useState(() =>
+    typeof window === "undefined"
+      ? { width: 1200, height: 800 }
+      : { width: innerWidth, height: innerHeight },
+  );
   const gesture = useRef<{
     x: number;
     y: number;
@@ -84,6 +90,7 @@ export function Window({
     edge: string;
   } | null>(null);
   const frame = useRef<HTMLDivElement>(null);
+  const edgeSwipe = useRef<{ x: number; y: number } | null>(null);
   useEffect(() => {
     const resize = () =>
       setViewport({ width: innerWidth, height: innerHeight });
@@ -91,10 +98,10 @@ export function Window({
     addEventListener("resize", resize);
     return () => removeEventListener("resize", resize);
   }, []);
-  const compact =
-    viewport.width < 700 || (viewport.width < 950 && viewport.height < 500);
+  // On a phone every app fills the screen, under the status bar.
+  const compact = usePhone();
   const availableHeight = compact
-    ? Math.max(180, viewport.height - 44)
+    ? viewport.height
     : Math.max(180, viewport.height - MENU_BAR_HEIGHT - DOCK_RESERVED_HEIGHT);
   const width = Math.min(win.size.width, viewport.width - 16);
   const height = Math.min(win.size.height, availableHeight - 8);
@@ -127,7 +134,9 @@ export function Window({
       height: availableHeight - 8,
     };
   };
-  const hidden = win.isMinimized || (compact && !win.isActive);
+  // In Mission Control (the App Switcher on a phone) every card shows.
+  const hidden =
+    !mission && (win.isMinimized || offSpace || (compact && !win.isActive));
   useEffect(() => {
     if (hidden) frame.current?.setAttribute("inert", "");
     else frame.current?.removeAttribute("inert");
@@ -249,14 +258,59 @@ export function Window({
   // The frame as laid out, used to aim the minimize and Mission Control moves.
   const frameBox = {
     x: expanded ? 0 : left,
-    y: expanded ? (compact ? 44 : MENU_BAR_HEIGHT) : top,
+    y: expanded ? (compact ? 0 : MENU_BAR_HEIGHT) : top,
     width: expanded ? viewport.width : width,
     height: expanded ? availableHeight : height,
   };
   const centerX = frameBox.x + frameBox.width / 2;
   const centerY = frameBox.y + frameBox.height / 2;
+  // A phone shows one app at a time. Remember whether this one was on
+  // screen, so going Home animates it back into its icon but no other.
+  const onScreen = useRef(false);
+  if (compact && !win.isMinimized) onScreen.current = win.isActive;
+  const closingOnPhone = win.isMinimized && onScreen.current;
+
+  // On a phone, apps zoom out of their Home Screen icon and back into it.
+  const appId = win.appId ?? win.id;
+  const iconBox = compact ? launchRect(appId) : null;
+  // Scaled to the icon's width and clipped to a square, so the app grows out
+  // of the icon's own shape.
+  const fullClip = "inset(0px 0px 0px 0px round 0px)";
+  const iconMorph = (box: DOMRect | null) => {
+    if (!box) return { x: 0, y: 40, scale: 0.86, clipPath: fullClip };
+    const scale = box.width / frameBox.width;
+    const crop = Math.max(0, (frameBox.height - frameBox.width) / 2);
+    const radius = (box.width * 0.2237) / scale;
+    return {
+      x: box.left + box.width / 2 - centerX,
+      y: box.top + box.height / 2 - centerY,
+      scale,
+      clipPath: `inset(${crop}px 0px ${crop}px 0px round ${radius}px)`,
+    };
+  };
   let target;
-  if (win.isMinimized) {
+  if (compact && mission) {
+    const scale = mission.maxWidth / frameBox.width;
+    target = {
+      opacity: 1,
+      display: "flex",
+      x: mission.cx - centerX,
+      y: mission.cy - centerY,
+      scale,
+      clipPath: `inset(0px 0px 0px 0px round ${38 / scale}px)`,
+      transition: { type: "spring", stiffness: 340, damping: 34 },
+    };
+  } else if (compact && win.isMinimized) {
+    target = {
+      opacity: 0,
+      ...iconMorph(iconBox),
+      transitionEnd: { display: "none" },
+      transition: {
+        default: { type: "spring", stiffness: 380, damping: 38 },
+        opacity: { duration: 0.2, delay: 0.12 },
+      },
+    };
+  } else if (win.isMinimized) {
     // Scale effect: the window shrinks into its Dock icon.
     const icon =
       typeof document === "undefined"
@@ -286,6 +340,19 @@ export function Window({
         mission.maxHeight / frameBox.height,
       ),
       transition: { type: "spring", stiffness: 260, damping: 30 },
+    };
+  } else if (compact) {
+    target = {
+      opacity: 1,
+      display: "flex",
+      x: 0,
+      y: 0,
+      scale: 1,
+      clipPath: fullClip,
+      transition: {
+        default: { type: "spring", stiffness: 300, damping: 32 },
+        opacity: { duration: 0.12 },
+      },
     };
   } else {
     target = {
@@ -359,13 +426,19 @@ export function Window({
         data-app={win.appId ?? win.id}
         data-active={win.isActive}
         data-chrome={chrome}
-        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        data-phone-sidebar={phoneApp(appId).sidebar ?? "chips"}
+        data-phone-dark={phoneApp(appId).dark || undefined}
+        initial={
+          compact
+            ? { opacity: 0, ...iconMorph(iconBox) }
+            : { opacity: 0, scale: 0.97, y: 8 }
+        }
         animate={target}
         exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
         className={`mac-window absolute flex flex-col overflow-hidden ${expanded ? "rounded-none" : "rounded-[16px]"}`}
         style={{
           left: expanded ? 0 : left,
-          top: expanded ? (compact ? 44 : MENU_BAR_HEIGHT) : top,
+          top: expanded ? (compact ? 0 : MENU_BAR_HEIGHT) : top,
           width: expanded ? viewport.width : width,
           height: expanded ? availableHeight : height,
           zIndex: win.zIndex,
@@ -374,20 +447,34 @@ export function Window({
               ? `left 0.3s ${FRAME_EASE}, top 0.3s ${FRAME_EASE}, width 0.3s ${FRAME_EASE}, height 0.3s ${FRAME_EASE}`
               : undefined,
           pointerEvents: hidden ? "none" : undefined,
-          visibility: compact && !win.isActive ? "hidden" : undefined,
+          // A phone shows one app at a time; one going Home stays visible
+          // while it zooms back into its icon.
+          visibility:
+            offSpace || (compact && !win.isActive && !closingOnPhone && !mission)
+              ? "hidden"
+              : undefined,
         }}
-        onPointerDownCapture={() => {
+        onPointerDownCapture={(e: React.PointerEvent) => {
           if (!win.isActive) wm.setActiveWindow(win.id);
+          // iPhone: a swipe from the left edge goes back a page.
+          edgeSwipe.current =
+            compact && !mission && e.clientX < 24
+              ? { x: e.clientX, y: e.clientY }
+              : null;
+        }}
+        onPointerUpCapture={(e: React.PointerEvent) => {
+          const start = edgeSwipe.current;
+          edgeSwipe.current = null;
+          if (!start) return;
+          const dx = e.clientX - start.x;
+          if (dx < 70 || Math.abs(e.clientY - start.y) > dx) return;
+          const back = frame.current?.querySelector<HTMLButtonElement>(
+            '.mac-toolbar [aria-label^="Back"]:not(:disabled)',
+          );
+          if (back && back.offsetParent) back.click();
         }}
         onContextMenu={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        <div className="ios-app-header">
-          <button onClick={onHome} aria-label="Back to Home Screen">
-            <ChevronLeft size={21} /> Home
-          </button>
-          <strong>{mobileAppTitle(win.appId ?? win.id, win.title)}</strong>
-          <span aria-hidden="true" />
-        </div>
         {chrome === "unified" ? (
           trafficLights
         ) : (
@@ -459,14 +546,134 @@ export function Window({
               onPointerCancel={end}
             />
           ))}
-        {mission && (
-          <button
-            className="mission-pick absolute inset-0 z-[60] rounded-[inherit]"
-            aria-label={`Show ${win.title}`}
-            onClick={onMissionSelect}
-          />
-        )}
+        {mission &&
+          (compact ? (
+            <SwitcherCard win={win} onSelect={onMissionSelect} />
+          ) : (
+            <MissionPick win={win} onSelect={onMissionSelect} />
+          ))}
       </motion.div>
     </>
+  );
+}
+
+// Mission Control's click target over a window. Click to pick the window;
+// drag it onto a desktop in the strip to move it there (or onto + for a
+// new desktop).
+function MissionPick({
+  win,
+  onSelect,
+}: {
+  win: WindowState;
+  onSelect?: () => void;
+}) {
+  const press = useRef<{ x: number; y: number; dragging: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const dragging = useMissionControl(
+    (s) => s.drag?.windowId === win.id,
+  );
+
+  const update = (x: number, y: number) =>
+    useMissionControl.getState().setDrag({
+      windowId: win.id,
+      appId: win.appId ?? win.id,
+      title: win.title,
+      x,
+      y,
+      target: spaceTargetAt(x, y),
+    });
+
+  return (
+    <button
+      className="mission-pick absolute inset-0 z-[60] rounded-[inherit]"
+      data-dragging={dragging}
+      aria-label={`Show ${win.title}`}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        press.current = { x: e.clientX, y: e.clientY, dragging: false };
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => {
+        const p = press.current;
+        if (!p) return;
+        if (!p.dragging && Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6)
+          return;
+        p.dragging = true;
+        update(e.clientX, e.clientY);
+      }}
+      onPointerUp={() => {
+        const p = press.current;
+        press.current = null;
+        if (!p?.dragging) return;
+        suppressClick.current = true;
+        const mc = useMissionControl.getState();
+        const target = mc.drag?.target;
+        mc.setDrag(null);
+        const wm = useWindowManager.getState();
+        if (target === "new") {
+          const id = wm.addSpace();
+          if (id) wm.moveWindowToSpace(win.id, id);
+        } else if (target) wm.moveWindowToSpace(win.id, target);
+      }}
+      onPointerCancel={() => {
+        press.current = null;
+        useMissionControl.getState().setDrag(null);
+      }}
+      onClick={() => {
+        if (suppressClick.current) {
+          suppressClick.current = false;
+          return;
+        }
+        onSelect?.();
+      }}
+    />
+  );
+}
+
+// An App Switcher card: tap to open the app, swipe it up to quit it, drag
+// sideways to scroll through the cards.
+function SwitcherCard({
+  win,
+  onSelect,
+}: {
+  win: WindowState;
+  onSelect?: () => void;
+}) {
+  const press = useRef<{ x: number; y: number; pan: number; axis?: "x" | "y" } | null>(null);
+  const moved = useRef(false);
+  return (
+    <button
+      className="mission-pick switcher-card absolute inset-0 z-[60]"
+      aria-label={`Open ${win.title}`}
+      style={{ touchAction: "none" }}
+      onPointerDown={(e) => {
+        press.current = { x: e.clientX, y: e.clientY, pan: useSwitcherPan.getState().pan };
+        moved.current = false;
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => {
+        const p = press.current;
+        if (!p) return;
+        const dx = e.clientX - p.x;
+        const dy = e.clientY - p.y;
+        if (!p.axis && Math.hypot(dx, dy) > 8)
+          p.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+        if (p.axis === "x") useSwitcherPan.getState().setPan(p.pan + dx);
+        if (p.axis) moved.current = true;
+      }}
+      onPointerUp={(e) => {
+        const p = press.current;
+        press.current = null;
+        if (p?.axis === "y" && p.y - e.clientY > 80)
+          useWindowManager.getState().closeWindow(win.id);
+      }}
+      onPointerCancel={() => {
+        press.current = null;
+      }}
+      onClick={() => {
+        if (!moved.current) onSelect?.();
+        moved.current = false;
+      }}
+    />
   );
 }

@@ -80,6 +80,15 @@ Plan: `docs/superpowers/plans/2026-10-07-app-store.md`.
 - Screenshots: `public/app-store/shots/` (headless Chrome, 2026-10-07). airesumate.com no longer resolves and hackrevolution.in blocks automated browsers, so those use drawn screens. **`portfolio-muneeb.vercel.app` currently serves someone else's portfolio** — the README "Live" link needs checking.
 - Checked in the browser at 1440×900 (light and dark) and 375×812: every tab, product pages, Get/Open/Delete, Update and Dock badge, gift codes, search, Terminal install/open, Spotlight "Get in the App Store", `?app=` links, all twelve mini-apps rendering, 2048 and Tic-Tac-Toe play. `next build` passes; first-load JS for `/` is 279 kB.
 
+## Desktops (Spaces) (2026-10-07)
+
+Plan and checkpoints: `docs/superpowers/plans/2026-10-07-spaces.md`.
+
+- State lives in `lib/window-manager.ts` (saved with the windows): `spaces`, `activeSpaceId`, `trash`, plus `spaceId` on windows and desktop icons (`spaceOf()` treats a missing/unknown id as the first desktop). Activating a window on another desktop switches to it.
+- `components/mac/spaces-bar.tsx` is Mission Control's strip; `lib/trackpad-swipe.ts` turns two-finger wheel events into swipes; window drag state is in `lib/mission-control.ts`.
+- Windows on other desktops stay mounted with `visibility: hidden` + `inert`, so apps keep their state.
+- Only visitor-made folders can be trashed; portfolio files can move between desktops.
+
 ## Important implementation notes
 
 - Keep the registry as the single launch source: use `launchApp()` instead of opening windows directly unless an app needs a file-specific preview.

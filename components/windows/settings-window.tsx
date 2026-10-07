@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Search, Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { useWindowManager } from "@/lib/window-manager";
+import { MAX_SPACES, useWindowManager } from "@/lib/window-manager";
 import { useSystemControls } from "@/lib/system-controls";
 import { useBatteryStatus } from "@/lib/use-battery";
 import { MAC_WALLPAPERS } from "@/lib/wallpapers";
 import { launchApp } from "@/lib/launch-app";
+import { usePhone } from "@/lib/phone";
 
 // Same order, grouping, and icons as macOS System Settings. Icons are
 // from the Alfred System Settings workflow (public/icons/settings).
@@ -71,6 +72,10 @@ export function SettingsWindow({ section }: { section?: string }) {
     setCursor(cursor + 1);
   };
   const [search, setSearch] = useState("");
+  // iPhone Settings is a list that opens one page at a time. Opening Settings
+  // on a particular page (e.g. Change Wallpaper) skips the list.
+  const phone = usePhone();
+  const [phoneList, setPhoneList] = useState(!section);
   const navRef = useRef<HTMLElement>(null);
   const [system, setSystem] = useState({
     resolution: "",
@@ -87,7 +92,10 @@ export function SettingsWindow({ section }: { section?: string }) {
     setAeroEffects,
   } = useWindowManager();
   useEffect(() => {
-    if (section) setActive(section);
+    if (section) {
+      setActive(section);
+      setPhoneList(false);
+    }
   }, [section]);
   useEffect(() => {
     setSystem({
@@ -97,16 +105,14 @@ export function SettingsWindow({ section }: { section?: string }) {
     });
   }, []);
   const title = sections.find((s) => s.id === active)?.name ?? "Appearance";
-  useEffect(() => {
-    if (window.innerWidth < 700 || (window.innerWidth < 950 && window.innerHeight < 500))
-      navRef.current
-        ?.querySelector('[data-selected="true"]')
-        ?.scrollIntoView({ block: "nearest", inline: "center" });
-  }, [active]);
   const query = search.toLowerCase();
   return (
-    <div className="mac-split settings-app">
+    <div
+      className="mac-split settings-app"
+      data-phone-view={phoneList ? "list" : "page"}
+    >
       <aside className="mac-sidebar settings-sidebar">
+        <h1 className="phone-list-title mobile-only">Settings</h1>
         <label className="mac-search">
           <Search size={14} />
           <input
@@ -138,7 +144,10 @@ export function SettingsWindow({ section }: { section?: string }) {
                     title={s.name}
                     className={`sidebar-item ${s.id === "dock" ? "settings-desktop-category" : ""}`}
                     data-selected={active === s.id}
-                    onClick={() => setActive(s.id)}
+                    onClick={() => {
+                      setActive(s.id);
+                      setPhoneList(false);
+                    }}
                   >
                     <img
                       src={`/icons/settings/${s.icon}.png`}
@@ -147,13 +156,14 @@ export function SettingsWindow({ section }: { section?: string }) {
                       height={24}
                       className="-mx-0.5 shrink-0"
                     />
-                    <span>
+                    <span className="settings-row-label">
                       {s.id === "display" ? (
                         <><span className="desktop-only">Displays</span><span className="mobile-only">Display & Brightness</span></>
                       ) : s.id === "sound" ? (
                         <><span className="desktop-only">Sound</span><span className="mobile-only">Sounds</span></>
                       ) : s.name}
                     </span>
+                    <ChevronRight className="settings-chevron mobile-only" size={18} />
                   </button>
                 ))}
               </div>
@@ -171,8 +181,8 @@ export function SettingsWindow({ section }: { section?: string }) {
             <button
               className="mac-icon-button"
               aria-label="Back"
-              disabled={cursor === 0}
-              onClick={() => setCursor(cursor - 1)}
+              disabled={!phone && cursor === 0}
+              onClick={() => (phone ? setPhoneList(true) : setCursor(cursor - 1))}
             >
               <ChevronLeft size={18} />
             </button>
@@ -279,6 +289,8 @@ export function SettingsWindow({ section }: { section?: string }) {
                   <kbd>⌃↑ / F3</kbd>
                 </Row>
               </div>
+              <h2 className="mt-6">Desktops</h2>
+              <DesktopsGroup />
             </>
           )}
           {active === "appearance" && (
@@ -444,6 +456,9 @@ export function SettingsWindow({ section }: { section?: string }) {
                   ["Close window", "⌘W"],
                   ["Cycle windows", "⌘`"],
                   ["Mission Control", "⌃↑ / F3"],
+                  ["Previous / next desktop", "⌃← / ⌃→"],
+                  ["Go to desktop 1–6", "⌃1 … ⌃6"],
+                  ["Move folder to Trash", "⌘⌫"],
                   ["Open selected file", "⌘O / Return"],
                   ["Finder: enclosing folder", "⌘↑"],
                   ["Finder: icon / list view", "⌘1 / ⌘2"],
@@ -451,6 +466,19 @@ export function SettingsWindow({ section }: { section?: string }) {
                 ].map(([label, key]) => (
                   <Row key={label} label={label}>
                     <kbd>{key}</kbd>
+                  </Row>
+                ))}
+              </div>
+              <h2 className="mt-6 desktop-only">Trackpad</h2>
+              <div className="settings-group desktop-only">
+                {[
+                  ["Mission Control", "Two-finger swipe up on the desktop"],
+                  ["Leave Mission Control", "Two-finger swipe down"],
+                  ["Switch desktops", "Two-finger swipe left or right on the desktop"],
+                  ["Carry a file to the next desktop", "Drag it to the screen edge and hold"],
+                ].map(([label, how]) => (
+                  <Row key={label} label={label}>
+                    <span className="mac-muted text-right">{how}</span>
                   </Row>
                 ))}
               </div>
@@ -497,6 +525,33 @@ export function SettingsWindow({ section }: { section?: string }) {
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+// Desktop & Dock › Desktops: how many there are, plus a way to add one.
+function DesktopsGroup() {
+  const spaces = useWindowManager((s) => s.spaces);
+  const active = useWindowManager((s) => s.activeSpaceId);
+  return (
+    <div className="settings-group">
+      <Row label="Desktops">
+        <span className="mac-muted">
+          {spaces.length} · on Desktop {spaces.indexOf(active) + 1}
+        </span>
+      </Row>
+      <Row label="Add a desktop">
+        <button
+          className="mac-button"
+          disabled={spaces.length >= MAX_SPACES}
+          onClick={() => useWindowManager.getState().addSpace()}
+        >
+          Add Desktop
+        </button>
+      </Row>
+      <Row label="Switch between desktops">
+        <kbd>⌃← / ⌃→</kbd>
+      </Row>
     </div>
   );
 }

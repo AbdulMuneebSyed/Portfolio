@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { Mail, Send, Github, Linkedin } from "lucide-react";
+import { Mail, Send, Github, Linkedin, ArrowUp, Phone } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { notify } from "@/lib/notifications";
 
@@ -112,13 +112,36 @@ export function ContactWindow() {
             className="mac-button primary"
             disabled={status !== "idle"}
           >
-            <Send size={14} />
-            {status === "sending"
-              ? "Sending…"
-              : status === "sent"
-                ? "Sent"
-                : "Send"}
+            <Send size={14} className="desktop-only" />
+            <span className="desktop-only">
+              {status === "sending"
+                ? "Sending…"
+                : status === "sent"
+                  ? "Sent"
+                  : "Send"}
+            </span>
+            {/* iOS Mail sends with a round arrow button. */}
+            <ArrowUp size={20} strokeWidth={2.6} className="mobile-only" />
           </button>
+        </div>
+        {/* On iPhone the contact card's actions sit above the message. */}
+        <div className="mail-phone-actions mobile-only">
+          {[
+            { label: "call", href: "tel:+919966782707", icon: Phone },
+            { label: "mail", href: "mailto:samuneeb786@gmail.com", icon: Mail },
+            { label: "LinkedIn", href: "https://www.linkedin.com/in/syed-abdul-muneeb/", icon: Linkedin },
+            { label: "GitHub", href: "https://github.com/AbdulMuneebSyed", icon: Github },
+          ].map((action) => (
+            <a
+              key={action.label}
+              href={action.href}
+              target={action.href.startsWith("http") ? "_blank" : undefined}
+              rel="noopener noreferrer"
+            >
+              <action.icon size={20} />
+              {action.label}
+            </a>
+          ))}
         </div>
         <div className="mail-fields">
           <div className="mail-field">

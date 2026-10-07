@@ -1,35 +1,36 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
-import { AppIcon } from "@/lib/app-icons";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import { PhoneAppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
 
-const steps = [
-  {
-    app: "about",
-    title: "Welcome to Muneeb OS",
-    text: "A little desktop, a lot to explore. Get to know me, browse my projects, or get in touch.",
-  },
+// iPhone welcome sheet, like the "What's New" screen an iOS app shows on its
+// first launch: a large title, a short list of what's here, one big button.
+const features = [
   {
     app: "projects",
-    title: "Explore my work",
-    text: "Open Projects to browse what I’ve built. Select a folder to see the story, technologies, and results.",
+    title: "See what I’ve built",
+    text: "Projects holds the apps and tools I’ve made, each with its story and tech stack.",
   },
   {
-    app: "computer",
-    title: "Make yourself at home",
-    text: "Use the Dock to open apps. Drag windows by their title bars. The red, yellow, and green buttons close, minimize, and zoom.",
-    phoneText: "Open Files to browse the portfolio. Use the Home button to return to your apps, or swipe through the categories at the top of a screen.",
+    app: "resume",
+    title: "Read my résumé",
+    text: "Open Resume to read it, share it or save the PDF.",
+  },
+  {
+    app: "contact",
+    title: "Get in touch",
+    text: "Write to me in Mail, or find me on LinkedIn and GitHub.",
   },
   {
     app: "settings",
-    title: "Your desktop, your way",
-    text: "Change the wallpaper and appearance in System Settings. Press ⌘K or Ctrl+K to find any app with Spotlight.",
-    phoneTitle: "Make it yours",
-    phoneText: "Change the wallpaper and appearance in Settings. Tap Search on the Home Screen to find any app.",
+    title: "Use it like an iPhone",
+    text: "Swipe up from the bottom to go Home; swipe up and hold to switch apps. Pull down from the top right for Control Center.",
   },
 ];
+
 export function PhoneTour({
   run,
   onComplete,
@@ -39,87 +40,85 @@ export function PhoneTour({
   onComplete: () => void;
   onSkip: () => void;
 }) {
-  const [index, setIndex] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (run) {
-      setIndex(0);
-      const id = setTimeout(() => ref.current?.focus(), 0);
-      return () => clearTimeout(id);
-    }
+    if (!run) return;
+    const id = setTimeout(() => ref.current?.focus(), 0);
+    return () => clearTimeout(id);
   }, [run]);
-  if (!run) return null;
-  const step = steps[index];
+
   return (
-    <div className="tour-backdrop" onClick={onSkip}>
-      <div
-        ref={ref}
-        tabIndex={-1}
-        className="tour-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Portfolio tour"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") onSkip();
-          if (e.key === "Tab") {
-            const buttons = Array.from(
-              e.currentTarget.querySelectorAll<HTMLButtonElement>(
-                "button:not(:disabled)",
-              ),
-            );
-            const current = buttons.indexOf(
-              document.activeElement as HTMLButtonElement,
-            );
-            e.preventDefault();
-            buttons[
-              (current + (e.shiftKey ? buttons.length - 1 : 1)) % buttons.length
-            ]?.focus();
-          }
-        }}
-      >
-        <button
-          className="tour-close mac-icon-button"
-          aria-label="Close tour"
-          onClick={onSkip}
-        >
-          <X size={17} />
-        </button>
-        <AppIcon appId={step.app} size={86} />
-        <h1>
-          <span className={step.phoneTitle ? "desktop-only" : ""}>{step.title}</span>
-          {step.phoneTitle && <span className="mobile-only">{step.phoneTitle}</span>}
-        </h1>
-        <p>
-          <span className={step.phoneText ? "desktop-only" : ""}>{step.text}</span>
-          {step.phoneText && <span className="mobile-only">{step.phoneText}</span>}
-        </p>
-        <div className="tour-dots">
-          {steps.map((s, i) => (
-            <span key={s.app} data-active={i === index} />
-          ))}
-        </div>
-        <div className="flex justify-between items-center gap-3 w-full">
-          <button
-            className="mac-button"
-            disabled={index === 0}
-            onClick={() => setIndex(index - 1)}
-          >
-            Back
-          </button>
-          <button
-            className="mac-button primary"
-            onClick={() => {
-              if (index === steps.length - 1) {
-                onComplete();
-                launchApp("about");
-              } else setIndex(index + 1);
+    <AnimatePresence>
+      {run && (
+        <>
+          <motion.div
+            key="welcome-backdrop"
+            className="pwelcome-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onSkip}
+          />
+          <motion.div
+            key="welcome"
+            ref={ref}
+            tabIndex={-1}
+            className="pwelcome"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Welcome to Muneeb OS"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 380, damping: 40 }}
+            // Pull the sheet down to dismiss it, as on iOS.
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(_: unknown, info: PanInfo) => {
+              if (info.offset.y > 120 || info.velocity.y > 600) onSkip();
             }}
+            onKeyDown={(e: React.KeyboardEvent) => e.key === "Escape" && onSkip()}
           >
-            {index === steps.length - 1 ? "Explore Portfolio" : "Continue"}
-          </button>
-        </div>
-      </div>
-    </div>
+            <span className="pwelcome-grabber" aria-hidden="true" />
+            <div className="pwelcome-body">
+              <Image
+                src="/avatar-256.jpg"
+                alt=""
+                width={84}
+                height={84}
+                className="pwelcome-avatar"
+              />
+              <h1>Welcome to Muneeb&nbsp;OS</h1>
+              <ul>
+                {features.map((f) => (
+                  <li key={f.app}>
+                    <PhoneAppIcon appId={f.app} size={44} />
+                    <span>
+                      <strong>{f.title}</strong>
+                      <span>{f.text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="pwelcome-actions">
+              <button
+                className="pwelcome-continue"
+                onClick={() => {
+                  onComplete();
+                  launchApp("about");
+                }}
+              >
+                Meet Muneeb
+              </button>
+              <button className="pwelcome-skip" onClick={onSkip}>
+                Explore on my own
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

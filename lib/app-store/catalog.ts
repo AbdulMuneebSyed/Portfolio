@@ -459,13 +459,13 @@ const APP_DETAILS: Record<string, AppDetails> = {
     subtitle: "Folders, music and games",
     description: "Browse the MuneebOS file system.",
     tint: "#1e90ff",
-    slides: [{ strong: "Finder.", caption: "Everything on this Mac.", live: "computer" }],
+    slides: [{ strong: "Everything in one place.", caption: "Folders, music and games.", live: "computer" }],
   },
   settings: {
     subtitle: "Make MuneebOS yours",
     description: "Appearance, wallpaper, display, sound and accessibility.",
     tint: "#8e8e93",
-    slides: [{ strong: "Your Mac, your way.", caption: "Dark mode, wallpapers and more.", live: "settings" }],
+    slides: [{ strong: "Make it yours.", caption: "Dark mode, wallpapers and more.", live: "settings" }],
   },
   notes: {
     subtitle: "Jot it down",
@@ -475,9 +475,9 @@ const APP_DETAILS: Record<string, AppDetails> = {
   },
   calculator: {
     subtitle: "The classic",
-    description: "A calculator, just like the Mac's.",
+    description: "A calculator with the familiar Apple look.",
     tint: "#ff9500",
-    slides: [{ strong: "Calculator.", caption: "Quick sums, right on the desktop.", live: "calculator" }],
+    slides: [{ strong: "Calculator.", caption: "Quick sums, one tap away.", live: "calculator" }],
   },
   music: {
     subtitle: "My playlist",
@@ -497,7 +497,7 @@ const APP_DETAILS: Record<string, AppDetails> = {
   },
   snake: {
     subtitle: "Eat, grow, don't crash",
-    description: "The arcade classic. Use the arrow keys to steer.",
+    description: "The arcade classic. Steer with the arrow keys or the on-screen pad.",
     tint: "#34c759",
     version: { version: "1.0", date: "Jul 2026", notes: "Ported to MuneebOS." },
   },
@@ -505,7 +505,7 @@ const APP_DETAILS: Record<string, AppDetails> = {
     subtitle: "Clear the field",
     description: "Find every mine without setting one off.",
     tint: "#5e5ce6",
-    slides: [{ strong: "Minesweeper.", caption: "Left-click to reveal, right-click to flag.", live: "minesweeper" }],
+    slides: [{ strong: "Minesweeper.", caption: "Reveal a square, flag a mine.", live: "minesweeper" }],
     version: { version: "1.0", date: "Jul 2026", notes: "Ported to MuneebOS." },
   },
   "game-2048": {
@@ -532,7 +532,7 @@ const APP_DETAILS: Record<string, AppDetails> = {
   },
   breakout: {
     subtitle: "Smash every brick",
-    description: "Move the paddle with the mouse or arrow keys and clear the wall.",
+    description: "Move the paddle with the mouse, the arrow keys or a finger, and clear the wall.",
     tint: "#ff9f0a",
     slides: [{ strong: "Retro, refined.", caption: "Five rows, three lives.", live: "breakout" }],
   },

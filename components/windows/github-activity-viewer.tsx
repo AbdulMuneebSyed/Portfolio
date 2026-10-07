@@ -222,10 +222,31 @@ export function GitHubActivityViewer() {
           </form>
         </div>
         <main className="github-main">
+          {/* iPhone: the sidebar's profile and counts become a header. */}
+          <section className="github-phone-header mobile-only">
+            <img src={`https://github.com/${username}.png?size=160`} alt="" />
+            <div>
+              <strong>{username}</strong>
+              <span>Public activity on GitHub</span>
+            </div>
+            <dl>
+              {[
+                [totals.repos, "Repos"],
+                [totals.stars, "Stars"],
+                [totals.pushes, "Pushes"],
+              ].map(([value, label]) => (
+                <div key={label}>
+                  <dd>{value}</dd>
+                  <dt>{label}</dt>
+                </div>
+              ))}
+            </dl>
+          </section>
           <h2>Recent Activity</h2>
           {!events.length && (
             <p className="mac-muted text-xs py-5">No recent public activity.</p>
           )}
+          <div className="github-group">
           {events.map((event) => (
             <div className="github-event" key={event.id}>
               <GitCommit size={17} />
@@ -236,7 +257,9 @@ export function GitHubActivityViewer() {
               <time>{formatDate(event.created_at)}</time>
             </div>
           ))}
+          </div>
           <h2 className="mt-8">Repositories</h2>
+          <div className="github-group">
           {repos.map((repo) => (
             <a
               className="github-repo"
@@ -253,6 +276,7 @@ export function GitHubActivityViewer() {
               </span>
             </a>
           ))}
+          </div>
         </main>
       </div>
     </div>

@@ -6,6 +6,7 @@ import {
   isAppInstalled,
 } from "./app-registry";
 import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
+import { GRID_CELL_HEIGHT, gridCell, nearestFreeCell } from "./desktop-grid";
 
 interface WindowManagerState {
   windows: WindowState[];
@@ -41,6 +42,71 @@ interface WindowManagerState {
   setAeroEffects: (enabled: boolean) => void;
   loadState: () => void;
   saveState: () => void;
+
+  // Desktops (Spaces). Every window and desktop file belongs to one.
+  spaces: string[];
+  activeSpaceId: string;
+  nextSpaceNumber: number;
+  addSpace: () => string | null;
+  removeSpace: (id: string) => void;
+  switchSpace: (id: string) => void;
+  moveWindowToSpace: (windowId: string, spaceId: string) => void;
+  moveIconsToSpace: (iconIds: string[], spaceId: string) => void;
+
+  // Desktop folders and Trash.
+  trash: DesktopIcon[];
+  renamingIconId: string | null;
+  createFolder: (near?: { x: number; y: number }) => string;
+  renameIcon: (id: string, title: string) => void;
+  setRenamingIcon: (id: string | null) => void;
+  trashIcons: (ids: string[]) => void;
+  putBack: (ids: string[]) => void;
+  emptyTrash: () => void;
+}
+
+export const MAX_SPACES = 6;
+let folderCount = 0;
+const FIRST_SPACE = "space-1";
+
+// The desktop a window or file is on; unknown or missing ids mean the first.
+export function spaceOf(
+  item: { spaceId?: string },
+  spaces: string[],
+): string {
+  return item.spaceId && spaces.includes(item.spaceId)
+    ? item.spaceId
+    : spaces[0];
+}
+
+// Desktop files sit in a container under the menu bar, anchored top-right.
+function iconBounds() {
+  if (typeof window === "undefined") return { width: 1200, height: 700 };
+  return {
+    width: Math.max(200, window.innerWidth - 16),
+    height: Math.max(200, window.innerHeight - 24 - 96),
+  };
+}
+
+function freeCellFor(
+  icons: DesktopIcon[],
+  spaces: string[],
+  spaceId: string,
+  near: { x: number; y: number },
+  except?: string,
+) {
+  const occupied = icons
+    .filter((i) => i.id !== except && spaceOf(i, spaces) === spaceId)
+    .map((i) => i.position);
+  return nearestFreeCell(near, occupied, iconBounds());
+}
+
+// The front window of a desktop, to activate after switching to it.
+function frontWindowIn(windows: WindowState[], spaces: string[], spaceId: string) {
+  return (
+    [...windows]
+      .filter((w) => !w.isMinimized && spaceOf(w, spaces) === spaceId)
+      .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null
+  );
 }
 
 const DESKTOP_LAYOUT_VERSION = 5;
@@ -71,6 +137,7 @@ function serializeWindows(windows: WindowState[]) {
     size: window.size,
     disableMaximize: window.disableMaximize,
     metadata: window.metadata,
+    spaceId: window.spaceId,
   }));
 }
 
@@ -81,7 +148,11 @@ function mergeSavedDesktopIcons(savedIcons: DesktopIcon[]) {
   const mergedDefaults = DEFAULT_ICONS.map((defaultIcon) => {
     const savedIcon = savedById.get(defaultIcon.id);
     return savedIcon?.position
-      ? { ...defaultIcon, position: savedIcon.position }
+      ? {
+          ...defaultIcon,
+          position: savedIcon.position,
+          spaceId: savedIcon.spaceId,
+        }
       : defaultIcon;
   });
 
@@ -99,6 +170,11 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   wallpaper: DEFAULT_WALLPAPER,
   taskbarTransparency: 85,
   aeroEffects: true,
+  spaces: [FIRST_SPACE],
+  activeSpaceId: FIRST_SPACE,
+  nextSpaceNumber: 2,
+  trash: [],
+  renamingIconId: null,
   loadState: () => {
     if (typeof window === "undefined") return;
 
@@ -124,7 +200,22 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           (nextId, window) => Math.max(nextId, (window.processId ?? 999) + 1),
           parsed.nextProcessId ?? 1000,
         );
+        const spaces =
+          Array.isArray(parsed.spaces) &&
+          parsed.spaces.length &&
+          parsed.spaces.every((id: unknown) => typeof id === "string")
+            ? (parsed.spaces as string[]).slice(0, MAX_SPACES)
+            : [FIRST_SPACE];
         set({
+          spaces,
+          activeSpaceId: spaces.includes(parsed.activeSpaceId)
+            ? parsed.activeSpaceId
+            : spaces[0],
+          nextSpaceNumber: Math.max(
+            parsed.nextSpaceNumber ?? 2,
+            ...spaces.map((id) => Number(id.split("-")[1]) + 1 || 2),
+          ),
+          trash: Array.isArray(parsed.trash) ? parsed.trash : [],
           desktopIcons: mergeSavedDesktopIcons(savedIcons),
           windows: savedWindows.map((window, index) => ({
             ...window,
@@ -157,13 +248,29 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       wallpaper: state.wallpaper,
       taskbarTransparency: state.taskbarTransparency,
       aeroEffects: state.aeroEffects,
+      spaces: state.spaces,
+      activeSpaceId: state.activeSpaceId,
+      nextSpaceNumber: state.nextSpaceNumber,
+      trash: state.trash,
     };
 
     localStorage.setItem("muneebos-mac-state-v2", JSON.stringify(stateToSave));
   },
 
+  // Clean Up: line the current desktop's files up in columns from the
+  // top-right, keeping their order.
   resetIconPositions: () => {
-    set({ desktopIcons: DEFAULT_ICONS });
+    const { desktopIcons, spaces, activeSpaceId } = get();
+    const rows = Math.max(1, Math.floor(iconBounds().height / GRID_CELL_HEIGHT));
+    let slot = 0;
+    set({
+      desktopIcons: desktopIcons.map((icon) => {
+        if (spaceOf(icon, spaces) !== activeSpaceId) return icon;
+        const position = gridCell(Math.floor(slot / rows), slot % rows);
+        slot += 1;
+        return { ...icon, position };
+      }),
+    });
     get().saveState();
   },
 
@@ -223,6 +330,8 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           ),
           nextZIndex: state.nextZIndex + 1,
           activeWindowId: window.id,
+          // A window on another desktop brings you to that desktop.
+          activeSpaceId: spaceOf(existingWindow, state.spaces),
         };
       }
 
@@ -240,6 +349,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
             startedAt: now,
             lastActiveAt: now,
             memoryMb: estimateMemoryMb(window.component, window.id),
+            spaceId: state.activeSpaceId,
             zIndex: state.nextZIndex,
             isActive: true,
           },
@@ -257,9 +367,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       const remaining = state.windows.filter((w) => w.id !== id);
       const next =
         state.activeWindowId === id
-          ? ([...remaining]
-              .filter((w) => !w.isMinimized)
-              .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null)
+          ? frontWindowIn(remaining, state.spaces, state.activeSpaceId)
           : state.activeWindowId;
       return {
         windows: remaining.map((w) => ({ ...w, isActive: w.id === next })),
@@ -273,9 +381,11 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     set((state) => {
       const next =
         state.activeWindowId === id
-          ? ([...state.windows]
-              .filter((w) => w.id !== id && !w.isMinimized)
-              .sort((a, b) => b.zIndex - a.zIndex)[0]?.id ?? null)
+          ? frontWindowIn(
+              state.windows.filter((w) => w.id !== id),
+              state.spaces,
+              state.activeSpaceId,
+            )
           : state.activeWindowId;
       return {
         windows: state.windows.map((w) =>
@@ -319,6 +429,10 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       ),
       nextZIndex: state.nextZIndex + 1,
       activeWindowId: id,
+      activeSpaceId: (() => {
+        const target = state.windows.find((w) => w.id === id);
+        return target ? spaceOf(target, state.spaces) : state.activeSpaceId;
+      })(),
     }));
     get().saveState();
   },
@@ -338,6 +452,10 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
       ),
       nextZIndex: state.nextZIndex + 1,
       activeWindowId: id,
+      activeSpaceId: (() => {
+        const target = state.windows.find((w) => w.id === id);
+        return target ? spaceOf(target, state.spaces) : state.activeSpaceId;
+      })(),
     }));
     get().saveState();
   },
@@ -355,4 +473,158 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     }));
     get().saveState();
   },
+  addSpace: () => {
+    const { spaces, nextSpaceNumber } = get();
+    if (spaces.length >= MAX_SPACES) return null;
+    const id = `space-${nextSpaceNumber}`;
+    set({ spaces: [...spaces, id], nextSpaceNumber: nextSpaceNumber + 1 });
+    get().saveState();
+    return id;
+  },
+
+  // Its windows and files move to the desktop before it (or after, for
+  // the first), like macOS.
+  removeSpace: (id) => {
+    const { spaces, windows, desktopIcons, activeSpaceId } = get();
+    const index = spaces.indexOf(id);
+    if (index < 0 || spaces.length < 2) return;
+    const target = spaces[index === 0 ? 1 : index - 1];
+    const remaining = spaces.filter((s) => s !== id);
+    let icons = desktopIcons;
+    for (const icon of desktopIcons) {
+      if (spaceOf(icon, spaces) !== id) continue;
+      const position = freeCellFor(icons, spaces, target, icon.position, icon.id);
+      icons = icons.map((i) =>
+        i.id === icon.id ? { ...i, spaceId: target, position } : i,
+      );
+    }
+    set({
+      spaces: remaining,
+      desktopIcons: icons,
+      windows: windows.map((w) =>
+        spaceOf(w, spaces) === id ? { ...w, spaceId: target } : w,
+      ),
+      activeSpaceId: activeSpaceId === id ? target : activeSpaceId,
+    });
+    if (activeSpaceId === id) get().switchSpace(target);
+    get().saveState();
+  },
+
+  switchSpace: (id) => {
+    const { spaces, windows } = get();
+    if (!spaces.includes(id)) return;
+    const front = frontWindowIn(windows, spaces, id);
+    set({
+      activeSpaceId: id,
+      activeWindowId: front,
+      windows: windows.map((w) => ({ ...w, isActive: w.id === front })),
+    });
+    get().saveState();
+  },
+
+  moveWindowToSpace: (windowId, spaceId) => {
+    const { spaces, windows, activeSpaceId } = get();
+    if (!spaces.includes(spaceId)) return;
+    const moved = windows.map((w) => (w.id === windowId ? { ...w, spaceId } : w));
+    const front = frontWindowIn(moved, spaces, activeSpaceId);
+    set({
+      windows: moved.map((w) => ({ ...w, isActive: w.id === front })),
+      activeWindowId: front,
+    });
+    get().saveState();
+  },
+
+  moveIconsToSpace: (iconIds, spaceId) => {
+    const { spaces } = get();
+    if (!spaces.includes(spaceId)) return;
+    let icons = get().desktopIcons;
+    for (const id of iconIds) {
+      const icon = icons.find((i) => i.id === id);
+      if (!icon || spaceOf(icon, spaces) === spaceId) continue;
+      const position = freeCellFor(icons, spaces, spaceId, icon.position, id);
+      icons = icons.map((i) => (i.id === id ? { ...i, spaceId, position } : i));
+    }
+    set({ desktopIcons: icons });
+    get().saveState();
+  },
+
+  createFolder: (near = gridCell(1, 0)) => {
+    const { desktopIcons, trash, spaces, activeSpaceId } = get();
+    const taken = new Set([...desktopIcons, ...trash].map((i) => i.title));
+    let title = "untitled folder";
+    for (let n = 2; taken.has(title); n++) title = `untitled folder ${n}`;
+    const id = `folder-${Date.now().toString(36)}-${(folderCount++).toString(36)}`;
+    const folderIcon: DesktopIcon = {
+      id,
+      title,
+      icon: "/icons/mac/folder.png",
+      component: "ComputerExplorer",
+      kind: "folder",
+      spaceId: activeSpaceId,
+      position: freeCellFor(desktopIcons, spaces, activeSpaceId, near),
+    };
+    set({ desktopIcons: [...desktopIcons, folderIcon], renamingIconId: id });
+    get().saveState();
+    return id;
+  },
+
+  // Blank names are ignored; a taken name gets a number, like Finder.
+  renameIcon: (id, title) => {
+    const name = title.trim().replace(/[/:]/g, "-").slice(0, 60);
+    const { desktopIcons, trash } = get();
+    const icon = desktopIcons.find((i) => i.id === id);
+    if (!icon || !name || name === icon.title) {
+      set({ renamingIconId: null });
+      return;
+    }
+    const taken = new Set(
+      [...desktopIcons, ...trash].filter((i) => i.id !== id).map((i) => i.title),
+    );
+    let unique = name;
+    for (let n = 2; taken.has(unique); n++) unique = `${name} ${n}`;
+    set({
+      renamingIconId: null,
+      desktopIcons: desktopIcons.map((i) =>
+        i.id === id ? { ...i, title: unique } : i,
+      ),
+    });
+    get().saveState();
+  },
+
+  setRenamingIcon: (id) => set({ renamingIconId: id }),
+
+  // Only folders the visitor made can go in the Trash; portfolio files stay.
+  trashIcons: (ids) => {
+    const { desktopIcons, trash, spaces } = get();
+    const gone = desktopIcons.filter(
+      (i) => ids.includes(i.id) && i.kind === "folder",
+    );
+    if (!gone.length) return;
+    set({
+      desktopIcons: desktopIcons.filter((i) => !gone.includes(i)),
+      trash: [
+        ...trash,
+        ...gone.map((i) => ({ ...i, spaceId: spaceOf(i, spaces) })),
+      ],
+    });
+    get().saveState();
+  },
+
+  putBack: (ids) => {
+    const { trash, spaces } = get();
+    let icons = get().desktopIcons;
+    for (const item of trash.filter((i) => ids.includes(i.id))) {
+      const spaceId = spaceOf(item, spaces);
+      const position = freeCellFor(icons, spaces, spaceId, item.position);
+      icons = [...icons, { ...item, spaceId, position }];
+    }
+    set({ desktopIcons: icons, trash: trash.filter((i) => !ids.includes(i.id)) });
+    get().saveState();
+  },
+
+  emptyTrash: () => {
+    set({ trash: [] });
+    get().saveState();
+  },
+
 }));

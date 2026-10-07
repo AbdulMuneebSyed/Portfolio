@@ -35,6 +35,7 @@ import {
   Stories,
 } from "./parts";
 import { useStoreNav } from "./nav";
+import { useAppName } from "@/lib/phone";
 import { categoryIcon } from "./category-icons";
 
 function Skills({ title }: { title: string }) {
@@ -227,13 +228,14 @@ export function UpdatesPage() {
 
 function UpdateRow({ item }: { item: StoreItem }) {
   const nav = useStoreNav();
+  const appName = useAppName();
   return (
     <div className="store-update-row">
       <button onClick={() => nav.openItem(item.id)} aria-label={item.name}>
         <AppIcon appId={item.id} size={64} />
       </button>
       <div className="min-w-0 flex-1">
-        <strong>{item.name}</strong>
+        <strong>{appName(item.id, item.name)}</strong>
         <small>{item.versions[0].date}</small>
         <p>{item.versions[0].notes}</p>
       </div>

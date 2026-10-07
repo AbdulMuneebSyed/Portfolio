@@ -3,12 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import type { TouchEvent } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { BatteryCharging, BatteryFull, Keyboard, Wifi } from "lucide-react";
+import { motion, type PanInfo } from "framer-motion";
+import {
+  BatteryCharging,
+  BatteryFull,
+  Camera,
+  Flashlight,
+  Keyboard,
+  Signal,
+  Wifi,
+} from "lucide-react";
 import avatar from "../../public/avatar-256.jpg";
 import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 import { useWindowManager } from "@/lib/window-manager";
 import { useBatteryStatus } from "@/lib/use-battery";
+import { usePhone } from "@/lib/phone";
 
 interface LockScreenProps {
   onUnlock: () => void;
@@ -21,6 +30,8 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const touchStartY = useRef(0);
   const savedWallpaper = useWindowManager((state) => state.wallpaper);
   const battery = useBatteryStatus();
+  const phone = usePhone();
+  const [torch, setTorch] = useState(false);
 
   useEffect(() => {
     useWindowManager.getState().loadState();
@@ -60,8 +71,21 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
 
   return (
     <motion.div
-      animate={{ opacity: isUnlocking ? 0 : 1, scale: isUnlocking ? 1.04 : 1 }}
-      transition={{ duration: 0.45, ease: "easeInOut" }}
+      // A phone's lock screen slides up out of the way and follows the
+      // finger; the Mac's fades.
+      animate={
+        phone
+          ? { y: isUnlocking ? "-100%" : 0 }
+          : { opacity: isUnlocking ? 0 : 1, scale: isUnlocking ? 1.04 : 1 }
+      }
+      transition={{ duration: phone ? 0.38 : 0.45, ease: phone ? [0.3, 0, 0.2, 1] : "easeInOut" }}
+      drag={phone && !isUnlocking ? "y" : false}
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={{ top: 0.9, bottom: 0.05 }}
+      dragMomentum={false}
+      onDragEnd={(_: unknown, info: PanInfo) => {
+        if (info.offset.y < -70 || info.velocity.y < -500) unlock();
+      }}
       className="font-mac relative flex h-dvh w-dvw cursor-default select-none flex-col items-center overflow-hidden text-white"
       style={{
         backgroundImage: savedWallpaper || DEFAULT_WALLPAPER,
@@ -77,6 +101,15 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           unlock();
       }}
     >
+      {/* iPhone status bar: Dynamic Island, then signal, Wi-Fi, battery. */}
+      <div className="ios-lock-phone-status mobile-only" aria-hidden="true">
+        <span className="ios-island" />
+        <span className="ios-lock-phone-icons">
+          <Signal size={17} strokeWidth={2.6} />
+          <Wifi size={17} strokeWidth={2.6} />
+          <BatteryFull size={25} strokeWidth={1.8} />
+        </span>
+      </div>
       {/* Status icons, top-right */}
       <div className="ios-lock-status absolute right-4 top-0 z-10 flex h-[30px] items-center gap-4 text-[13px] font-medium text-white">
         <span className="ios-lock-keyboard flex items-center gap-1.5">
@@ -136,6 +169,33 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           Click or press Enter to unlock
         </div>
       </div>
+      {/* iPhone: a notification waiting, and the torch and camera buttons. */}
+      <div className="ios-lock-notification mobile-only">
+        <Image src="/avatar-256.jpg" alt="" width={38} height={38} />
+        <span>
+          <strong>Muneeb OS</strong>
+          <span>Welcome! Swipe up to explore my portfolio.</span>
+        </span>
+        <small>now</small>
+      </div>
+      <button
+        className="ios-lock-action ios-lock-torch mobile-only"
+        aria-label="Flashlight"
+        aria-pressed={torch}
+        onClick={(e) => {
+          e.stopPropagation();
+          setTorch(!torch);
+        }}
+      >
+        <Flashlight size={22} fill={torch ? "currentColor" : "none"} />
+      </button>
+      <button
+        className="ios-lock-action ios-lock-camera mobile-only"
+        aria-label="Camera"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Camera size={22} />
+      </button>
       <button className="ios-lock-open" onClick={unlock}>
         Swipe up to open
         <span aria-hidden="true" />

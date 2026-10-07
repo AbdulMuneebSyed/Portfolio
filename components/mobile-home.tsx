@@ -1,30 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { MouseEvent, PointerEvent } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BatteryFull,
-  Bluetooth,
-  ChevronDown,
-  Focus,
-  Search,
-  Signal,
-  Sun,
-  Wifi,
-} from "lucide-react";
-import { AppIcon } from "@/lib/app-icons";
+import { BatteryFull, MapPin, Search, Signal, Wifi } from "lucide-react";
+import { PhoneControlCenter } from "@/components/mac/phone-control-center";
+import { PhoneAppIcon } from "@/lib/app-icons";
 import { getApp, getLaunchableApps } from "@/lib/app-registry";
 import { useInstalledApps } from "@/lib/app-store/installed";
 import { launchApp } from "@/lib/launch-app";
-import { useSystemControls } from "@/lib/system-controls";
-import { mobileAppTitle } from "@/lib/mobile-app-titles";
+import { phoneTitle, rememberLaunch } from "@/lib/phone";
+import { timeline } from "@/lib/portfolio-data";
 
 const homeApps = [
   "about",
   "projects",
   "resume",
   "github-activity",
+  "linkedin",
   "notes",
   "calculator",
   "feedback",
@@ -32,7 +26,7 @@ const homeApps = [
   "app-store",
 ] as const;
 const dockApps = ["computer", "ie", "music", "contact"] as const;
-const UTILITIES = ["terminal", "task-manager", "recycle", "linkedin"];
+const UTILITIES = ["terminal", "recycle"];
 
 // Folders hold the built-in utilities plus whatever the visitor has
 // installed from the App Store; an empty folder is hidden.
@@ -50,40 +44,91 @@ function useFolders(): Record<string, string[]> {
 }
 
 function MobileApp({ id, onOpen }: { id: string; onOpen?: () => void }) {
+  const icon = useRef<HTMLSpanElement>(null);
   const app = getApp(id);
   if (!app) return null;
-  const title = mobileAppTitle(id, app.title);
+  const title = phoneTitle(id, app.title);
   return (
     <button
       className="ios-home-app"
       aria-label={`Open ${title}`}
       onClick={() => {
+        rememberLaunch(id, icon.current);
         onOpen?.();
         launchApp(id);
       }}
     >
-      <span className="ios-home-icon">
-        <AppIcon appId={id} size={76} />
+      <span ref={icon} className="ios-home-icon">
+        <PhoneAppIcon appId={id} />
       </span>
       <span className="ios-home-label">{title}</span>
     </button>
   );
 }
 
+// A medium widget, like the ones iOS apps put on the Home Screen.
+function ProfileWidget() {
+  const ref = useRef<HTMLButtonElement>(null);
+  const now = timeline[0];
+  return (
+    <button
+      ref={ref}
+      className="ios-widget ios-profile-widget"
+      aria-label="Open About Me"
+      onClick={() => {
+        rememberLaunch("about", ref.current);
+        launchApp("about");
+      }}
+    >
+      <Image
+        src="/avatar-256.jpg"
+        alt=""
+        width={128}
+        height={128}
+        className="ios-widget-photo"
+        draggable={false}
+      />
+      <span className="ios-widget-text">
+        <strong>Syed Abdul Muneeb</strong>
+        <span>Software Engineer</span>
+        <span className="ios-widget-now">
+          <span className="ios-widget-dot" aria-hidden="true" />
+          {now.title.replace(" · ", " at ")}
+        </span>
+        <span className="ios-widget-place">
+          <MapPin size={11} aria-hidden="true" /> {now.location}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 export function MobileHome({
   appOpen,
+  darkApp,
   onHome,
   onSearch,
+  onSwitcher,
 }: {
   appOpen: boolean;
+  // The open app has a dark top, so the status bar text turns white.
+  darkApp: boolean;
   onHome: () => void;
   onSearch: () => void;
+  // Swipe up and hold: the App Switcher.
+  onSwitcher: () => void;
 }) {
   const [now, setNow] = useState<Date | null>(null);
   const folders = useFolders();
   const [folder, setFolder] = useState<string | null>(null);
   const [controlOpen, setControlOpen] = useState(false);
-  const controls = useSystemControls();
+  const swipe = useRef<number | null>(null);
+  const pull = useRef<number | null>(null);
+  const pulled = useRef(false);
+  const home = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    home.current?.toggleAttribute("inert", appOpen);
+  }, [appOpen]);
 
   useEffect(() => {
     setNow(new Date());
@@ -91,63 +136,116 @@ export function MobileHome({
     return () => window.clearInterval(id);
   }, []);
 
+  // Swipe up from the bottom edge to go Home, like Face ID iPhones; swipe
+  // up and pause for the App Switcher.
+  const hold = useRef<number | null>(null);
+  const switched = useRef(false);
+  const endSwipe = () => {
+    swipe.current = null;
+    if (hold.current) window.clearTimeout(hold.current);
+    hold.current = null;
+  };
+  const homeGesture = {
+    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
+      swipe.current = e.clientY;
+      switched.current = false;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    },
+    onPointerMove: (e: PointerEvent<HTMLButtonElement>) => {
+      const start = swipe.current;
+      if (start === null || hold.current || start - e.clientY < 60) return;
+      hold.current = window.setTimeout(() => {
+        if (swipe.current === null) return;
+        switched.current = true;
+        onSwitcher();
+      }, 320);
+    },
+    onPointerUp: (e: PointerEvent<HTMLButtonElement>) => {
+      const start = swipe.current;
+      endSwipe();
+      if (!switched.current && start !== null && start - e.clientY > 24) onHome();
+    },
+    onPointerCancel: endSwipe,
+  };
+
   return (
-    <div className="ios-shell font-mac">
-      <div className="ios-status-bar" data-in-app={appOpen}>
+    <div className="ios-shell font-mac" data-app-open={appOpen}>
+      <div
+        className="ios-status-bar"
+        data-in-app={appOpen}
+        data-tone={appOpen && !darkApp && !controlOpen ? "dark" : "light"}
+        data-control-center={controlOpen}
+      >
         <span className="ios-status-time">
-          {now?.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+          {now?.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?[AP]M$/i, "")}
         </span>
         <span className="ios-island" aria-hidden="true" />
         <button
           className="ios-status-controls"
           aria-label="Control Center"
           aria-expanded={controlOpen}
-          onClick={() => setControlOpen((open) => !open)}
+          // Tap, or pull down from the top-right corner, to open it.
+          onClick={() => {
+            if (!pulled.current) setControlOpen((open) => !open);
+            pulled.current = false;
+          }}
+          onPointerDown={(e) => {
+            pull.current = e.clientY;
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerUp={(e) => {
+            pulled.current = pull.current !== null && e.clientY - pull.current > 20;
+            if (pulled.current) setControlOpen(true);
+            pull.current = null;
+          }}
         >
-          <Signal size={16} fill="currentColor" />
-          <Wifi size={17} />
-          <BatteryFull size={21} />
+          <Signal size={17} strokeWidth={2.6} />
+          <Wifi size={17} strokeWidth={2.6} />
+          <BatteryFull size={25} strokeWidth={1.8} />
         </button>
       </div>
 
-      {!appOpen && (
-        <>
-          <div className="ios-home-content">
-            <button className="ios-profile-widget" onClick={() => launchApp("about")}>
-              <span className="ios-widget-overline">PORTFOLIO</span>
-              <strong>Syed Abdul Muneeb</strong>
-              <span>Software Engineer</span>
-              <span className="ios-widget-link">Get to know me <span aria-hidden="true">↗</span></span>
-            </button>
-            <div className="ios-home-grid" aria-label="Apps">
-              {homeApps.map((id) => <MobileApp key={id} id={id} />)}
-              {Object.keys(folders).map((name) => (
-                <button
-                  key={name}
-                  className="ios-home-app"
-                  aria-label={`Open ${name} folder`}
-                  onClick={() => setFolder(name)}
-                >
-                  <span className="ios-folder-icon">
-                    {folders[name].slice(0, 4).map((id) => (
-                      <AppIcon key={id} appId={id} size={30} />
-                    ))}
-                  </span>
-                  <span className="ios-home-label">{name}</span>
-                </button>
-              ))}
-            </div>
+      <div ref={home} className="ios-home" aria-hidden={appOpen}>
+        <div className="ios-home-content">
+          <ProfileWidget />
+          <div className="ios-home-grid" aria-label="Apps">
+            {homeApps.map((id) => <MobileApp key={id} id={id} />)}
+            {Object.keys(folders).map((name) => (
+              <button
+                key={name}
+                className="ios-home-app"
+                aria-label={`Open ${name} folder`}
+                onClick={() => setFolder(name)}
+              >
+                <span className="ios-folder-icon">
+                  {folders[name].slice(0, 9).map((id) => (
+                    <PhoneAppIcon key={id} appId={id} size={13} />
+                  ))}
+                </span>
+                <span className="ios-home-label">{name}</span>
+              </button>
+            ))}
           </div>
-          <button className="ios-search-pill" onClick={onSearch}>
-            <Search size={15} /> Search
-          </button>
-          <nav className="ios-dock" aria-label="iPhone Dock">
-            {dockApps.map((id) => <MobileApp key={id} id={id} />)}
-          </nav>
-        </>
-      )}
+        </div>
+        <button className="ios-search-pill" onClick={onSearch}>
+          <Search size={13} strokeWidth={2.6} /> Search
+        </button>
+        <nav className="ios-dock" aria-label="Dock">
+          {dockApps.map((id) => <MobileApp key={id} id={id} />)}
+        </nav>
+      </div>
 
-      <button className="ios-home-indicator" aria-label="Go to Home Screen" onClick={onHome} />
+      <button
+        className="ios-home-indicator"
+        aria-label="Go to Home Screen"
+        onClick={() => {
+          if (!switched.current) onHome();
+          switched.current = false;
+        }}
+        {...homeGesture}
+      >
+        <span />
+      </button>
 
       <AnimatePresence>
         {folder && folders[folder] && !appOpen && (
@@ -158,62 +256,32 @@ export function MobileHome({
             exit={{ opacity: 0 }}
             onClick={() => setFolder(null)}
           >
+            <motion.h2
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 12, opacity: 0 }}
+            >
+              {folder}
+            </motion.h2>
             <motion.div
               className="ios-folder-panel"
               role="dialog"
               aria-label={`${folder} folder`}
-              initial={{ scale: 0.88, opacity: 0 }}
+              initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.88, opacity: 0 }}
+              exit={{ scale: 0.6, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 420, damping: 34 }}
               onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}
             >
-              <h2>{folder}</h2>
-              <div className="ios-home-grid">
-                {folders[folder].map((id) => (
-                  <MobileApp key={id} id={id} onOpen={() => setFolder(null)} />
-                ))}
-              </div>
-              <button className="ios-folder-close" onClick={() => setFolder(null)}>Done</button>
+              {folders[folder].map((id) => (
+                <MobileApp key={id} id={id} onOpen={() => setFolder(null)} />
+              ))}
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {controlOpen && (
-          <motion.div
-            className="ios-controls-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setControlOpen(false)}
-          >
-            <motion.div
-              className="ios-controls-panel"
-              role="dialog"
-              aria-label="Control Center"
-              initial={{ y: -28, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -28, opacity: 0 }}
-              onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}
-            >
-              <button className="ios-controls-dismiss" onClick={() => setControlOpen(false)} aria-label="Close Control Center">
-                <ChevronDown size={22} />
-              </button>
-              <div className="ios-controls-grid">
-                <button data-on={controls.wifiOn} onClick={() => controls.setWifiOn(!controls.wifiOn)}><Wifi />Wi-Fi</button>
-                <button data-on={controls.bluetoothOn} onClick={() => controls.setBluetoothOn(!controls.bluetoothOn)}><Bluetooth />Bluetooth</button>
-                <button data-on={controls.focusOn} onClick={() => controls.setFocusOn(!controls.focusOn)}><Focus />Focus</button>
-                <button data-on={controls.darkMode} onClick={() => controls.setDarkMode(!controls.darkMode)}><Sun />Dark Mode</button>
-              </div>
-              <label className="ios-control-slider"><Sun size={19} /> Brightness
-                <input type="range" min="0.3" max="1" step="0.01" value={controls.brightness} onChange={(event) => controls.setBrightness(Number(event.target.value))} />
-              </label>
-              <button className="ios-controls-settings" onClick={() => { setControlOpen(false); launchApp("settings"); }}>Open Settings</button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <PhoneControlCenter open={controlOpen} onClose={() => setControlOpen(false)} />
     </div>
   );
 }

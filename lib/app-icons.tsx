@@ -1,5 +1,6 @@
 import type React from "react";
 import Image from "next/image";
+import { phoneApp } from "./phone";
 import {
   Gamepad2,
   AppWindow,
@@ -284,6 +285,40 @@ function AppStoreArt({ size, radius }: { size: number; radius: number }) {
         <path d="m10 52 4-7" />
         <path d="m50 45 4 7" />
       </svg>
+    </span>
+  );
+}
+
+// iPhone Home Screen icon: full-bleed squircle, no Mac margin. Apps with
+// real iOS artwork use it; the rest crop their Mac icon to the squircle.
+export function PhoneAppIcon({
+  appId,
+  size = 60,
+}: {
+  appId: string;
+  size?: number;
+}) {
+  const ios = phoneApp(appId).icon;
+  if (ios) {
+    return (
+      <Image
+        src={`/icons/ios/${ios}.png`}
+        alt=""
+        width={size}
+        height={size}
+        draggable={false}
+        className="phone-icon block shrink-0 select-none"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  // The Mac artwork fills 80% of its canvas: draw it larger and crop.
+  return (
+    <span
+      className="phone-icon flex shrink-0 items-center justify-center overflow-hidden"
+      style={{ width: size, height: size, borderRadius: size * 0.2237 }}
+    >
+      <AppIcon appId={appId} size={size / 0.8} />
     </span>
   );
 }

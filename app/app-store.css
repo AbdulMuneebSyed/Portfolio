@@ -1507,6 +1507,7 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
   gap: 10px;
   width: min(100%, 380px);
   aspect-ratio: 1;
@@ -2195,6 +2196,65 @@
   }
   .app-store .store-narrow-nav {
     padding-top: 8px;
+  }
+  /* Mini apps: a title that doesn't fit beside the scores goes above them. */
+  .mini-header {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .mini-header h2 {
+    white-space: nowrap;
+  }
+  .sketch-stage {
+    align-items: flex-start;
+  }
+  /* iPhone: sections live in the floating bottom tab bar instead. */
+  .app-store .store-main {
+    min-height: 0;
+  }
+  .app-store .store-narrow-nav nav {
+    display: none;
+  }
+  .app-store .store-scroll {
+    padding-bottom: calc(var(--ios-safe-bottom) + 74px);
+  }
+  .app-store .store-phone-tabs {
+    position: absolute;
+    z-index: 6;
+    left: 16px;
+    right: 16px;
+    bottom: var(--ios-safe-bottom);
+    display: flex !important;
+    height: 62px;
+    padding: 4px;
+    border-radius: 31px;
+    background: var(--ios-glass);
+    box-shadow: var(--ios-glass-edge);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    backdrop-filter: blur(24px) saturate(1.8);
+  }
+  .store-phone-tabs button {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 27px;
+    color: var(--mac-text);
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .store-phone-tabs button[aria-pressed="true"] {
+    background: var(--ios-fill);
+    color: var(--mac-accent);
+  }
+  .store-phone-tabs .store-badge {
+    position: absolute;
+    top: 4px;
+    left: calc(50% + 6px);
   }
   .mini-app {
     padding-top: 16px;

@@ -325,6 +325,14 @@ export function TerminalWindow() {
         </form>
         <div ref={endRef} />
       </div>
+      {/* No keyboard shortcuts on a phone: the common commands are a tap. */}
+      <div className="terminal-quick mobile-only" aria-label="Quick commands">
+        {["help", "about", "projects", "skills", "contact", "clear"].map((cmd) => (
+          <button key={cmd} type="button" onClick={() => runCommand(cmd)}>
+            {cmd}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,14 +4,16 @@ import { useState } from "react";
 import { Search, XCircle, ExternalLink } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
 import { AppIcon } from "@/lib/app-icons";
+import { useAppName } from "@/lib/phone";
 
 export function TaskManagerWindow() {
   const { windows, closeWindow, restoreWindow } = useWindowManager();
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const appName = useAppName();
   const current = windows.find((w) => w.id === selected);
   const filtered = windows.filter((w) =>
-    w.title.toLowerCase().includes(query.toLowerCase()),
+    appName(w.appId ?? w.id, w.title).toLowerCase().includes(query.toLowerCase()),
   );
   return (
     <div className="flex h-full flex-col">
@@ -68,7 +70,7 @@ export function TaskManagerWindow() {
                 <td>
                   <span className="flex items-center gap-2">
                     <AppIcon appId={w.appId ?? w.id} size={24} />
-                    {w.title}
+                    {appName(w.appId ?? w.id, w.title)}
                   </span>
                 </td>
                 <td>

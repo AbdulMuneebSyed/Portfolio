@@ -28,13 +28,26 @@ Control Center, and windows they can drag, zoom, and minimize.
 - **Dock** — magnifies on hover, bounces while an app launches, shows running apps.
 - **Desktop files** — About Me, Projects, Resume.pdf, Contact; draggable,
   snapping to a grid. Drag on the empty desktop to select several, or
-  Shift-click to add to the selection. Right-click for Change Wallpaper, Clean Up, Spotlight.
+  Shift-click to add to the selection. Right-click the desktop for New Folder,
+  Change Wallpaper, Clean Up and Spotlight; right-click a folder to Rename it,
+  Move it to the Trash (⌘⌫) or Move it to another desktop. Trash has Put Back
+  and Empty Trash.
 - **Windows** — traffic-light buttons, drag, resize, animated zoom, and
   minimize into the app's Dock icon. Drag a window to the left or right
   screen edge to tile it, or to the top to fill the screen (macOS Sequoia
   tiling); drag it away to get its old size back.
-- **Mission Control** (Ctrl+↑, F3, or Window → Mission Control) — every
-  open window side by side; click one to bring it forward.
+- **Mission Control** (two-finger swipe up on the empty desktop, Ctrl+↑, F3,
+  or Window → Mission Control) — every window on the current desktop side by
+  side; click one to bring it forward. Swipe down to leave.
+- **Desktops (Spaces)** — Mission Control's top strip shows each desktop;
+  **+** adds one (up to six), **×** removes one (its windows and files move
+  to the neighbour), click to switch. Each desktop has its own windows and
+  files. Switch with a two-finger swipe left/right on the desktop, Ctrl+←/→
+  or Ctrl+1…6. Drag a window in Mission Control onto another desktop (or
+  onto + for a new one); drag a file to the screen edge and hold to carry it
+  across. Window → Move to Desktop N also works. Browsers never see three-
+  or four-finger gestures, so MuneebOS uses two fingers on the desktop;
+  swipes over a window still scroll it.
 - **Notification banners** — for sent messages, feedback, screenshots, and a
   first-visit welcome. Focus mode silences them.
 - **Guided tour** available from Help → Take the Tour.

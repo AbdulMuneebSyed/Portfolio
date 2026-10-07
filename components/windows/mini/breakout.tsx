@@ -193,7 +193,10 @@ export function Breakout({ preview }: MiniAppProps) {
             <MiniButton primary onClick={start}>
               {status === "ready" ? (lives < 3 ? "Continue" : "Start") : "Play again"}
             </MiniButton>
-            <small>Mouse or ← → to move · Space to launch</small>
+            <small>
+              <span className="desktop-only">Mouse or ← → to move · Space to launch</span>
+              <span className="mobile-only">Drag across the wall to move the paddle</span>
+            </small>
           </div>
         )}
       </div>

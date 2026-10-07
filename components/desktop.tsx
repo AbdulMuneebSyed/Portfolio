@@ -6,7 +6,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { MotionConfig, AnimatePresence, motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
-import { useWindowManager } from "@/lib/window-manager";
+import { spaceOf, useWindowManager } from "@/lib/window-manager";
+import { SpacesBar } from "./mac/spaces-bar";
+import { AppIcon } from "@/lib/app-icons";
 import { useSystemControls } from "@/lib/system-controls";
 import { useGlobalClickSound } from "@/hooks/use-global-click-sound";
 import {
@@ -18,6 +20,7 @@ import {
 import { DesktopIconComponent } from "./desktop-icon";
 import { Window } from "./window";
 import { useMissionControl, missionLayout } from "@/lib/mission-control";
+import { createSwipeDetector } from "@/lib/trackpad-swipe";
 import { useDesktopSelection } from "@/lib/desktop-selection";
 import { notify } from "@/lib/notifications";
 import { NotificationBanners } from "./mac/notification-banners";
@@ -25,6 +28,15 @@ import { ContextMenu } from "./context-menu";
 import { MenuBar } from "./mac/menu-bar";
 import { Dock } from "./mac/dock";
 import { MobileHome } from "./mobile-home";
+import {
+  PHONE_QUERY,
+  phoneApp,
+  phoneTitle,
+  switcherSlots,
+  usePhone,
+  useSwitcherPan,
+} from "@/lib/phone";
+import { PhoneAppIcon } from "@/lib/app-icons";
 import { Spotlight } from "./mac/spotlight";
 import { BootScreen } from "./mac/boot-screen";
 import { Tour } from "./mac/tour";
@@ -131,6 +143,60 @@ export function Desktop({ onLock }: DesktopProps) {
     resetIconPositions,
   } = useWindowManager();
   const aeroEffects = useWindowManager((state) => state.aeroEffects);
+  const spaces = useWindowManager((state) => state.spaces);
+  const activeSpaceId = useWindowManager((state) => state.activeSpaceId);
+  // Desktops are a Mac feature; the phone layout shows everything.
+  const [wide, setWide] = useState(true);
+  useEffect(() => {
+    const update = () => setWide(innerWidth >= 700);
+    update();
+    addEventListener("resize", update);
+    return () => removeEventListener("resize", update);
+  }, []);
+  const onThisSpace = (item: { spaceId?: string }) =>
+    !wide || spaceOf(item, spaces) === activeSpaceId;
+
+  // Switching desktops slides the new one in and briefly shows its name.
+  const [spaceSwitch, setSpaceSwitch] = useState<{
+    dir: "left" | "right";
+    name: string;
+    key: number;
+  } | null>(null);
+  const previousSpace = useRef(activeSpaceId);
+  useEffect(() => {
+    const before = spaces.indexOf(previousSpace.current);
+    previousSpace.current = activeSpaceId;
+    const after = spaces.indexOf(activeSpaceId);
+    if (before < 0 || before === after) return;
+    setSpaceSwitch({
+      dir: after > before ? "left" : "right",
+      name: `Desktop ${after + 1}`,
+      key: Date.now(),
+    });
+    const id = setTimeout(() => setSpaceSwitch(null), 1100);
+    return () => clearTimeout(id);
+  }, [activeSpaceId, spaces]);
+
+  // Slide the new desktop's files and windows in from the side you're moving
+  // towards. Web Animations on `translate`, so nothing remounts (a file being
+  // dragged across desktops keeps its drag) and framer-motion's `transform`
+  // is untouched. Runs after the windows have marked themselves inert.
+  useEffect(() => {
+    if (!spaceSwitch || useSystemControls.getState().reduceMotion) return;
+    const from = spaceSwitch.dir === "left" ? "18vw 0" : "-18vw 0";
+    const targets = [
+      filesRef.current,
+      ...document.querySelectorAll<HTMLElement>(".mac-window:not([inert])"),
+    ];
+    for (const el of targets)
+      el?.animate(
+        [
+          { translate: from, opacity: 0.4 },
+          { translate: "0 0", opacity: 1 },
+        ],
+        { duration: 380, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" },
+      );
+  }, [spaceSwitch]);
   const reduceMotion = useSystemControls((state) => state.reduceMotion);
   const brightness = useSystemControls((state) => state.brightness);
   const darkMode = useSystemControls((state) => state.darkMode);
@@ -144,6 +210,7 @@ export function Desktop({ onLock }: DesktopProps) {
   const [isTourRunning, setIsTourRunning] = useState(false);
   const [showTourButton, setShowTourButton] = useState(true);
   const missionOpen = useMissionControl((state) => state.open);
+  const missionDrag = useMissionControl((state) => state.drag);
   const setMissionOpen = useMissionControl((state) => state.setOpen);
   const [band, setBand] = useState<{
     x0: number;
@@ -166,6 +233,26 @@ export function Desktop({ onLock }: DesktopProps) {
     );
   }, []);
 
+  // Once, on a Mac-sized screen: a tip about the trackpad gestures, after
+  // the welcome banner has had its turn.
+  useEffect(() => {
+    if (innerWidth < 700) return;
+    try {
+      if (localStorage.getItem("muneebos-spaces-tip")) return;
+    } catch {
+      return;
+    }
+    const id = setTimeout(() => {
+      localStorage.setItem("muneebos-spaces-tip", "shown");
+      notify({
+        appId: "settings",
+        title: "Try two fingers on the desktop",
+        body: "Swipe up for Mission Control and more desktops; swipe left or right to switch.",
+      });
+    }, 20000);
+    return () => clearTimeout(id);
+  }, []);
+
   // Remember the first visit; the tour stays available without interrupting.
   useEffect(() => {
     if (localStorage.getItem("hasVisitedPortfolio") === null) {
@@ -173,6 +260,11 @@ export function Desktop({ onLock }: DesktopProps) {
       // Marked as visited only once the welcome actually shows.
       const id = setTimeout(() => {
         localStorage.setItem("hasVisitedPortfolio", "true");
+        // A phone greets with its welcome sheet, the Mac with a banner.
+        if (matchMedia(PHONE_QUERY).matches) {
+          setIsTourRunning(true);
+          return;
+        }
         notify({
           appId: "about",
           title: "Welcome to Muneeb OS",
@@ -200,7 +292,21 @@ export function Desktop({ onLock }: DesktopProps) {
       const mod = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();
       const wm = useWindowManager.getState();
-      if ((e.ctrlKey && key === "arrowup") || key === "f3") {
+      if (
+        e.ctrlKey &&
+        !e.metaKey &&
+        innerWidth >= 700 &&
+        (key === "arrowleft" || key === "arrowright" || /^[1-6]$/.test(key))
+      ) {
+        // Ctrl+←/→ moves between desktops; Ctrl+1…6 jumps to one.
+        e.preventDefault();
+        const { spaces, activeSpaceId, switchSpace } = wm;
+        const index = spaces.indexOf(activeSpaceId);
+        const target = /^[1-6]$/.test(key)
+          ? spaces[Number(key) - 1]
+          : spaces[index + (key === "arrowright" ? 1 : -1)];
+        if (target) switchSpace(target);
+      } else if ((e.ctrlKey && key === "arrowup") || key === "f3") {
         e.preventDefault();
         if (innerWidth >= 700) useMissionControl.getState().toggle();
       } else if (mod && (key === "k" || e.code === "Space")) {
@@ -220,7 +326,11 @@ export function Desktop({ onLock }: DesktopProps) {
         wm.closeWindow(wm.activeWindowId);
       } else if (mod && key === "`") {
         e.preventDefault();
-        const visible = wm.windows.filter((w) => !w.isMinimized);
+        const visible = wm.windows.filter(
+          (w) =>
+            !w.isMinimized &&
+            (innerWidth < 700 || spaceOf(w, wm.spaces) === wm.activeSpaceId),
+        );
         const index = visible.findIndex((w) => w.id === wm.activeWindowId);
         const next =
           visible[
@@ -236,6 +346,36 @@ export function Desktop({ onLock }: DesktopProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Two-finger swipe up on the empty desktop opens Mission Control; swipe
+  // down anywhere closes it. Swipes over a window scroll the window.
+  useEffect(() => {
+    const detect = createSwipeDetector();
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || innerWidth < 700) return; // ctrl+wheel is pinch-zoom
+      const target = e.target as Element | null;
+      const mission = useMissionControl.getState();
+      const overDesktop =
+        !target?.closest(".mac-window, .mac-menubar, .mac-dock, [role='dialog'], [role='menu']");
+      if (!mission.open && !overDesktop) return;
+      const swipe = detect({
+        deltaX: e.deltaX,
+        deltaY: e.deltaY,
+        deltaMode: e.deltaMode,
+        time: e.timeStamp,
+      });
+      if (swipe === "up" && !mission.open) mission.setOpen(true);
+      else if (swipe === "down" && mission.open) mission.setOpen(false);
+      else if (swipe === "left" || swipe === "right") {
+        // Fingers moving left bring in the desktop on the right, as on a Mac.
+        const { spaces, activeSpaceId, switchSpace } = useWindowManager.getState();
+        const target = spaces[spaces.indexOf(activeSpaceId) + (swipe === "left" ? 1 : -1)];
+        if (target) switchSpace(target);
+      }
+    };
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => window.removeEventListener("wheel", handleWheel);
   }, []);
 
   const handleBootDone = useCallback(() => {
@@ -258,7 +398,11 @@ export function Desktop({ onLock }: DesktopProps) {
   }, []);
 
   const openSpotlight = useCallback(() => setIsSpotlightOpen(true), []);
-  const mobileAppOpen = windows.some((w) => w.isActive && !w.isMinimized);
+  const mobileApp = windows.find((w) => w.isActive && !w.isMinimized);
+  const mobileAppOpen = !!mobileApp;
+  const mobileAppDark = !!(
+    mobileApp && phoneApp(mobileApp.appId ?? mobileApp.id).dark
+  );
   const goMobileHome = useCallback(() => {
     const manager = useWindowManager.getState();
     manager.windows
@@ -267,23 +411,47 @@ export function Desktop({ onLock }: DesktopProps) {
     setIsSpotlightOpen(false);
   }, []);
 
-  // Opening or closing a window leaves Mission Control.
-  useEffect(() => setMissionOpen(false), [windows.length, setMissionOpen]);
+  // Opening or closing a window leaves Mission Control. The iPhone App
+  // Switcher stays open while cards are swiped away, until none are left.
+  const phone = usePhone();
+  const switcherPan = useSwitcherPan((s) => s.pan);
+  const windowCount = useRef(windows.length);
+  useEffect(() => {
+    const closed = windows.length < windowCount.current;
+    windowCount.current = windows.length;
+    if (!(phone && closed && windows.length > 0)) setMissionOpen(false);
+  }, [windows.length, setMissionOpen, phone]);
+  useEffect(() => {
+    if (missionOpen) useSwitcherPan.getState().setPan(0);
+  }, [missionOpen]);
 
   // Mission Control slots for the visible windows, back to front.
   const missionSlots = new Map<
     string,
     ReturnType<typeof missionLayout>[number]
   >();
-  if (missionOpen && typeof window !== "undefined") {
+  // iPhone App Switcher: every app, oldest on the left, newest in the middle.
+  const switcherOrder =
+    phone && missionOpen ? [...windows].sort((a, b) => a.zIndex - b.zIndex) : [];
+  const switcherCards = switcherSlots(
+    switcherOrder.length,
+    typeof window === "undefined" ? 393 : innerWidth,
+    typeof window === "undefined" ? 852 : innerHeight,
+    switcherPan,
+  );
+  switcherOrder.forEach((w, i) => missionSlots.set(w.id, switcherCards[i]));
+  if (missionOpen && !phone && typeof window !== "undefined") {
     const visible = windows
-      .filter((w) => !w.isMinimized)
+      .filter((w) => !w.isMinimized && onThisSpace(w))
       .sort((a, b) => a.zIndex - b.zIndex);
+    // Leave room at the top for the strip of desktops.
+    const barHeight = Math.round((168 * innerHeight) / innerWidth) + 52;
     const slots = missionLayout(visible.length, {
       x: 40,
-      y: MENU_BAR_HEIGHT + 36,
+      y: MENU_BAR_HEIGHT + barHeight + 16,
       width: innerWidth - 80,
-      height: innerHeight - MENU_BAR_HEIGHT - DOCK_RESERVED_HEIGHT - 56,
+      height:
+        innerHeight - MENU_BAR_HEIGHT - barHeight - DOCK_RESERVED_HEIGHT - 36,
     });
     visible.forEach((w, i) => missionSlots.set(w.id, slots[i]));
   }
@@ -309,6 +477,22 @@ export function Desktop({ onLock }: DesktopProps) {
   };
 
   const contextMenuItems = [
+    {
+      label: "New Folder",
+      onClick: () => {
+        // Place it where the menu was opened, in desktop-file coordinates.
+        const rect = filesRef.current?.getBoundingClientRect();
+        const near =
+          rect && contextMenu
+            ? {
+                x: Math.max(0, rect.right - contextMenu.x - 48),
+                y: Math.max(0, contextMenu.y - rect.top - 40),
+              }
+            : undefined;
+        useWindowManager.getState().createFolder(near);
+      },
+    },
+    { separator: true },
     {
       label: "Change Wallpaper…",
       onClick: () => launchApp("settings", { section: "wallpaper" }),
@@ -373,8 +557,10 @@ export function Desktop({ onLock }: DesktopProps) {
 
         <MobileHome
           appOpen={mobileAppOpen}
+          darkApp={mobileAppDark}
           onHome={goMobileHome}
           onSearch={openSpotlight}
+          onSwitcher={() => setMissionOpen(true)}
         />
 
         {/* Desktop files, anchored top-right */}
@@ -395,6 +581,7 @@ export function Desktop({ onLock }: DesktopProps) {
           onPointerUp={() => setBand(null)}
           onPointerCancel={() => setBand(null)}
           className="desktop-files absolute"
+
           style={{
             top: MENU_BAR_HEIGHT + 20,
             right: 28,
@@ -402,7 +589,7 @@ export function Desktop({ onLock }: DesktopProps) {
             left: 12,
           }}
         >
-          {desktopIcons.map((icon) => (
+          {desktopIcons.filter(onThisSpace).map((icon) => (
             <DesktopIconComponent key={icon.id} icon={icon} />
           ))}
         </div>
@@ -429,8 +616,78 @@ export function Desktop({ onLock }: DesktopProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              onClick={() => setMissionOpen(false)}
+              onClick={() => {
+                // On a phone, tapping outside the cards goes Home.
+                if (phone) goMobileHome();
+                setMissionOpen(false);
+              }}
             />
+          )}
+        </AnimatePresence>
+
+        {/* App Switcher: each card's icon and name above it. */}
+        {phone &&
+          missionOpen &&
+          switcherOrder.map((w, i) => {
+            const card = switcherCards[i];
+            const top = card.cy - (card.maxWidth * innerHeight) / innerWidth / 2 - 34;
+            return (
+              <div
+                key={w.id}
+                className="switcher-label"
+                style={{ left: card.cx - card.maxWidth / 2, top }}
+              >
+                <PhoneAppIcon appId={w.appId ?? w.id} size={26} />
+                {phoneTitle(w.appId ?? w.id, w.title)}
+              </div>
+            );
+          })}
+
+        <AnimatePresence>
+          {missionOpen && wide && (
+            <motion.div
+              key="spaces-bar"
+              className="fixed inset-x-0 z-[9600] flex justify-center"
+              style={{ top: MENU_BAR_HEIGHT + 10 }}
+              initial={{ opacity: 0, y: -24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -24 }}
+              transition={{ duration: 0.25 }}
+            >
+              <SpacesBar onPick={() => setMissionOpen(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {missionDrag && (
+          <div
+            className="mission-drag-ghost"
+            style={{ left: missionDrag.x, top: missionDrag.y }}
+            aria-hidden="true"
+          >
+            <AppIcon appId={missionDrag.appId} size={36} />
+            <span>{missionDrag.title}</span>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {spaceSwitch && !missionOpen && (
+            <motion.div
+              key={spaceSwitch.key}
+              className="space-hud"
+              role="status"
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              <strong>{spaceSwitch.name}</strong>
+              <span>
+                {spaces.map((id) => (
+                  <i key={id} data-active={id === activeSpaceId} />
+                ))}
+              </span>
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -442,10 +699,12 @@ export function Desktop({ onLock }: DesktopProps) {
               <Window
                 key={window.id}
                 window={window}
+                offSpace={!onThisSpace(window)}
                 mission={missionSlots.get(window.id) ?? null}
-                onHome={goMobileHome}
                 onMissionSelect={() => {
-                  useWindowManager.getState().setActiveWindow(window.id);
+                  const wm = useWindowManager.getState();
+                  if (window.isMinimized) wm.restoreWindow(window.id);
+                  wm.setActiveWindow(window.id);
                   setMissionOpen(false);
                 }}
               >

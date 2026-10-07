@@ -8,7 +8,9 @@ import {
   ChevronLeft,
   Hammer,
   Joystick,
+  Layers,
   LayoutGrid,
+  Newspaper,
   PenTool,
   Rocket,
   Search,
@@ -52,6 +54,15 @@ const SIDEBAR: { id: SidebarTab; label: string; icon: LucideIcon }[] = [
   { id: "develop", label: "Develop", icon: Hammer },
   { id: "categories", label: "Categories", icon: LayoutGrid },
   { id: "updates", label: "Updates", icon: ArrowDownToLine },
+];
+
+// The iPhone App Store's bottom tab bar.
+const PHONE_TABS: { id: SidebarTab | "search"; label: string; icon: LucideIcon }[] = [
+  { id: "discover", label: "Today", icon: Newspaper },
+  { id: "arcade", label: "Arcade", icon: Joystick },
+  { id: "categories", label: "Apps", icon: Layers },
+  { id: "updates", label: "Updates", icon: ArrowDownToLine },
+  { id: "search", label: "Search", icon: Search },
 ];
 
 const TITLES: Record<string, string> = {
@@ -318,6 +329,31 @@ export function AppStoreWindow({ route, at }: { route?: Route; at?: number }) {
               {page}
             </div>
           </div>
+          <nav className="store-phone-tabs mobile-only" aria-label="App Store">
+            {PHONE_TABS.map((tab) => {
+              const selected =
+                tab.id === "search"
+                  ? top.kind === "search"
+                  : baseTab === tab.id && top.kind !== "search";
+              return (
+                <button
+                  key={tab.id}
+                  aria-pressed={selected}
+                  onClick={() => {
+                    if (tab.id !== "search") return selectTab(tab.id);
+                    main.current?.scrollTo({ top: 0 });
+                    searchInput.current?.focus();
+                  }}
+                >
+                  <tab.icon size={23} />
+                  {tab.label}
+                  {tab.id === "updates" && pendingUpdates > 0 && (
+                    <span className="store-badge">{pendingUpdates}</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </main>
       </div>
     </StoreNavContext.Provider>

@@ -10,9 +10,133 @@ import {
   isAppInstalled,
   searchApps,
 } from "@/lib/app-registry";
-import { AppIcon } from "@/lib/app-icons";
+import { AppIcon, PhoneAppIcon } from "@/lib/app-icons";
+import { phoneApp, phoneTitle, usePhone } from "@/lib/phone";
 import { launchApp } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
+
+const SUGGESTED = [
+  "about",
+  "projects",
+  "resume",
+  "contact",
+  "github-activity",
+  "ie",
+  "music",
+  "settings",
+];
+
+type Result = { id: string; title: string; description: string };
+
+// iPhone Search: the field at the top with Cancel, Siri Suggestions while
+// it's empty, then a Top Hit and the other matching apps.
+function PhoneSearch({
+  query,
+  setQuery,
+  results,
+  inputRef,
+  launch,
+  onClose,
+}: {
+  query: string;
+  setQuery: (q: string) => void;
+  results: Result[];
+  inputRef: React.RefObject<HTMLInputElement>;
+  launch: (id: string) => void;
+  onClose: () => void;
+}) {
+  const [top, ...rest] = results;
+  const name = (r: Result) => phoneTitle(r.id, r.title);
+  return (
+    <motion.div
+      className="psearch"
+      role="dialog"
+      aria-label="Search"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={(e: React.MouseEvent) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        className="psearch-body"
+        initial={{ y: 24 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 420, damping: 36 }}
+      >
+        <form
+          className="psearch-bar"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (top) launch(top.id);
+          }}
+        >
+          <label>
+            <Search size={17} />
+            <input
+              ref={inputRef}
+              type="search"
+              enterKeyHint="go"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && onClose()}
+              placeholder="Search"
+              aria-label="Search apps"
+            />
+          </label>
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+        </form>
+
+        {!query.trim() ? (
+          <section>
+            <h2>Siri Suggestions</h2>
+            <div className="psearch-suggestions">
+              {SUGGESTED.filter((id) => getApp(id)).map((id) => (
+                <button key={id} onClick={() => launch(id)}>
+                  <PhoneAppIcon appId={id} size={60} />
+                  <span>{phoneTitle(id, getApp(id)!.title)}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : !top ? (
+          <p className="psearch-empty">No Results for “{query}”</p>
+        ) : (
+          <>
+            <section>
+              <h2>Top Hit</h2>
+              <button className="psearch-top" onClick={() => launch(top.id)}>
+                <PhoneAppIcon appId={top.id} size={60} />
+                <span>
+                  <strong>{name(top)}</strong>
+                  <small>{top.description}</small>
+                </span>
+              </button>
+            </section>
+            {rest.length > 0 && (
+              <section>
+                <h2>Apps</h2>
+                <div className="psearch-list">
+                  {rest.map((r) => (
+                    <button key={r.id} onClick={() => launch(r.id)}>
+                      <PhoneAppIcon appId={r.id} size={40} />
+                      <span>
+                        <strong>{name(r)}</strong>
+                        <small>{r.description}</small>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
 
 interface SpotlightProps {
   open: boolean;
@@ -25,9 +149,21 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const windows = useWindowManager((s) => s.windows);
+  const phone = usePhone();
   const results = useMemo(
     () => [
       ...searchApps(query),
+      // On a phone, apps are also found by their iPhone names ("Files").
+      ...(phone && query.trim()
+        ? APP_REGISTRY.filter(
+            (app) =>
+              phoneTitle(app.id, app.title) !== app.title &&
+              phoneTitle(app.id, app.title)
+                .toLowerCase()
+                .includes(query.trim().toLowerCase()) &&
+              !searchApps(query).some((hit) => hit.id === app.id),
+          )
+        : []),
       // Apps not installed yet open on their App Store page.
       ...(query.trim()
         ? APP_REGISTRY.filter(
@@ -51,8 +187,18 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
         )
         .map((w) => ({ id: w.id, title: w.title, description: "Open window" })),
     ],
-    [query, windows],
+    [query, windows, phone],
   );
+  // On a phone, apps whose iPhone name starts with the query lead.
+  const q = query.trim().toLowerCase();
+  const phoneResults =
+    phone && q
+      ? results.filter((r) => !phoneApp(r.id)?.macOnly).sort(
+          (a, b) =>
+            Number(!phoneTitle(a.id, a.title).toLowerCase().startsWith(q)) -
+            Number(!phoneTitle(b.id, b.title).toLowerCase().startsWith(q)),
+        )
+      : results;
 
   useEffect(() => {
     if (!open) return;
@@ -84,6 +230,22 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
       launch(results[selected].id);
     }
   };
+
+  if (phone)
+    return (
+      <AnimatePresence>
+        {open && (
+          <PhoneSearch
+            query={query}
+            setQuery={setQuery}
+            results={phoneResults}
+            inputRef={inputRef}
+            launch={launch}
+            onClose={onClose}
+          />
+        )}
+      </AnimatePresence>
+    );
 
   return (
     <AnimatePresence>
@@ -124,10 +286,14 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
                           : "text-[#1d1d1f] dark:text-white"
                       }`}
                     >
-                      <AppIcon appId={app.id} size={30} />
+                      {phone ? (
+                        <PhoneAppIcon appId={app.id} size={30} />
+                      ) : (
+                        <AppIcon appId={app.id} size={30} />
+                      )}
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium">
-                          {app.title}
+                          {phone ? phoneTitle(app.id, app.title) : app.title}
                         </span>
                         <span
                           className={`block truncate text-xs ${

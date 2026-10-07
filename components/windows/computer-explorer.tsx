@@ -16,6 +16,7 @@ import {
   Folder,
   HardDrive,
   Gamepad2,
+  FolderOpen,
 } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
 import { FinderLabel } from "@/components/finder-label";
@@ -23,6 +24,7 @@ import { getLaunchableApps } from "@/lib/app-registry";
 import { useInstalledApps } from "@/lib/app-store/installed";
 import { launchApp } from "@/lib/launch-app";
 import { useWindowManager } from "@/lib/window-manager";
+import { usePhone } from "@/lib/phone";
 
 interface Item {
   id: string;
@@ -114,6 +116,9 @@ export function ComputerExplorer({
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<"icons" | "list">("icons");
   const [sortAsc, setSortAsc] = useState(true);
+  // iPhone Files opens on its Browse list; a folder opens one page at a time.
+  const phone = usePhone();
+  const [phoneList, setPhoneList] = useState(!initialFolder);
   const current = history[cursor];
   const label = (name: string) =>
     name === "Desktop" ? (
@@ -121,11 +126,17 @@ export function ComputerExplorer({
         <span className="desktop-only">Desktop</span>
         <span className="mobile-only">Portfolio</span>
       </>
+    ) : name === "Macintosh HD" ? (
+      <>
+        <span className="desktop-only">Macintosh HD</span>
+        <span className="mobile-only">On My iPhone</span>
+      </>
     ) : (
       name
     );
   useEffect(() => {
     if (initialFolder) {
+      setPhoneList(false);
       setHistory([initialFolder]);
       setCursor(0);
       setQuery("");
@@ -133,8 +144,18 @@ export function ComputerExplorer({
     }
   }, [initialFolder]);
   const navigate = (name: string) => {
+    setPhoneList(false);
     setHistory([...history.slice(0, cursor + 1), name]);
     setCursor(cursor + 1);
+    setQuery("");
+    setSelected(null);
+  };
+  // From the Browse list a location starts fresh, so Back returns to the list.
+  const openLocation = (name: string) => {
+    if (!phone) return navigate(name);
+    setPhoneList(false);
+    setHistory([name]);
+    setCursor(0);
     setQuery("");
     setSelected(null);
   };
@@ -152,8 +173,14 @@ export function ComputerExplorer({
       kind: "Application",
       app: app.id,
     }));
+  // The Desktop folder also holds the folders made on any desktop.
+  const desktopFolders = useWindowManager((s) => s.desktopIcons)
+    .filter((icon) => icon.kind === "folder")
+    .map((icon) => folder(icon.title));
   const items: Item[] =
-    current === "Applications"
+    current === "Desktop"
+      ? [...portfolio, ...desktopFolders]
+      : current === "Applications"
       ? asItems(getLaunchableApps().filter((app) => !app.externalUrl))
       : current === "Games"
         ? asItems(getLaunchableApps().filter((app) => app.category === "Games"))
@@ -199,6 +226,7 @@ export function ComputerExplorer({
   return (
     <div
       className="mac-split"
+      data-phone-view={phoneList ? "list" : "page"}
       onKeyDown={(e) => {
         if ((e.target as HTMLElement).matches("input")) return;
         const mod = e.metaKey || e.ctrlKey;
@@ -237,6 +265,7 @@ export function ComputerExplorer({
       tabIndex={0}
     >
       <aside className="mac-sidebar">
+        <h1 className="phone-list-title mobile-only">Browse</h1>
         <div className="sidebar-heading">Favorites</div>
         <nav aria-label="File locations">
           {locations.map((loc) => (
@@ -244,7 +273,7 @@ export function ComputerExplorer({
               key={loc.name}
               className="sidebar-item"
               data-selected={current === loc.name}
-              onClick={() => navigate(loc.name)}
+              onClick={() => openLocation(loc.name)}
             >
               <loc.icon />
               <span>{label(loc.name)}</span>
@@ -255,10 +284,10 @@ export function ComputerExplorer({
         <button
           className="sidebar-item"
           data-selected={current === "Macintosh HD"}
-          onClick={() => navigate("Macintosh HD")}
+          onClick={() => openLocation("Macintosh HD")}
         >
           <HardDrive />
-          <span>Macintosh HD</span>
+          <span>{label("Macintosh HD")}</span>
         </button>
       </aside>
       <main className="finder-main">
@@ -267,8 +296,10 @@ export function ComputerExplorer({
             <button
               className="mac-icon-button"
               aria-label="Back"
-              disabled={cursor === 0}
-              onClick={() => step(-1)}
+              disabled={!phone && cursor === 0}
+              onClick={() =>
+                phone && cursor === 0 ? setPhoneList(true) : step(-1)
+              }
             >
               <ChevronLeft size={18} />
             </button>
@@ -312,11 +343,18 @@ export function ComputerExplorer({
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
           {!filtered.length ? (
-            <div className="empty-state">
-              <Search size={32} />
-              <p>No items found</p>
-              <span className="text-xs">Try a different search.</span>
-            </div>
+            query ? (
+              <div className="empty-state">
+                <Search size={32} />
+                <p>No items found</p>
+                <span className="text-xs">Try a different search.</span>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <FolderOpen size={36} strokeWidth={1.2} />
+                <p>This folder is empty</p>
+              </div>
+            )
           ) : view === "icons" ? (
             <div className="finder-grid">
               {filtered.map((item) => (

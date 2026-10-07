@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
+import { useAppName } from "@/lib/phone";
 import { getApp, isAppInstalled } from "@/lib/app-registry";
 import { launchApp } from "@/lib/launch-app";
 import {
@@ -245,6 +246,7 @@ export function ProductPage({ item }: { item: StoreItem }) {
   const app = item.appId ? getApp(item.appId) : undefined;
   const removable = !!app?.installable && isAppInstalled(app.id);
   const related = moreLikeThis(item);
+  const appName = useAppName();
   const byDeveloper = STORE_ITEMS.filter(
     (other) => other.kind === "project" && other.id !== item.id,
   ).slice(0, 6);
@@ -254,7 +256,7 @@ export function ProductPage({ item }: { item: StoreItem }) {
       <header className="store-product-header">
         <AppIcon appId={item.id} size={nav.narrow ? 104 : 148} />
         <div className="min-w-0">
-          <h1>{item.name}</h1>
+          <h1>{appName(item.id, item.name)}</h1>
           <p>{item.subtitle}</p>
           <button className="store-link" onClick={() => launchApp("about")}>
             {STORE_DEVELOPER}

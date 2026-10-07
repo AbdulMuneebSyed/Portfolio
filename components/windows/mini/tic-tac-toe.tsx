@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { bestMove, isFull, winner, type Cell } from "@/lib/games/tic-tac-toe";
 import { MiniButton, MiniHeader } from "./shared";
 import type { MiniAppProps } from "./registry";
+import { usePhone } from "@/lib/phone";
 
 type Mode = "computer" | "friend";
 
 const PREVIEW: Cell[] = ["X", null, "O", null, "X", null, "O", null, null];
 
 export function TicTacToe({ preview }: MiniAppProps) {
+  const phone = usePhone();
   const [board, setBoard] = useState<Cell[]>(() => (preview ? PREVIEW : Array(9).fill(null)));
   const [turn, setTurn] = useState<"X" | "O">("X");
   const [mode, setMode] = useState<Mode>("computer");
@@ -62,7 +64,7 @@ export function TicTacToe({ preview }: MiniAppProps) {
         stats={[
           { label: mode === "computer" ? "You" : "X", value: tally.X },
           { label: "Draws", value: tally.draw },
-          { label: mode === "computer" ? "Mac" : "O", value: tally.O },
+          { label: mode === "computer" ? (phone ? "iPhone" : "Mac") : "O", value: tally.O },
         ]}
       />
       <div className="mini-segments" role="tablist" aria-label="Opponent">

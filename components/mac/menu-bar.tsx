@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { getApp } from "@/lib/app-registry";
 import { launchApp, MENU_BAR_HEIGHT } from "@/lib/launch-app";
-import { useWindowManager } from "@/lib/window-manager";
+import { MAX_SPACES, spaceOf, useWindowManager } from "@/lib/window-manager";
 import { useMissionControl } from "@/lib/mission-control";
 import { useSystemControls } from "@/lib/system-controls";
 import { useBatteryStatus } from "@/lib/use-battery";
@@ -271,6 +271,31 @@ export function MenuBar({
           shortcut: "⌃↑",
           onSelect: () => useMissionControl.getState().toggle(),
         },
+        // Move the front window to another desktop (Spaces).
+        ...(activeWindow
+          ? (() => {
+              const wm = useWindowManager.getState();
+              const here = spaceOf(activeWindow, wm.spaces);
+              return [
+                { separator: true } as const,
+                ...wm.spaces
+                  .map((id, index) => ({ id, index }))
+                  .filter(({ id }) => id !== here)
+                  .map(({ id, index }) => ({
+                    label: `Move to Desktop ${index + 1}`,
+                    onSelect: () => wm.moveWindowToSpace(activeWindow.id, id),
+                  })),
+                {
+                  label: "Move to New Desktop",
+                  disabled: wm.spaces.length >= MAX_SPACES,
+                  onSelect: () => {
+                    const id = wm.addSpace();
+                    if (id) wm.moveWindowToSpace(activeWindow.id, id);
+                  },
+                },
+              ];
+            })()
+          : []),
         ...(windows.length > 0 ? [{ separator: true } as const] : []),
         ...windows.map((w) => ({
           label: w.title,
@@ -284,7 +309,7 @@ export function MenuBar({
       title: "Help",
       items: [
         {
-          label: "Keyboard Shortcuts…",
+          label: "Keyboard Shortcuts & Gestures…",
           onSelect: () => launchApp("settings", { section: "keyboard" }),
         },
         { label: "Take the Tour", onSelect: onStartTour },

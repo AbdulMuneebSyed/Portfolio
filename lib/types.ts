@@ -17,6 +17,7 @@ export interface WindowState {
   isActive: boolean;
   disableMaximize?: boolean; // Optional property to disable maximize button
   metadata?: Record<string, any>; // For passing additional data like initial folder
+  spaceId?: string; // the desktop (Space) the window lives on
 }
 
 export interface DesktopIcon {
@@ -25,6 +26,8 @@ export interface DesktopIcon {
   icon: string | any;
   component: string;
   position: { x: number; y: number };
+  kind?: "app" | "folder"; // folders are made by the visitor
+  spaceId?: string; // the desktop it sits on; unset means the first one
 }
 
 export interface AppRegistryEntry {

@@ -236,7 +236,12 @@ export function Snake() {
               <p>
                 {gameStatus === "gameOver"
                   ? `Your score: ${score}`
-                  : "Use the arrow keys or controls below."}
+                  : (
+                    <>
+                      <span className="desktop-only">Use the arrow keys or controls below.</span>
+                      <span className="mobile-only">Steer with the arrows below.</span>
+                    </>
+                  )}
               </p>
               <button
                 className="mac-button primary"

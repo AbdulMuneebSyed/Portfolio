@@ -1,17 +1,44 @@
 import { create } from "zustand";
 
+// A window being dragged in Mission Control towards the desktop strip.
+// `target` is the desktop under the pointer, "new" for the + button.
+export interface MissionDrag {
+  windowId: string;
+  appId: string;
+  title: string;
+  x: number;
+  y: number;
+  target: string | "new" | null;
+}
+
 // Mission Control: every open window spread out side by side (Ctrl+↑ / F3).
 interface MissionControlState {
   open: boolean;
   setOpen: (open: boolean) => void;
   toggle: () => void;
+  drag: MissionDrag | null;
+  setDrag: (drag: MissionDrag | null) => void;
 }
 
 export const useMissionControl = create<MissionControlState>((set) => ({
   open: false,
-  setOpen: (open) => set({ open }),
-  toggle: () => set((state) => ({ open: !state.open })),
+  setOpen: (open) => set({ open, drag: null }),
+  toggle: () => set((state) => ({ open: !state.open, drag: null })),
+  drag: null,
+  setDrag: (drag) => set({ drag }),
 }));
+
+// The desktop thumbnail (or the + button) under a screen point, read from
+// the strip's data attributes.
+export function spaceTargetAt(x: number, y: number): string | "new" | null {
+  if (typeof document === "undefined") return null;
+  const el = document
+    .elementsFromPoint(x, y)
+    .find((e) => (e as HTMLElement).dataset?.spaceTarget) as
+    | HTMLElement
+    | undefined;
+  return el?.dataset.spaceTarget ?? null;
+}
 
 export interface MissionArea {
   x: number;

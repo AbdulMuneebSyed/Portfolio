@@ -93,7 +93,10 @@ export function FeedbackWindow() {
   return (
     <div className="feedback-app">
       <div className="mac-toolbar">
-        <h2>Feedback Assistant</h2>
+        <h2>
+          <span className="desktop-only">Feedback Assistant</span>
+          <span className="mobile-only">Feedback</span>
+        </h2>
         <div className="mac-segmented">
           <button
             aria-pressed={page === 1}
@@ -154,7 +157,7 @@ export function FeedbackWindow() {
           {page === 1 && (
             <div className="settings-row">
               <span>Rating</span>
-              <div className="flex gap-2">
+              <div className="feedback-stars flex gap-2">
                 {[1, 2, 3, 4, 5].map((rating) => (
                   <button
                     key={rating}
