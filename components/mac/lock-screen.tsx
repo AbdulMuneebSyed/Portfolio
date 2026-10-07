@@ -18,6 +18,8 @@ import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 import { useWindowManager } from "@/lib/window-manager";
 import { useBatteryStatus } from "@/lib/use-battery";
 import { usePhone } from "@/lib/phone";
+import { type Notice, useNotifications } from "@/lib/notifications";
+import { NoticeList } from "./notice-list";
 
 interface LockScreenProps {
   onUnlock: () => void;
@@ -32,9 +34,11 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const battery = useBatteryStatus();
   const phone = usePhone();
   const [torch, setTorch] = useState(false);
+  const hasNotices = useNotifications((state) => state.notices.length > 0);
 
   useEffect(() => {
     useWindowManager.getState().loadState();
+    useNotifications.getState().loadNotifications();
     setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(id);
@@ -45,6 +49,14 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
     hasUnlockedRef.current = true;
     setIsUnlocking(true);
     window.setTimeout(onUnlock, 450);
+  };
+
+  // A tapped notification unlocks, then its app opens on the desktop.
+  const openNotice = (notice: Notice) => {
+    const notifications = useNotifications.getState();
+    notifications.remove(notice.id);
+    notifications.setPendingOpen(notice.appId);
+    unlock();
   };
 
   useEffect(() => {
@@ -144,6 +156,13 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         )}
       </div>
 
+      {/* Unread notifications wait under the clock until they're opened. */}
+      {!phone && (
+        <div className="relative z-10 mt-[5vh] w-[360px] max-w-[calc(100vw-32px)]">
+          <NoticeList variant="lock" limit={3} onOpen={openNotice} />
+        </div>
+      )}
+
       <div className="ios-lock-profile relative z-10 mt-auto mb-[5.5vh] flex flex-col items-center">
         <button
           onClick={(e) => {
@@ -169,15 +188,22 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           Click or press Enter to unlock
         </div>
       </div>
-      {/* iPhone: a notification waiting, and the torch and camera buttons. */}
-      <div className="ios-lock-notification mobile-only">
-        <Image src="/avatar-256.jpg" alt="" width={38} height={38} />
-        <span>
-          <strong>Muneeb OS</strong>
-          <span>Welcome! Swipe up to explore my portfolio.</span>
-        </span>
-        <small>now</small>
-      </div>
+      {/* iPhone: unread notifications (or a welcome on a first visit), and
+          the torch and camera buttons. */}
+      {phone && hasNotices ? (
+        <div className="ios-lock-notices">
+          <NoticeList variant="lock" limit={3} onOpen={openNotice} />
+        </div>
+      ) : (
+        <div className="ios-lock-notification mobile-only">
+          <Image src="/avatar-256.jpg" alt="" width={38} height={38} />
+          <span>
+            <strong>Muneeb OS</strong>
+            <span>Welcome! Swipe up to explore my portfolio.</span>
+          </span>
+          <small>now</small>
+        </div>
+      )}
       <button
         className="ios-lock-action ios-lock-torch mobile-only"
         aria-label="Flashlight"

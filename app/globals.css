@@ -2568,6 +2568,9 @@ kbd {
     color: white;
     pointer-events: none;
   }
+  .ios-status-time {
+    pointer-events: auto;
+  }
   .ios-status-bar[data-control-center="true"],
   .mac-desktop:has(.psearch) .ios-status-bar {
     z-index: 10002;
@@ -2892,6 +2895,53 @@ kbd {
     overflow-y: auto;
     color: #fff;
     touch-action: pan-y;
+  }
+  /* iPhone Notification Center: a blurred sheet pulled down from the top. */
+  .pnc {
+    position: fixed;
+    inset: 0;
+    z-index: 9801;
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--ios-status) + 18px) 10px calc(var(--ios-safe-bottom) + 28px);
+    overflow-y: auto;
+    color: #fff;
+    background: #0000003d;
+    -webkit-backdrop-filter: blur(34px) saturate(1.5);
+    backdrop-filter: blur(34px) saturate(1.5);
+    touch-action: pan-y;
+  }
+  .pnc-clock {
+    text-align: center;
+    color: #ffffffd9;
+  }
+  .pnc-clock > div:first-child {
+    font-size: 19px;
+    font-weight: 600;
+  }
+  .pnc-clock > div:last-child {
+    margin-top: -4px;
+    font-size: 84px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.025em;
+  }
+  .pnc-list {
+    margin-top: 28px;
+  }
+  .pnc-empty {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffffb3;
+  }
+  .pnc-handle {
+    width: 134px;
+    height: 5px;
+    margin: auto auto 0;
+    border-radius: 3px;
+    background: #ffffffcc;
   }
   .pcc-grid {
     display: grid;
@@ -4110,6 +4160,13 @@ kbd {
     color: white;
     font-size: 15px;
     line-height: 1.3;
+  }
+  .ios-lock-notices {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: calc(var(--ios-safe-bottom) + 112px);
+    z-index: 10;
   }
   .ios-lock-notification img {
     width: 38px;

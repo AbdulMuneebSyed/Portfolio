@@ -28,6 +28,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { launchApp } from "@/lib/launch-app";
+import { useNotifications } from "@/lib/notifications";
+import { NoticeList } from "./notice-list";
 import { MIN_BRIGHTNESS, useSystemControls } from "@/lib/system-controls";
 import type { BatteryStatus } from "@/lib/use-battery";
 import { useNowPlaying } from "@/lib/now-playing";
@@ -544,30 +546,6 @@ export function ControlCenter({
 
 // ---------------------------------------------------------------- Notification Center
 
-const NOTIFICATIONS = [
-  {
-    id: "welcome",
-    app: "MuneebOS",
-    title: "Welcome to MuneebOS",
-    body: "Press ⌘K to search for anything, or use the Dock below.",
-    action: "about",
-  },
-  {
-    id: "hiring",
-    app: "Contact",
-    title: "Open to SDE roles",
-    body: "Have an opportunity? Send me a message — I read every note.",
-    action: "contact",
-  },
-  {
-    id: "projects",
-    app: "Projects",
-    title: "AiResumate is live",
-    body: "AI resume scoring and rewriting. See it and more in Projects.",
-    action: "projects",
-  },
-];
-
 function CalendarWidget({ now }: { now: Date }) {
   const { monthName, blanks, days } = useMemo(() => {
     const year = now.getFullYear();
@@ -623,6 +601,7 @@ export function NotificationCenter({ onClose }: { onClose: () => void }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 380, opacity: 0 }}
       transition={{ type: "spring", stiffness: 380, damping: 36 }}
+      data-notification-center
       className="w-[348px] max-w-[calc(100vw-20px)] max-h-[calc(100dvh-50px)] overflow-y-auto space-y-2.5 text-[#1d1d1f] dark:text-white [text-shadow:none]"
       onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
     >
@@ -632,28 +611,19 @@ export function NotificationCenter({ onClose }: { onClose: () => void }) {
             <Moon className="size-4" /> Do Not Disturb
           </div>
           <div className="mt-0.5 text-[12px] opacity-60">
-            Notifications are silenced while Focus is on.
+            Banners are silenced while Focus is on; notifications still collect here.
           </div>
         </div>
-      ) : (
-        NOTIFICATIONS.map((n) => (
-          <button
-            key={n.id}
-            onClick={() => {
-              launchApp(n.action);
-              onClose();
-            }}
-            className="block w-full rounded-[18px] bg-white/70 px-3.5 py-3 dark:bg-[#2c2c2e]/70 dark:text-white text-left shadow-[0_0_0_0.5px_rgba(0,0,0,0.08)] backdrop-blur-3xl hover:bg-white/85 dark:hover:bg-[#3a3a3c]/80"
-          >
-            <div className="flex items-center justify-between text-[11px] font-medium uppercase opacity-60">
-              <span>{n.app}</span>
-              <span className="normal-case">now</span>
-            </div>
-            <div className="mt-1 text-[13px] font-semibold">{n.title}</div>
-            <div className="text-[13px] leading-snug opacity-80">{n.body}</div>
-          </button>
-        ))
-      )}
+      ) : null}
+      <NoticeList
+        variant="center"
+        header
+        onOpen={(notice) => {
+          useNotifications.getState().remove(notice.id);
+          launchApp(notice.appId);
+          onClose();
+        }}
+      />
       <CalendarWidget now={now} />
     </motion.div>
   );

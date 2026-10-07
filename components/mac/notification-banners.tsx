@@ -12,6 +12,7 @@ import { usePhone } from "@/lib/phone";
 export function NotificationBanners() {
   const banners = useNotifications((state) => state.banners);
   const dismiss = useNotifications((state) => state.dismiss);
+  const remove = useNotifications((state) => state.remove);
   const phone = usePhone();
   const hidden = phone ? { y: -120, opacity: 0 } : { x: 380, opacity: 0 };
 
@@ -39,6 +40,7 @@ export function NotificationBanners() {
               drag: "y" as const,
               dragConstraints: { top: 0, bottom: 0 },
               dragElastic: { top: 0.6, bottom: 0.1 },
+              // Swiped up, it moves to Notification Center, as on iOS.
               onDragEnd: (_: unknown, info: { offset: { y: number } }) => {
                 if (info.offset.y < -24) dismiss(banner.id);
               },
@@ -47,7 +49,7 @@ export function NotificationBanners() {
             <button
               className="flex w-full items-start gap-2.5 rounded-[18px] max-[699px]:items-center max-[699px]:rounded-[24px] max-[699px]:px-3.5 max-[699px]:py-3 bg-white/75 px-3 py-2.5 text-left text-[#1d1d1f] shadow-[0_0_0_0.5px_rgba(0,0,0,0.1),0_8px_28px_rgba(0,0,0,0.18)] backdrop-blur-3xl hover:bg-white/85 dark:bg-[#2c2c2e]/75 dark:text-white dark:hover:bg-[#3a3a3c]/80"
               onClick={() => {
-                dismiss(banner.id);
+                remove(banner.id);
                 launchApp(banner.appId);
               }}
             >
@@ -69,9 +71,9 @@ export function NotificationBanners() {
               </span>
             </button>
             <button
-              aria-label="Dismiss notification"
+              aria-label="Clear notification"
               className="absolute -left-1.5 -top-1.5 hidden size-5 items-center justify-center rounded-full bg-white text-[#1d1d1f] shadow ring-1 ring-black/10 group-hover:flex focus-visible:flex dark:bg-[#3a3a3c] dark:text-white"
-              onClick={() => dismiss(banner.id)}
+              onClick={() => remove(banner.id)}
             >
               <X className="size-3" />
             </button>

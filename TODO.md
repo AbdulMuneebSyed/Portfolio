@@ -59,11 +59,13 @@ Browser checks at 390 × 844 also passed for Calculator, Safari, Music, About, P
 - Mission Control (Ctrl+↑, F3, Window menu): windows laid out by `missionLayout` in `lib/mission-control.ts`; click to pick, Esc or click backdrop to leave. Disabled under 700px.
 - Rubber-band selection on the desktop; Shift/⌘-click toggles. Selection is shared in `lib/desktop-selection.ts`.
 - Notification banners (`lib/notifications.ts`, `components/mac/notification-banners.tsx`): welcome on first visit, Contact sent, Feedback sent, Screenshot saved/unavailable. Focus mode silences them; max 3; 5 s each.
+- Notifications persist: unread ones stay in Notification Center (Mac: menu bar clock; iPhone: pull down from the status bar time) and on the lock screen until opened or cleared (`components/mac/notice-list.tsx`). Focus skips the banner but still delivers.
+- Notification feed (`lib/notification-feed.ts`, `lib/notification-scheduler.ts`): LinkedIn, GitHub and resume first, then resume highlights and nudges. Active-tab time only; first after 30–45 s, gaps 60–100 s growing 1.3×, max 6 a visit, never repeated within two weeks, held back while a banner, dialog or Notification Center is open. `?notifications=fast` runs it 15× faster.
 - Tests added for the Mission Control layout and banners.
 
 ## Remaining work
 
-1. Ideas not built yet: Launchpad, hot corners, Window → Move & Resize menu items, dragging several selected desktop files at once, banners also listed in Notification Center.
+1. Ideas not built yet: Launchpad, hot corners, Window → Move & Resize menu items, dragging several selected desktop files at once.
 2. Optional: add a Playwright layer; `scripts/test-macos.cjs` covers stores and launch geometry only.
 3. Product decisions for the owner: keep the click sound opt-in? Auto-start the tour on first visit (`components/desktop.tsx`)?
 4. Note: running `npm run build` while `npm run dev` is running overwrites `.next` and leaves the dev server serving 404 CSS. Stop dev before building.

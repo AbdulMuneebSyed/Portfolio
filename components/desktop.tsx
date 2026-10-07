@@ -22,7 +22,8 @@ import { Window } from "./window";
 import { useMissionControl, missionLayout } from "@/lib/mission-control";
 import { createSwipeDetector } from "@/lib/trackpad-swipe";
 import { useDesktopSelection } from "@/lib/desktop-selection";
-import { notify } from "@/lib/notifications";
+import { notify, useNotifications } from "@/lib/notifications";
+import { startNotificationFeed } from "@/lib/notification-scheduler";
 import { NotificationBanners } from "./mac/notification-banners";
 import { ContextMenu } from "./context-menu";
 import { MenuBar } from "./mac/menu-bar";
@@ -279,6 +280,25 @@ export function Desktop({ onLock }: DesktopProps) {
     loadState();
     loadControls();
   }, [loadState, loadControls]);
+
+  // Notifications that drop in while the visitor looks around, and the app
+  // a notification tapped on the lock screen asked for.
+  useEffect(() => {
+    const notifications = useNotifications.getState();
+    notifications.loadNotifications();
+    const appId = notifications.pendingOpen;
+    const id = appId
+      ? window.setTimeout(() => {
+          notifications.setPendingOpen(null);
+          launchApp(appId);
+        }, 500)
+      : undefined;
+    const stopFeed = startNotificationFeed();
+    return () => {
+      window.clearTimeout(id);
+      stopFeed();
+    };
+  }, []);
 
   // Control Center's Dark Mode applies to the whole shell (and portals).
   useEffect(() => {

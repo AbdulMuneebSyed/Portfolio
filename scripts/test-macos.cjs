@@ -156,6 +156,55 @@ test("notification banners show, cap at three, and are silenced by Focus", () =>
   controls.setState({ focusOn: true });
   notify({ appId: "about", title: "quiet", body: "" });
   assert.equal(useNotifications.getState().banners.length, 0);
+  // Focus skips the banner, but the notification still waits unread.
+  assert.equal(useNotifications.getState().notices[0].title, "quiet");
+});
+
+test("unread notifications persist until opened or cleared", () => {
+  const { useNotifications, notify } = load("lib/notifications.ts");
+  useNotifications.setState({ banners: [], notices: [] });
+  notify({ appId: "github-activity", title: "GitHub", body: "a" });
+  notify({ appId: "linkedin", title: "LinkedIn", body: "b" });
+  const [linkedin, github] = useNotifications.getState().notices;
+  // A banner timing out leaves the notice unread.
+  useNotifications.getState().dismiss(linkedin.id);
+  assert.equal(useNotifications.getState().notices.length, 2);
+  // Reloading the page brings them back.
+  useNotifications.setState({ notices: [] });
+  useNotifications.getState().loadNotifications();
+  assert.deepEqual(useNotifications.getState().notices.map((n) => n.title), ["LinkedIn", "GitHub"]);
+  // Opening one removes it everywhere; Clear All removes the rest.
+  useNotifications.getState().remove(github.id);
+  assert.deepEqual(useNotifications.getState().notices.map((n) => n.id), [linkedin.id]);
+  useNotifications.getState().clearAll();
+  useNotifications.getState().loadNotifications();
+  assert.equal(useNotifications.getState().notices.length, 0);
+});
+
+test("notification times read like macOS", () => {
+  const { timeAgo } = load("lib/notifications.ts");
+  const now = new Date(2026, 9, 8, 15, 0).getTime();
+  assert.equal(timeAgo(now - 20_000, now), "now");
+  assert.equal(timeAgo(now - 5 * 60_000, now), "5m ago");
+  assert.equal(timeAgo(now - 3 * 3_600_000, now), "3h ago");
+  assert.equal(timeAgo(new Date(2026, 9, 7, 22, 0).getTime(), now), "Yesterday");
+});
+
+test("the feed goes LinkedIn/GitHub/resume first and skips seen or open apps", () => {
+  const { pickNext, feedBody, FEED } = load("lib/notification-feed.ts");
+  const first = pickNext(new Set(), new Set(), () => 0);
+  assert.equal(first.tier, 1);
+  const tierOne = FEED.filter((item) => item.tier === 1).map((item) => item.id);
+  // Seen everything in tier 1: the next comes from tier 2.
+  assert.equal(pickNext(new Set(tierOne), new Set()).tier, 2);
+  // An app the visitor already has open isn't nudged.
+  for (let i = 0; i < 20; i++)
+    assert.notEqual(pickNext(new Set(), new Set(["linkedin"])).appId, "linkedin");
+  // Run out entirely: nothing more to send.
+  assert.equal(pickNext(new Set(FEED.map((item) => item.id)), new Set()), null);
+  // Muneeb's local time is in the Hyderabad notification.
+  const hyd = FEED.find((item) => item.id === "hyderabad-time");
+  assert.match(feedBody(hyd, new Date("2026-10-08T20:44:00Z")), /2:14 AM in Hyderabad/);
 });
 
 test("Finder labels wrap to two lines and shorten the second in the middle", () => {

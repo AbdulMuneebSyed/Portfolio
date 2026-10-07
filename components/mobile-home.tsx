@@ -6,6 +6,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { BatteryFull, MapPin, Search, Signal, Wifi } from "lucide-react";
 import { PhoneControlCenter } from "@/components/mac/phone-control-center";
+import { PhoneNotificationCenter } from "@/components/mac/phone-notification-center";
 import { PhoneAppIcon } from "@/lib/app-icons";
 import { getApp, getLaunchableApps } from "@/lib/app-registry";
 import { useInstalledApps } from "@/lib/app-store/installed";
@@ -122,6 +123,7 @@ export function MobileHome({
   const folders = useFolders();
   const [folder, setFolder] = useState<string | null>(null);
   const [controlOpen, setControlOpen] = useState(false);
+  const [noticesOpen, setNoticesOpen] = useState(false);
   const swipe = useRef<number | null>(null);
   const pull = useRef<number | null>(null);
   const pulled = useRef(false);
@@ -173,12 +175,30 @@ export function MobileHome({
       <div
         className="ios-status-bar"
         data-in-app={appOpen}
-        data-tone={appOpen && !darkApp && !controlOpen ? "dark" : "light"}
-        data-control-center={controlOpen}
+        data-tone={appOpen && !darkApp && !controlOpen && !noticesOpen ? "dark" : "light"}
+        data-control-center={controlOpen || noticesOpen}
       >
-        <span className="ios-status-time">
+        <button
+          className="ios-status-time"
+          aria-label="Notification Center"
+          aria-expanded={noticesOpen}
+          // Tap, or pull down from the top-left, to open it.
+          onClick={() => {
+            if (!pulled.current) setNoticesOpen((open) => !open);
+            pulled.current = false;
+          }}
+          onPointerDown={(e) => {
+            pull.current = e.clientY;
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerUp={(e) => {
+            pulled.current = pull.current !== null && e.clientY - pull.current > 20;
+            if (pulled.current) setNoticesOpen(true);
+            pull.current = null;
+          }}
+        >
           {now?.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?[AP]M$/i, "")}
-        </span>
+        </button>
         <span className="ios-island" aria-hidden="true" />
         <button
           className="ios-status-controls"
@@ -282,6 +302,7 @@ export function MobileHome({
       </AnimatePresence>
 
       <PhoneControlCenter open={controlOpen} onClose={() => setControlOpen(false)} />
+      <PhoneNotificationCenter open={noticesOpen} onClose={() => setNoticesOpen(false)} />
     </div>
   );
 }
