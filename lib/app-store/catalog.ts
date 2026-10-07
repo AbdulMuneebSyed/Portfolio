@@ -30,6 +30,10 @@ export type MockKind =
   | "resume-rewrite"
   | "leaderboard"
   | "lms"
+  | "feed"
+  | "profile"
+  | "crm"
+  | "chatbot"
   | "agent-chat"
   | "daily-brief"
   | "sql"
@@ -273,6 +277,79 @@ const PROJECT_ITEMS: StoreItem[] = [
         version: "Paper",
         date: "2026",
         notes: "With S. S. Ahmed and S. W. Sidiqi.",
+      },
+    ],
+  },
+  {
+    id: "launchpad",
+    kind: "project",
+    name: "LaunchPad",
+    subtitle: "A social network for startups",
+    category: "Full Stack",
+    description: project("launchpad").description,
+    techStack: project("launchpad").techStack,
+    chart: { rank: 1, list: "Full Stack" },
+    size: "Web",
+    age: "4+",
+    platforms: ["Web"],
+    tint: "#ff6b35",
+    slides: [
+      {
+        strong: "Real-time founder feed.",
+        caption: "Posts and reactions stream in over SignalR.",
+        mock: "feed",
+      },
+      {
+        strong: "Founder profiles.",
+        caption: "Startups, teams and live interactions in one place.",
+        mock: "profile",
+      },
+    ],
+    versions: [
+      {
+        version: "1.0",
+        date: "2025",
+        notes: "JWT auth, Redis caching and a modular .NET Core backend.",
+      },
+    ],
+  },
+  {
+    id: "capco",
+    kind: "project",
+    name: "Capco-CS Vendor Portal",
+    subtitle: "CRM, vendors and an AI help desk",
+    category: "Enterprise",
+    description: project("capco").description,
+    highlights: project("capco").highlights,
+    techStack: project("capco").techStack,
+    website: project("capco").demoLink,
+    chart: { rank: 1, list: "Enterprise" },
+    size: "Web",
+    age: "4+",
+    platforms: ["Web"],
+    tint: "#14a3a3",
+    slides: [
+      {
+        strong: "Live in production.",
+        caption: "The Capco-CS site with its Gemini-powered assistant.",
+        image: "/app-store/shots/capco-1.jpg",
+      },
+      {
+        strong: "One CRM for every client.",
+        caption: "+30% client management efficiency.",
+        mock: "crm",
+      },
+      {
+        strong: "Support in seconds.",
+        caption: "The AI chatbot cut response times by 90%.",
+        mock: "chatbot",
+      },
+    ],
+    versions: [
+      {
+        version: "1.0",
+        date: "May 2025",
+        notes: "Vendor portal, custom CRM and Gemini support chatbot.",
       },
     ],
   },

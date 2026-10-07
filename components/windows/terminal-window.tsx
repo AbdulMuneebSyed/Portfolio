@@ -151,7 +151,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Featured: Arrwin (PulseGen), AiResumate, GetMarks (MathonGO), Hypogen, a research paper on checkpointed LLM agents, E-Cell Hackathon Platform.",
+          text: "Featured: Arrwin (PulseGen), AiResumate, GetMarks (MathonGO), Hypogen, a research paper on checkpointed LLM agents, LaunchPad, Capco-CS Vendor Portal, E-Cell Hackathon Platform.",
         },
         { kind: "output", text: "Run 'open projects' for details." },
       ]);

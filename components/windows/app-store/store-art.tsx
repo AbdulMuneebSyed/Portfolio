@@ -215,6 +215,53 @@ export function MockScreen({ kind, tint }: { kind: MockKind; tint: string }) {
           ))}
         </div>
       );
+    case "feed":
+    case "profile":
+      return (
+        <div className="mock mock-stack" style={style}>
+          {kind === "profile" && (
+            <div className="mock-profile">
+              <span className="mock-avatar big" />
+              <div>
+                <strong>Orbit Labs</strong>
+                <small>Seed · 6 founders · Hyderabad</small>
+              </div>
+            </div>
+          )}
+          {["Shipped our beta today 🚀", "Hiring a founding engineer", "We crossed 1K users!"].map((t) => (
+            <div key={t} className="mock-card">
+              <div className="mock-list-row">
+                <span className="mock-avatar" />
+                <strong className="flex-1">Founder</strong>
+                <small>now</small>
+              </div>
+              <p>{t}</p>
+            </div>
+          ))}
+        </div>
+      );
+    case "crm":
+      return (
+        <div className="mock mock-stack" style={style}>
+          <div className="mock-heading">Clients</div>
+          {["Qatar Logistics", "Nova Retail", "Bluepeak", "Helix Health", "Arcadia"].map((c, i) => (
+            <div key={c} className="mock-list-row">
+              <span className="mock-avatar" />
+              <span className="flex-1">{c}</span>
+              <span className="mock-pill">{["Active", "Onboarding", "Active", "Review", "Active"][i]}</span>
+            </div>
+          ))}
+        </div>
+      );
+    case "chatbot":
+      return (
+        <div className="mock mock-chat" style={style}>
+          <p className="them">How do I add a new vendor?</p>
+          <p className="me">Open Vendors → Add, upload the documents, and I&apos;ll verify them for you.</p>
+          <p className="them">Done! How long does approval take?</p>
+          <p className="me">Usually under a minute.</p>
+        </div>
+      );
     case "agent-chat":
       return (
         <div className="mock mock-chat" style={style}>

@@ -51,6 +51,12 @@ export const DEFAULT_BOOKMARKS: SafariPage[] = [
       "PulseGen, where Muneeb builds Arrwin, an AI assistant for product managers.",
   },
   {
+    title: "Capco CS",
+    url: "https://www.capco-cs.com/",
+    description:
+      "Capco is a Multinational Management and Technology Consultancy based out of Qatar, India and Canada.",
+  },
+  {
     title: "Hack Revolution",
     url: "https://www.hackrevolution.in/",
     description: "Hackathon platform",

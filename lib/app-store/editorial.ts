@@ -81,7 +81,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     {
       type: "shelf",
       title: "Shipped to Production",
-      itemIds: ["arrwin", "airesumate", "getmarks", "hypogen", "agent-checkpoints", "ecell", "muneebos"],
+      itemIds: ["arrwin", "airesumate", "getmarks", "hypogen", "agent-checkpoints", "capco", "ecell", "launchpad", "muneebos"],
     },
     {
       type: "stories",

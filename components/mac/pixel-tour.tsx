@@ -127,7 +127,7 @@ export function PixelTour({ run, onComplete, onSkip }: TourProps) {
           break;
         case "projects":
           content =
-            "🚀 Projects: real work I've shipped, like Arrwin, AiResumate and GetMarks.";
+            "🚀 Projects: real work I've shipped, like Arrwin, AiResumate, GetMarks and LaunchPad.";
           break;
         case "contact":
           content =

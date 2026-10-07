@@ -86,6 +86,28 @@ export const projects: Project[] = [
     category: "AI Agents",
   },
   {
+    id: "launchpad",
+    title: "LaunchPad — Startup Network",
+    description:
+      "Twitter-like startup networking platform with real-time feeds, founder profiles, and live interactions. JWT auth, Redis caching, modular backend.",
+    techStack: [".NET Core", "React", "PostgreSQL", "SignalR", "Redis"],
+    category: "Full Stack",
+  },
+  {
+    id: "capco",
+    title: "Capco-CS Vendor Portal",
+    description:
+      "Full-stack web app with custom CRM and vendor portal; Gemini-powered support chatbot integrated for automated user support.",
+    techStack: ["React", "Supabase", "Gemini AI"],
+    demoLink: "https://www.capco-cs.com",
+    category: "Enterprise",
+    highlights: [
+      "+30% client management efficiency",
+      "+25% vendor onboarding",
+      "90% faster support response",
+    ],
+  },
+  {
     id: "ecell",
     title: "E-Cell MJCET Hackathon Platform",
     description:

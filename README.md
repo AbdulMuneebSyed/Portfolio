@@ -57,7 +57,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 | App | What it shows |
 |---|---|
 | About Me | Experience, skills, awards |
-| Projects | Shipped work and research: Arrwin, AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, E-Cell |
+| Projects | Shipped work and research: Arrwin, AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
 | Resume | PDF viewer with download (`public/syedabdulmuneebresume.pdf`) |
 | Contact | Message form (saved to Supabase), email, phone, socials |
 | GitHub | Live public activity and repositories |
@@ -81,7 +81,7 @@ from its product page or Account › My Apps.
 - **Tools:** Typing Test, Pomodoro, Sketch, Piano, Color Lab, JSON Formatter
 
 Product pages use real captures of the live sites where they load
-(GetMarks), drawn screens where they don't, and live, scaled-down
+(GetMarks, Capco-CS), drawn screens where they don't, and live, scaled-down
 renders of the apps themselves. Share links (`/?app=<id>`) open a product
 page after unlock. Gift codes `ARCADE` and `HIREME` install sets of apps.
 
