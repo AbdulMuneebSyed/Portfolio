@@ -6,7 +6,7 @@ import "./globals.css";
 import "./app-store.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://portfolio-muneeb.vercel.app"),
+  metadataBase: new URL("https://www.syedabdulmuneeb.dev"),
   title: {
     default: "Syed Abdul Muneeb | Software Engineer Portfolio",
     template: "%s | Syed Abdul Muneeb",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://portfolio-muneeb.vercel.app",
+    url: "https://www.syedabdulmuneeb.dev",
     title: "Syed Abdul Muneeb - Software Engineer Portfolio",
     description:
       "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
@@ -76,14 +76,14 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Syed Abdul Muneeb",
-    url: "https://portfolio-muneeb.vercel.app",
+    url: "https://www.syedabdulmuneeb.dev",
     jobTitle: "Software Engineer",
     sameAs: [
       "https://www.linkedin.com/in/syed-abdul-muneeb/",
       "https://github.com/AbdulMuneebSyed",
     ],
     description:
-      "Software Engineer specializing in building exceptional digital experiences. Currently focused on building accessible, human-centered products.",
+      "Full-stack engineer who ships AI-agent products to production: streaming LLM chat, MCP and REST integrations, and multi-tenant search at PulseGen.",
   };
 
   return (

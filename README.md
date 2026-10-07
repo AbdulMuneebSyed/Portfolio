@@ -4,7 +4,7 @@ An interactive portfolio that looks and behaves like a Mac. Visitors unlock a
 lock screen, then explore my work through a Dock, a menu bar, Spotlight,
 Control Center, and windows they can drag, zoom, and minimize.
 
-**Live:** [portfolio-muneeb.vercel.app](https://portfolio-muneeb.vercel.app)
+**Live:** [syedabdulmuneeb.dev](https://www.syedabdulmuneeb.dev)
 
 ![MuneebOS lock screen](public/og-image.png)
 
@@ -183,7 +183,7 @@ The client is configured in `lib/supabase-client.ts`.
 ## Deployment
 
 Hosted on [Vercel](https://vercel.com) at
-[portfolio-muneeb.vercel.app](https://portfolio-muneeb.vercel.app). The site
+[syedabdulmuneeb.dev](https://www.syedabdulmuneeb.dev). The site
 builds with `npm run build` and needs no environment variables.
 
 ## Browser notes
