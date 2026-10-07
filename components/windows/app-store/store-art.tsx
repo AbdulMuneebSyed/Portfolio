@@ -215,51 +215,63 @@ export function MockScreen({ kind, tint }: { kind: MockKind; tint: string }) {
           ))}
         </div>
       );
-    case "feed":
-    case "profile":
-      return (
-        <div className="mock mock-stack" style={style}>
-          {kind === "profile" && (
-            <div className="mock-profile">
-              <span className="mock-avatar big" />
-              <div>
-                <strong>Orbit Labs</strong>
-                <small>Seed · 6 founders · Hyderabad</small>
-              </div>
-            </div>
-          )}
-          {["Shipped our beta today 🚀", "Hiring a founding engineer", "We crossed 1K users!"].map((t) => (
-            <div key={t} className="mock-card">
-              <div className="mock-list-row">
-                <span className="mock-avatar" />
-                <strong className="flex-1">Founder</strong>
-                <small>now</small>
-              </div>
-              <p>{t}</p>
-            </div>
-          ))}
-        </div>
-      );
-    case "crm":
-      return (
-        <div className="mock mock-stack" style={style}>
-          <div className="mock-heading">Clients</div>
-          {["Qatar Logistics", "Nova Retail", "Bluepeak", "Helix Health", "Arcadia"].map((c, i) => (
-            <div key={c} className="mock-list-row">
-              <span className="mock-avatar" />
-              <span className="flex-1">{c}</span>
-              <span className="mock-pill">{["Active", "Onboarding", "Active", "Review", "Active"][i]}</span>
-            </div>
-          ))}
-        </div>
-      );
-    case "chatbot":
+    case "agent-chat":
       return (
         <div className="mock mock-chat" style={style}>
-          <p className="them">How do I add a new vendor?</p>
-          <p className="me">Open Vendors → Add, upload the documents, and I&apos;ll verify them for you.</p>
-          <p className="them">Done! How long does approval take?</p>
-          <p className="me">Usually under a minute.</p>
+          <p className="them">What are customers saying about onboarding this week?</p>
+          <p className="me">12 calls mention setup friction, mostly around SSO. Two contradict last sprint&apos;s notes.</p>
+          <p className="them">Show me the contradictions.</p>
+          <p className="me">Here they are, with the source of each.</p>
+        </div>
+      );
+    case "daily-brief":
+      return (
+        <div className="mock mock-stack" style={style}>
+          <div className="mock-heading">Daily Brief</div>
+          {[
+            ["Gmail", "3 customer threads need a reply"],
+            ["Calls", "SSO setup came up 5 times"],
+            ["Tickets", "2 bugs reopened overnight"],
+            ["Roadmap", "1 decision contradicts a spec"],
+          ].map(([source, text]) => (
+            <div key={source} className="mock-list-row">
+              <span className="mock-pill">{source}</span>
+              <span className="flex-1">{text}</span>
+            </div>
+          ))}
+        </div>
+      );
+    case "sql":
+      return (
+        <div className="mock mock-stack" style={style}>
+          <div className="mock-card accent">
+            <p>Which region grew fastest last quarter?</p>
+          </div>
+          <div className="mock-card">
+            <small>Analyst → SQL writer → Checker</small>
+            <p className="font-mono text-[11px] leading-snug">
+              SELECT region, SUM(revenue) FROM sales WHERE quarter = &apos;Q3&apos; GROUP BY region ORDER BY 2 DESC;
+            </p>
+          </div>
+          <div className="mock-card">
+            <p>South grew fastest: +24% quarter on quarter.</p>
+          </div>
+        </div>
+      );
+    case "paper":
+      return (
+        <div className="mock mock-stack" style={style}>
+          <div className="mock-heading">Checkpointed State Management for Tool-Using LLM Agents</div>
+          <div className="mock-card">
+            <small>Summary</small>
+            <p>The long-horizon reliability gap in tool-using agents, and checkpointed state management to close it.</p>
+          </div>
+          {["Agent", "Checkpoint", "Tool call", "Restore"].map((step, i) => (
+            <div key={step} className="mock-list-row">
+              <span className="mock-pill">{i + 1}</span>
+              <span className="flex-1">{step}</span>
+            </div>
+          ))}
         </div>
       );
     case "hackathon":

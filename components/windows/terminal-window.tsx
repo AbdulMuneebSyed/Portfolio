@@ -141,7 +141,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Syed Abdul Muneeb - full-stack SDE. SDE Intern at Pulsegen; previously MathonGO (GetMarks) and Capco-CS. Co-founder of AiResumate.",
+          text: "Syed Abdul Muneeb - full-stack engineer shipping AI-agent products. SDE at PulseGen, building Arrwin; previously MathonGO (GetMarks). Co-founder of AiResumate.",
         },
       ]);
       return;
@@ -151,7 +151,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Featured: AiResumate, GetMarks (MathonGO), LaunchPad, Capco-CS Vendor Portal, E-Cell Hackathon Platform.",
+          text: "Featured: Arrwin (PulseGen), AiResumate, GetMarks (MathonGO), Hypogen, a research paper on checkpointed LLM agents, E-Cell Hackathon Platform.",
         },
         { kind: "output", text: "Run 'open projects' for details." },
       ]);
@@ -162,7 +162,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "TypeScript, React, Next.js, Node.js, ASP.NET Core, MongoDB, PostgreSQL, Redis, AWS, Docker, GenAI.",
+          text: "TypeScript, Python, React, Next.js, Node.js, MongoDB, PostgreSQL, Redis, DuckDB, AWS, Docker, AI agents, MCP, LLM APIs.",
         },
       ]);
       return;

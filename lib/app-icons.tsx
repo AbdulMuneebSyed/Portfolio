@@ -19,12 +19,12 @@ import {
   Palette,
   Braces,
   Sparkles,
-  Rocket,
-  Building2,
+  Bot,
+  Database,
   Monitor,
   Activity,
   GraduationCap,
-  Headset,
+  BookOpen,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -100,13 +100,14 @@ const ICONS: Record<string, IconSpec> = {
   // App Store: projects and experience
   airesumate: { kind: "glyph", glyph: Sparkles, from: "#9d84ff", to: "#5a33e6" },
   getmarks: { kind: "photo", src: "/app-store/icons/getmarks.png" },
-  launchpad: { kind: "glyph", glyph: Rocket, from: "#ff9a5c", to: "#e84a12" },
-  capco: { kind: "glyph", glyph: Headset, from: "#3ccfcf", to: "#0d8585" },
+  arrwin: { kind: "glyph", glyph: Bot, from: "#8a88ff", to: "#3d3ab8" },
+  hypogen: { kind: "glyph", glyph: Database, from: "#ffc35a", to: "#e07a00" },
+  "agent-checkpoints": { kind: "glyph", glyph: BookOpen, from: "#64d2ff", to: "#1f8aa8" },
   ecell: { kind: "logo", src: "/app-store/icons/ecell.png", background: "#ffffff" },
   muneebos: { kind: "glyph", glyph: Monitor, from: "#5ac8fa", to: "#0a5fd8" },
   "exp-pulsegen": { kind: "glyph", glyph: Activity, from: "#8a88ff", to: "#3d3ab8" },
   "exp-mathongo": { kind: "glyph", glyph: GraduationCap, from: "#5aa8ff", to: "#1662c9" },
-  "exp-capco-cs": { kind: "glyph", glyph: Building2, from: "#3ccfcf", to: "#0d8585" },
+  "exp-airesumate": { kind: "glyph", glyph: Sparkles, from: "#9d84ff", to: "#5a33e6" },
   "exp-ecell-mjcet": { kind: "glyph", glyph: Users, from: "#ff6b8b", to: "#d1124a" },
 };
 

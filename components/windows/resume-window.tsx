@@ -5,11 +5,11 @@ import Image from "next/image";
 import { Download, FileText, ExternalLink, Share } from "lucide-react";
 import { usePhone } from "@/lib/phone";
 
-const PDF_URL = "/Syed Abdul Muneeb's SDE Resume (15).pdf";
-const DOWNLOAD_NAME = "Syed Abdul Muneeb - SDE Resume.pdf";
+const PDF_URL = "/syedabdulmuneebresume.pdf";
+const DOWNLOAD_NAME = "syedabdulmuneebresume.pdf";
 // The PDF's pages, pre-rendered, for browsers that can't show a PDF inside a
 // page (phones and some in-app browsers). Re-export when the PDF changes.
-const PAGES = [{ src: "/resume/page-1.webp", width: 1240, height: 1754 }];
+const PAGES = [{ src: "/resume/page-1.webp", width: 1240, height: 1755 }];
 
 function PageImages() {
   return (

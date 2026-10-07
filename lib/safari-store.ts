@@ -45,10 +45,10 @@ export const DEFAULT_BOOKMARKS: SafariPage[] = [
       "Product of MathonGo, MARKS is a free exam preparation app for Indian students that provides chapter-wise previous year questions and mock tests for competitive exams like IIT JEE and NEET.",
   },
   {
-    title: "Capco CS",
-    url: "https://www.capco-cs.com/",
+    title: "PulseGen",
+    url: "https://www.pulsegen.io/",
     description:
-      "Capco is a Multinational Management and Technology Consultancy based out of Qatar, India and Canada.",
+      "PulseGen, where Muneeb builds Arrwin, an AI assistant for product managers.",
   },
   {
     title: "Hack Revolution",

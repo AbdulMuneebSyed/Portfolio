@@ -81,7 +81,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     {
       type: "shelf",
       title: "Shipped to Production",
-      itemIds: ["airesumate", "getmarks", "capco", "ecell", "launchpad", "muneebos"],
+      itemIds: ["arrwin", "airesumate", "getmarks", "hypogen", "agent-checkpoints", "ecell", "muneebos"],
     },
     {
       type: "stories",
@@ -90,7 +90,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
           itemId: "about",
           eyebrow: "Meet the developer",
           title: "Hi, I'm Muneeb",
-          subtitle: "Full-stack engineer, founder and hackathon lead.",
+          subtitle: "Full-stack engineer shipping AI-agent products.",
           art: { colors: ["#4a2600", "#ff9f0a", "#ffd60a"], motif: "confetti", iconId: "about" },
         },
         {
@@ -127,7 +127,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     {
       type: "shelf",
       title: "Where I've Worked",
-      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-capco-cs", "exp-ecell-mjcet"],
+      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-ecell-mjcet"],
     },
   ],
   arcade: [
@@ -212,8 +212,8 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
         {
           itemId: "exp-pulsegen",
           eyebrow: "Now working at",
-          title: "Pulsegen",
-          subtitle: "Search and adoption tracking for a 400K+ account SaaS.",
+          title: "PulseGen",
+          subtitle: "Arrwin, an AI assistant for PMs, and search across 400K+ accounts.",
           art: { colors: ["#1a1446", "#5856d6", "#64d2ff"], motif: "grid", iconId: "exp-pulsegen" },
         },
         {
@@ -228,7 +228,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     {
       type: "shelf",
       title: "Experience",
-      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-capco-cs", "exp-ecell-mjcet", "resume", "contact"],
+      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-ecell-mjcet", "resume", "contact"],
     },
     {
       type: "shelf",

@@ -32,7 +32,7 @@ export const FEED: FeedItem[] = [
     tier: 1,
     appId: "linkedin",
     title: "LinkedIn",
-    body: "Syed Abdul Muneeb wants to connect. SDE Intern at Pulsegen, Hyderabad.",
+    body: "Syed Abdul Muneeb wants to connect. SDE at PulseGen, Hyderabad.",
   },
   {
     id: "github-contributions",
@@ -46,7 +46,7 @@ export const FEED: FeedItem[] = [
     tier: 1,
     appId: "resume",
     title: "Resume.pdf updated",
-    body: "Now at Pulsegen as an SDE Intern since Feb 2026. Open the full resume.",
+    body: "Now an SDE at PulseGen, building Arrwin, an AI assistant for PMs. Open the full resume.",
   },
   {
     id: "open-to-roles",
@@ -56,17 +56,31 @@ export const FEED: FeedItem[] = [
     body: "Muneeb is open to SDE roles. Have an opportunity? Write to him here.",
   },
   {
+    id: "arrwin",
+    tier: 2,
+    appId: "projects",
+    title: "Arrwin · PulseGen",
+    body: "Streaming LLM chat and a Daily Brief over MCP connectors, in production for PMs.",
+  },
+  {
+    id: "agent-research",
+    tier: 2,
+    appId: "projects",
+    title: "Research paper",
+    body: "His 2026 paper on checkpointed state management for tool-using LLM agents.",
+  },
+  {
     id: "airesumate",
     tier: 2,
     appId: "projects",
     title: "AiResumate",
-    body: "1,000+ visitors and $150+ revenue in its first month. See how it was built.",
+    body: "1K+ visitors and $150+ revenue in its first month. See how it was built.",
   },
   {
     id: "pulsegen-adoption",
     tier: 2,
     appId: "about",
-    title: "Shipped at Pulsegen",
+    title: "Shipped at PulseGen",
     body: "7-level adoption tracking with Change Streams cut database round-trips by ~80%.",
   },
   {
@@ -81,7 +95,7 @@ export const FEED: FeedItem[] = [
     tier: 2,
     appId: "projects",
     title: "GetMarks · MathonGO",
-    body: "The NEET v2 revamp he led drove a 300% rise in daily NEET aspirants.",
+    body: "The NEET v2 revamp he led shipped as daily NEET users tripled.",
   },
   {
     id: "gfg-rank",

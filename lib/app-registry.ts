@@ -52,7 +52,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     icon: "/folder.png",
     component: "ProjectsExplorer",
     category: "Portfolio",
-    description: "Shipped work: AiResumate, GetMarks, LaunchPad, and more.",
+    description: "Shipped work: Arrwin, AiResumate, GetMarks, and more.",
     defaultSize: { width: 860, height: 620 },
     defaultIconPosition: gridCell(0, 1),
     showOnDesktop: true,

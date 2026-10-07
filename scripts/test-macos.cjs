@@ -318,7 +318,7 @@ test("every App Store reference points at a real item and app", () => {
 test("store search ranks names first; skills match whole technology names", () => {
   const { searchStore, projectsUsing } = load("lib/app-store/catalog.ts");
   assert.equal(searchStore("word")[0].id, "word-guess");
-  assert.ok(searchStore("mongodb").some((i) => i.id === "getmarks"));
+  assert.ok(searchStore("mongodb").some((i) => i.id === "arrwin"));
   assert.deepEqual(searchStore("   "), []);
   assert.deepEqual(projectsUsing("C"), []);
   assert.ok(projectsUsing("Next.js").length >= 3);

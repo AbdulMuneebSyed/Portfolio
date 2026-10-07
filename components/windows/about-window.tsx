@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { launchApp } from "@/lib/launch-app";
 import Image from "next/image";
-import { awards, skillGroups, timeline } from "@/lib/portfolio-data";
+import { awards, education, skillGroups, timeline } from "@/lib/portfolio-data";
 
 export function AboutWindow({ tab: initialTab }: { tab?: string }) {
   const [tab, setTab] = useState(initialTab ?? "Overview");
@@ -62,27 +62,30 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
               <h1>Syed Abdul Muneeb</h1>
               <p className="mac-muted">Hyderabad, India</p>
               <p className="about-bio">
-                Full-stack SDE with production experience across edtech,
-                fintech, and AI-powered SaaS platforms. Shipping features at
-                scale — from MongoDB Atlas search pipelines handling 400K+
-                documents to React frontends serving 30K+ daily active users.
+                Full-stack engineer who ships AI-agent products to production.
+                Built streaming LLM chat, MCP and REST integrations, and
+                multi-tenant search at PulseGen, and scaled a learning platform
+                serving 30K+ daily users at MathonGO. Most comfortable owning a
+                feature end to end: spec, code, tests and deploy.
               </p>
               <dl className="about-facts">
                 <div>
                   <dt>Currently</dt>
-                  <dd>SDE Intern at Pulsegen</dd>
+                  <dd>SDE at PulseGen, building Arrwin</dd>
                 </div>
                 <div>
                   <dt>Previously</dt>
-                  <dd>MathonGO · Capco-CS</dd>
+                  <dd>MathonGO · Co-founder of AiResumate</dd>
                 </div>
                 <div>
-                  <dt>Building</dt>
-                  <dd>Co-founder of AiResumate</dd>
+                  <dt>Research</dt>
+                  <dd>Checkpointed state for tool-using LLM agents</dd>
                 </div>
                 <div>
                   <dt>Education</dt>
-                  <dd>B.E. Computer Science, MJCET · 2022–2026</dd>
+                  <dd>
+                    {education.degree}, MJCET · {education.period}
+                  </dd>
                 </div>
               </dl>
               <button

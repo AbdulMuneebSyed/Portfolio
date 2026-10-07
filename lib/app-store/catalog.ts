@@ -30,10 +30,10 @@ export type MockKind =
   | "resume-rewrite"
   | "leaderboard"
   | "lms"
-  | "feed"
-  | "profile"
-  | "crm"
-  | "chatbot"
+  | "agent-chat"
+  | "daily-brief"
+  | "sql"
+  | "paper"
   | "hackathon"
   | "stats"
   | "desktop"
@@ -111,7 +111,7 @@ const PROJECT_ITEMS: StoreItem[] = [
       },
       {
         strong: "Launched and earning.",
-        caption: "1,000+ visitors and $150+ revenue in the first month.",
+        caption: "1K+ visitors and $150+ revenue in the first month.",
         mock: "stats",
       },
     ],
@@ -164,7 +164,7 @@ const PROJECT_ITEMS: StoreItem[] = [
       {
         version: "NEET v2",
         date: "Jan 2026",
-        notes: "Revamped data flow, caching and UX — 300% more daily NEET aspirants.",
+        notes: "Refactored data flow, API caching and rendering; the release coincided with 3x daily NEET users.",
       },
       {
         version: "LMS",
@@ -174,80 +174,105 @@ const PROJECT_ITEMS: StoreItem[] = [
       {
         version: "Leagues",
         date: "Aug 2025",
-        notes: "Leaderboard, League and Horoscope modules.",
+        notes: "Leaderboard and League modules.",
       },
     ],
   },
   {
-    id: "launchpad",
+    id: "arrwin",
     kind: "project",
-    name: "LaunchPad",
-    subtitle: "A social network for startups",
-    category: "Full Stack",
-    description: project("launchpad").description,
-    techStack: project("launchpad").techStack,
-    chart: { rank: 1, list: "Full Stack" },
+    name: "Arrwin",
+    subtitle: "An AI assistant for product managers",
+    category: "AI Agents",
+    description: project("arrwin").description,
+    highlights: project("arrwin").highlights,
+    techStack: project("arrwin").techStack,
+    website: project("arrwin").demoLink,
+    chart: { rank: 1, list: "AI Agents" },
+    award: "Built at PulseGen",
     size: "Web",
     age: "4+",
     platforms: ["Web"],
-    tint: "#ff6b35",
+    tint: "#5856d6",
     slides: [
       {
-        strong: "Real-time founder feed.",
-        caption: "Posts and reactions stream in over SignalR.",
-        mock: "feed",
+        strong: "Ask your product anything.",
+        caption: "Streaming chat over every call, doc and ticket, with contradictions flagged.",
+        mock: "agent-chat",
       },
       {
-        strong: "Founder profiles.",
-        caption: "Startups, teams and live interactions in one place.",
-        mock: "profile",
+        strong: "The Daily Brief.",
+        caption: "Gmail and other connectors via MCP and REST, summed up every morning.",
+        mock: "daily-brief",
+      },
+    ],
+    versions: [
+      {
+        version: "Daily Brief",
+        date: "2026",
+        notes: "Gmail and other connectors via MCP and REST APIs.",
+      },
+      {
+        version: "1.0",
+        date: "2026",
+        notes: "Ingestion, streaming chat, contradiction detection and tenant-isolated knowledge.",
+      },
+    ],
+  },
+  {
+    id: "hypogen",
+    kind: "project",
+    name: "Hypogen",
+    subtitle: "Business questions, answered in SQL",
+    category: "AI Agents",
+    description: project("hypogen").description,
+    techStack: project("hypogen").techStack,
+    chart: { rank: 2, list: "AI Agents" },
+    size: "Pipeline",
+    age: "4+",
+    platforms: ["Web"],
+    tint: "#ff9f0a",
+    slides: [
+      {
+        strong: "Ask in plain English.",
+        caption: "Several LLM roles plan, write and check DuckDB SQL over business data.",
+        mock: "sql",
       },
     ],
     versions: [
       {
         version: "1.0",
-        date: "2025",
-        notes: "JWT auth, Redis caching and a modular .NET Core backend.",
+        date: "2026",
+        notes: "Multi-role LLM pipeline generating and running DuckDB SQL.",
       },
     ],
   },
   {
-    id: "capco",
+    id: "agent-checkpoints",
     kind: "project",
-    name: "Capco-CS Vendor Portal",
-    subtitle: "CRM, vendors and an AI help desk",
-    category: "Enterprise",
-    description: project("capco").description,
-    highlights: project("capco").highlights,
-    techStack: project("capco").techStack,
-    website: project("capco").demoLink,
-    chart: { rank: 1, list: "Enterprise" },
-    size: "Web",
+    name: "Checkpointed Agents",
+    subtitle: "Research: reliable long-horizon LLM agents",
+    category: "Research",
+    description: project("agent-checkpoints").description,
+    techStack: project("agent-checkpoints").techStack,
+    chart: { rank: 1, list: "Research" },
+    award: "Research paper",
+    size: "Paper",
     age: "4+",
     platforms: ["Web"],
-    tint: "#14a3a3",
+    tint: "#30b0c7",
     slides: [
       {
-        strong: "Live in production.",
-        caption: "The Capco-CS site with its Gemini-powered assistant.",
-        image: "/app-store/shots/capco-1.jpg",
-      },
-      {
-        strong: "One CRM for every client.",
-        caption: "+30% client management efficiency.",
-        mock: "crm",
-      },
-      {
-        strong: "Support in seconds.",
-        caption: "The AI chatbot cut response times by 90%.",
-        mock: "chatbot",
+        strong: "Agents that pick up where they left off.",
+        caption: "Checkpointed state management for tool-using LLM agents.",
+        mock: "paper",
       },
     ],
     versions: [
       {
-        version: "1.0",
-        date: "May 2025",
-        notes: "Vendor portal, custom CRM and Gemini support chatbot.",
+        version: "Paper",
+        date: "2026",
+        notes: "With S. S. Ahmed and S. W. Sidiqi.",
       },
     ],
   },
@@ -361,7 +386,7 @@ const PROJECT_ITEMS: StoreItem[] = [
 const EXPERIENCE_TINTS: Record<string, string> = {
   pulsegen: "#5856d6",
   mathongo: "#2f80ed",
-  "capco-cs": "#14a3a3",
+  airesumate: "#7c5cff",
   "ecell-mjcet": "#ff3b6b",
 };
 
