@@ -142,10 +142,36 @@ export function MobileHome({
   // up and pause for the App Switcher.
   const hold = useRef<number | null>(null);
   const switched = useRef(false);
+  // The app follows the finger while it's dragged up, shrinking towards a
+  // card, then lets go into its icon (or the App Switcher). Set with CSS
+  // `translate`/`scale`, which add to the transform framer-motion animates.
+  const followFinger = (rise: number) => {
+    const app = document.querySelector<HTMLElement>(
+      '.mac-window[data-active="true"]',
+    );
+    if (!app) return;
+    const progress = Math.min(1, Math.max(0, rise) / (innerHeight * 0.6));
+    app.style.transition = "none";
+    app.style.translate = `0 ${-Math.max(0, rise) * 0.7}px`;
+    app.style.scale = String(1 - progress * 0.4);
+    app.style.borderRadius = `${16 + progress * 30}px`;
+  };
+  const releaseFinger = () => {
+    for (const app of document.querySelectorAll<HTMLElement>(".mac-window")) {
+      if (!app.style.translate) continue;
+      app.style.transition =
+        "translate 0.35s cubic-bezier(0.2, 0.9, 0.3, 1), scale 0.35s cubic-bezier(0.2, 0.9, 0.3, 1), border-radius 0.35s";
+      app.style.translate = "";
+      app.style.scale = "";
+      app.style.borderRadius = "";
+      window.setTimeout(() => (app.style.transition = ""), 400);
+    }
+  };
   const endSwipe = () => {
     swipe.current = null;
     if (hold.current) window.clearTimeout(hold.current);
     hold.current = null;
+    releaseFinger();
   };
   const homeGesture = {
     onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
@@ -155,6 +181,7 @@ export function MobileHome({
     },
     onPointerMove: (e: PointerEvent<HTMLButtonElement>) => {
       const start = swipe.current;
+      if (start !== null && appOpen) followFinger(start - e.clientY);
       if (start === null || hold.current || start - e.clientY < 60) return;
       hold.current = window.setTimeout(() => {
         if (swipe.current === null) return;

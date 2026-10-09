@@ -452,8 +452,10 @@ export function SettingsWindow({ section }: { section?: string }) {
                 {[
                   ["Spotlight", "⌘K / ⌘Space"],
                   ["System Settings", "⌘,"],
-                  ["Minimize window", "⌘M"],
-                  ["Close window", "⌘W"],
+                  ["Minimize window", "⌥M"],
+                  ["Close window", "⌥W"],
+                  ["Hide app / hide others", "⌥H / ⌥⇧H"],
+                  ["Switch apps", "⌥Tab"],
                   ["Cycle windows", "⌘`"],
                   ["Mission Control", "⌃↑ / F3"],
                   ["Previous / next desktop", "⌃← / ⌃→"],

@@ -13,7 +13,12 @@ import {
 } from "lucide-react";
 import { getApp } from "@/lib/app-registry";
 import { launchApp, MENU_BAR_HEIGHT } from "@/lib/launch-app";
-import { MAX_SPACES, spaceOf, useWindowManager } from "@/lib/window-manager";
+import {
+  MAX_SPACES,
+  hideOtherWindows,
+  spaceOf,
+  useWindowManager,
+} from "@/lib/window-manager";
 import { useMissionControl } from "@/lib/mission-control";
 import { useSystemControls } from "@/lib/system-controls";
 import { useBatteryStatus } from "@/lib/use-battery";
@@ -116,6 +121,7 @@ export function MenuBar({
     restoreWindow,
     shutdown,
   } = useWindowManager.getState();
+  const hideOthers = hideOtherWindows;
 
   const activeWindow = windows.find(
     (w) => w.id === activeWindowId && !w.isMinimized,
@@ -178,9 +184,18 @@ export function MenuBar({
       items: [
         {
           label: `Hide ${activeAppName}`,
+          shortcut: "⌥H",
           disabled: !activeWindow,
-          onSelect: () => activeWindow && minimizeWindow(activeWindow.id),
+          onSelect: () =>
+            activeWindow && minimizeWindow(activeWindow.id, { hide: true }),
         },
+        {
+          label: "Hide Others",
+          shortcut: "⌥⇧H",
+          disabled: !activeWindow,
+          onSelect: hideOthers,
+        },
+        { separator: true },
         {
           label: `Quit ${activeAppName}`,
           disabled: !activeWindow,
@@ -196,7 +211,7 @@ export function MenuBar({
         { separator: true },
         {
           label: "Close Window",
-          shortcut: "⌘W",
+          shortcut: "⌥W",
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
         },
@@ -250,7 +265,7 @@ export function MenuBar({
       items: [
         {
           label: "Minimize",
-          shortcut: "⌘M",
+          shortcut: "⌥M",
           disabled: !activeWindow,
           onSelect: () => activeWindow && minimizeWindow(activeWindow.id),
         },
@@ -261,7 +276,7 @@ export function MenuBar({
         },
         {
           label: "Close Window",
-          shortcut: "⌘W",
+          shortcut: "⌥W",
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
         },
@@ -369,6 +384,12 @@ export function MenuBar({
               <MenuDropdown
                 items={menu.items}
                 onClose={() => setOpenMenuId(null)}
+                onMove={(step) => {
+                  const index = menus.findIndex((m) => m.id === menu.id);
+                  setOpenMenuId(
+                    menus[(index + step + menus.length) % menus.length].id,
+                  );
+                }}
               />
             )}
           </div>
@@ -490,11 +511,16 @@ export function MenuBar({
 function MenuDropdown({
   items,
   onClose,
+  onMove,
 }: {
   items: MenuItem[];
   onClose: () => void;
+  // ← and → open the neighbouring menu, as on macOS.
+  onMove: (step: 1 | -1) => void;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
+  // Type-ahead: typing a label's first letters selects it.
+  const typed = useRef({ text: "", at: 0 });
   useEffect(() => {
     menuRef.current
       ?.querySelector<HTMLButtonElement>("button:not(:disabled)")
@@ -523,7 +549,20 @@ function MenuDropdown({
                 : (index + (e.key === "ArrowDown" ? 1 : -1) + buttons.length) %
                   buttons.length;
           buttons[next]?.focus();
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          e.preventDefault();
+          onMove(e.key === "ArrowRight" ? 1 : -1);
         } else if (e.key === "Escape") onClose();
+        else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          const now = Date.now();
+          const text =
+            (now - typed.current.at < 700 ? typed.current.text : "") +
+            e.key.toLowerCase();
+          typed.current = { text, at: now };
+          buttons
+            .find((b) => b.textContent?.trim().toLowerCase().startsWith(text))
+            ?.focus();
+        }
       }}
       className="absolute left-0 top-[calc(100%+1px)] min-w-[230px] rounded-[7px] border border-black/15 bg-[#ececec]/95 p-[5px] text-[13px] font-normal text-[#1d1d1f] dark:border-white/10 dark:bg-[#2c2c2e]/95 dark:text-[#f5f5f7] shadow-[0_10px_30px_rgba(0,0,0,0.25),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl [text-shadow:none]"
     >

@@ -21,7 +21,7 @@ interface WindowManagerState {
 
   openWindow: (window: Omit<WindowState, "zIndex" | "isActive">) => void;
   closeWindow: (id: string) => void;
-  minimizeWindow: (id: string) => void;
+  minimizeWindow: (id: string, options?: { hide?: boolean }) => void;
   maximizeWindow: (id: string) => void;
   restoreWindow: (id: string) => void;
   setActiveWindow: (id: string) => void;
@@ -132,6 +132,7 @@ function serializeWindows(windows: WindowState[]) {
     lastActiveAt: window.lastActiveAt,
     memoryMb: window.memoryMb,
     isMinimized: window.isMinimized,
+    isHidden: window.isHidden,
     isMaximized: window.isMaximized,
     position: window.position,
     size: window.size,
@@ -160,6 +161,33 @@ function mergeSavedDesktopIcons(savedIcons: DesktopIcon[]) {
   return [...mergedDefaults, ...customIcons];
 }
 
+let pendingSave: ReturnType<typeof setTimeout> | null = null;
+let flushHooked = false;
+
+function flushState() {
+  if (pendingSave) clearTimeout(pendingSave);
+  pendingSave = null;
+  writeState(useWindowManager.getState());
+}
+
+function writeState(state: WindowManagerState) {
+  const stateToSave = {
+    desktopIcons: state.desktopIcons,
+    desktopLayoutVersion: DESKTOP_LAYOUT_VERSION,
+    windows: serializeWindows(state.windows),
+    nextProcessId: state.nextProcessId,
+    wallpaper: state.wallpaper,
+    taskbarTransparency: state.taskbarTransparency,
+    aeroEffects: state.aeroEffects,
+    spaces: state.spaces,
+    activeSpaceId: state.activeSpaceId,
+    nextSpaceNumber: state.nextSpaceNumber,
+    trash: state.trash,
+  };
+
+  localStorage.setItem("muneebos-mac-state-v2", JSON.stringify(stateToSave));
+}
+
 export const useWindowManager = create<WindowManagerState>((set, get) => ({
   windows: [],
   nextZIndex: 100,
@@ -177,6 +205,8 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   renamingIconId: null,
   loadState: () => {
     if (typeof window === "undefined") return;
+    // A save still waiting would be older than what's on screen.
+    if (pendingSave) flushState();
 
     const savedState = localStorage.getItem("muneebos-mac-state-v2");
     if (savedState) {
@@ -231,30 +261,26 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           aeroEffects: parsed.aeroEffects ?? true,
         });
       } catch (e) {
-        console.error("[v0] Failed to load state:", e);
+        console.error("Failed to load window state:", e);
       }
     }
   },
 
+  // Batched: actions fire on every pointermove of a drag, and writing the
+  // whole desktop to localStorage each time stalls animations. Saved a beat
+  // later, or straight away when the page is hidden or closed.
   saveState: () => {
     if (typeof window === "undefined") return;
-
-    const state = get();
-    const stateToSave = {
-      desktopIcons: state.desktopIcons,
-      desktopLayoutVersion: DESKTOP_LAYOUT_VERSION,
-      windows: serializeWindows(state.windows),
-      nextProcessId: state.nextProcessId,
-      wallpaper: state.wallpaper,
-      taskbarTransparency: state.taskbarTransparency,
-      aeroEffects: state.aeroEffects,
-      spaces: state.spaces,
-      activeSpaceId: state.activeSpaceId,
-      nextSpaceNumber: state.nextSpaceNumber,
-      trash: state.trash,
-    };
-
-    localStorage.setItem("muneebos-mac-state-v2", JSON.stringify(stateToSave));
+    if (typeof document === "undefined") return writeState(get());
+    if (pendingSave) return;
+    pendingSave = setTimeout(flushState, 300);
+    if (!flushHooked) {
+      flushHooked = true;
+      addEventListener("pagehide", flushState);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") flushState();
+      });
+    }
   },
 
   // Clean Up: line the current desktop's files up in columns from the
@@ -377,7 +403,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     get().saveState();
   },
 
-  minimizeWindow: (id) => {
+  minimizeWindow: (id, options) => {
     set((state) => {
       const next =
         state.activeWindowId === id
@@ -393,6 +419,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
             ? {
                 ...w,
                 isMinimized: true,
+                isHidden: !!options?.hide,
                 isActive: false,
                 status: "minimized" as const,
               }
@@ -420,6 +447,7 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           ? {
               ...w,
               isMinimized: false,
+              isHidden: false,
               isActive: true,
               status: "running",
               lastActiveAt: new Date().toISOString(),
@@ -628,3 +656,18 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   },
 
 }));
+
+// App menu › Hide Others (⌥⇧H): hides every other visible window on the
+// current desktop, leaving the front one.
+export function hideOtherWindows() {
+  const { windows, activeWindowId, spaces, activeSpaceId, minimizeWindow } =
+    useWindowManager.getState();
+  windows
+    .filter(
+      (w) =>
+        w.id !== activeWindowId &&
+        !w.isMinimized &&
+        spaceOf(w, spaces) === activeSpaceId,
+    )
+    .forEach((w) => minimizeWindow(w.id, { hide: true }));
+}

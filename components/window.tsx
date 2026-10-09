@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -28,6 +29,8 @@ export interface MissionSlot {
 type TileZone = "left" | "right" | "fill";
 
 const FRAME_EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
+// How much of a window must stay on screen when it's dragged off an edge.
+const GRAB_MARGIN = 80;
 
 // Since Big Sur, an app with a toolbar has no separate title bar: the toolbar
 // is the title bar and the traffic lights float over the sidebar ("unified").
@@ -63,7 +66,9 @@ export function Window({
   // On another desktop: kept mounted (so the app keeps its state) but hidden.
   offSpace?: boolean;
 }) {
-  const wm = useWindowManager();
+  // Actions only: subscribing to the whole store re-rendered every window on
+  // any change anywhere.
+  const wm = useWindowManager.getState();
   const reduceMotion = useSystemControls((s) => s.reduceMotion);
   // Zoom and tiling animate the frame; dragging and resizing never do.
   const [animateFrame, setAnimateFrame] = useState(false);
@@ -105,13 +110,17 @@ export function Window({
     : Math.max(180, viewport.height - MENU_BAR_HEIGHT - DOCK_RESERVED_HEIGHT);
   const width = Math.min(win.size.width, viewport.width - 16);
   const height = Math.min(win.size.height, availableHeight - 8);
+  // Like macOS, a window can hang off the sides and bottom of the screen,
+  // as long as enough of it stays on screen to grab it again; it never goes
+  // under the menu bar, and its title bar never goes under the Dock.
   const left = Math.max(
-    8,
-    Math.min(win.position.x, viewport.width - width - 8),
+    GRAB_MARGIN - width,
+    Math.min(win.position.x, viewport.width - GRAB_MARGIN),
   );
   const top = Math.max(
     MENU_BAR_HEIGHT + 4,
-    Math.min(win.position.y, viewport.height - DOCK_RESERVED_HEIGHT - height),
+    // The title bar stays above the Dock.
+    Math.min(win.position.y, viewport.height - DOCK_RESERVED_HEIGHT - 32),
   );
   const expanded = compact || win.isMaximized;
   const firstZoomRender = useRef(true);
@@ -137,7 +146,8 @@ export function Window({
   // In Mission Control (the App Switcher on a phone) every card shows.
   const hidden =
     !mission && (win.isMinimized || offSpace || (compact && !win.isActive));
-  useEffect(() => {
+  // Before paint, so focus can't land in a window that's going away.
+  useLayoutEffect(() => {
     if (hidden) frame.current?.setAttribute("inert", "");
     else frame.current?.removeAttribute("inert");
   }, [hidden]);
@@ -204,13 +214,13 @@ export function Window({
                 : null,
       );
       wm.updateWindowPosition(win.id, {
-        x: Math.max(8, Math.min(g.left + dx, viewport.width - g.width - 8)),
+        x: Math.max(
+          GRAB_MARGIN - g.width,
+          Math.min(g.left + dx, viewport.width - GRAB_MARGIN),
+        ),
         y: Math.max(
           MENU_BAR_HEIGHT + 4,
-          Math.min(
-            g.top + dy,
-            viewport.height - DOCK_RESERVED_HEIGHT - g.height,
-          ),
+          Math.min(g.top + dy, viewport.height - DOCK_RESERVED_HEIGHT - 32),
         ),
       });
       return;
@@ -273,95 +283,136 @@ export function Window({
   // On a phone, apps zoom out of their Home Screen icon and back into it.
   const appId = win.appId ?? win.id;
   const iconBox = compact ? launchRect(appId) : null;
+  // Moves are one `transform` string, not separate x/y/scale: framer-motion
+  // hands a whole transform to the compositor, so a busy main thread (React
+  // committing the change that started it) can't make it stutter.
+  const place = (x: number, y: number, scale: number) =>
+    `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
   // Scaled to the icon's width and clipped to a square, so the app grows out
   // of the icon's own shape.
   const fullClip = "inset(0px 0px 0px 0px round 0px)";
   const iconMorph = (box: DOMRect | null) => {
-    if (!box) return { x: 0, y: 40, scale: 0.86, clipPath: fullClip };
+    if (!box) return { transform: place(0, 40, 0.86), clipPath: fullClip };
     const scale = box.width / frameBox.width;
     const crop = Math.max(0, (frameBox.height - frameBox.width) / 2);
     const radius = (box.width * 0.2237) / scale;
     return {
-      x: box.left + box.width / 2 - centerX,
-      y: box.top + box.height / 2 - centerY,
-      scale,
+      transform: place(
+        box.left + box.width / 2 - centerX,
+        box.top + box.height / 2 - centerY,
+        scale,
+      ),
       clipPath: `inset(${crop}px 0px ${crop}px 0px round ${radius}px)`,
     };
   };
+  // Where a minimized window flies: its own spot at the end of the Dock,
+  // which only exists once this render commits, so it is measured in a
+  // layout effect (before the frame is painted) and the flight starts then.
+  const [dockTarget, setDockTarget] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (!win.isMinimized || compact) return setDockTarget(null);
+    // Hidden (not minimized), it just fades where it is.
+    if (win.isHidden) return setDockTarget(place(0, 0, 0.98));
+    const icon =
+      document.getElementById(`dock-window-${win.id}`) ??
+      document.getElementById(`dock-item-${appId}`);
+    const box = icon?.getBoundingClientRect();
+    setDockTarget(
+      box
+        ? place(
+            box.left + box.width / 2 - centerX,
+            box.top + box.height / 2 - centerY,
+            Math.max(0.04, box.width / frameBox.width),
+          )
+        : place(0, 80, 0.7),
+    );
+    // Measured once per minimize; later renders keep the same target.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [win.isMinimized, win.isHidden, compact]);
+  // Hidden windows keep their layout (visibility, not display: none), so
+  // restoring one doesn't lay out and paint the whole app on its first frame.
+  // Off-space windows, and phone apps that aren't in front, hide at once.
+  const shownVisibility =
+    offSpace || (compact && !win.isActive && !closingOnPhone && !mission)
+      ? "hidden"
+      : "visible";
+  const instant = { duration: 0 };
+  const missionScale = mission
+    ? Math.min(
+        1,
+        mission.maxWidth / frameBox.width,
+        mission.maxHeight / frameBox.height,
+      )
+    : 1;
   let target;
   if (compact && mission) {
     const scale = mission.maxWidth / frameBox.width;
     target = {
       opacity: 1,
-      display: "flex",
-      x: mission.cx - centerX,
-      y: mission.cy - centerY,
-      scale,
+      visibility: "visible",
+      transform: place(mission.cx - centerX, mission.cy - centerY, scale),
       clipPath: `inset(0px 0px 0px 0px round ${38 / scale}px)`,
-      transition: { type: "spring", stiffness: 340, damping: 34 },
+      transition: {
+        default: { type: "spring", stiffness: 340, damping: 34 },
+        visibility: instant,
+      },
     };
   } else if (compact && win.isMinimized) {
     target = {
       opacity: 0,
       ...iconMorph(iconBox),
-      transitionEnd: { display: "none" },
+      transitionEnd: { visibility: "hidden" },
       transition: {
-        default: { type: "spring", stiffness: 380, damping: 38 },
-        opacity: { duration: 0.2, delay: 0.12 },
+        default: { type: "spring", stiffness: 460, damping: 40 },
+        opacity: { duration: 0.16, delay: 0.08 },
       },
     };
-  } else if (win.isMinimized) {
-    // Scale effect: the window shrinks into its Dock icon.
-    const icon =
-      typeof document === "undefined"
-        ? null
-        : document.getElementById(`dock-item-${win.appId ?? win.id}`);
-    const box = icon?.getBoundingClientRect();
+  } else if (win.isMinimized && dockTarget) {
+    // Scale effect: the window shrinks into its spot in the Dock. It moves
+    // off at once and eases in.
     target = {
       opacity: 0,
-      x: box ? box.left + box.width / 2 - centerX : 0,
-      y: box ? box.top + box.height / 2 - centerY : 80,
-      scale: box ? Math.max(0.04, box.width / frameBox.width) : 0.7,
-      transitionEnd: { display: "none" },
-      transition: {
-        default: { duration: 0.42, ease: [0.5, 0, 0.75, 0.25] },
-        opacity: { duration: 0.42, ease: [0.9, 0, 1, 1] },
-      },
+      transform: dockTarget,
+      transitionEnd: { visibility: "hidden" },
+      transition: win.isHidden
+        ? { duration: 0.15 }
+        : {
+            default: { duration: 0.3, ease: [0.3, 0.1, 0.2, 1] },
+            opacity: { duration: 0.3, ease: [0.6, 0, 1, 1] },
+          },
     };
   } else if (mission) {
+    const scale = missionScale;
     target = {
       opacity: 1,
-      display: "flex",
-      x: mission.cx - centerX,
-      y: mission.cy - centerY,
-      scale: Math.min(
-        1,
-        mission.maxWidth / frameBox.width,
-        mission.maxHeight / frameBox.height,
-      ),
-      transition: { type: "spring", stiffness: 260, damping: 30 },
+      visibility: "visible",
+      transform: place(mission.cx - centerX, mission.cy - centerY, scale),
+      transition: {
+        default: { type: "spring", stiffness: 260, damping: 30 },
+        visibility: instant,
+      },
     };
   } else if (compact) {
     target = {
       opacity: 1,
-      display: "flex",
-      x: 0,
-      y: 0,
-      scale: 1,
+      visibility: shownVisibility,
+      transform: place(0, 0, 1),
       clipPath: fullClip,
       transition: {
         default: { type: "spring", stiffness: 300, damping: 32 },
         opacity: { duration: 0.12 },
+        visibility: instant,
       },
     };
   } else {
     target = {
       opacity: 1,
-      display: "flex",
-      x: 0,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] },
+      visibility: shownVisibility,
+      transform: place(0, 0, 1),
+      transition: {
+        default: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] },
+        visibility: instant,
+      },
     };
   }
 
@@ -378,7 +429,7 @@ export function Window({
       <button
         className="traffic-light close"
         aria-label="Close"
-        title="Close (⌘W)"
+        title="Close (⌥W)"
         onClick={() => wm.closeWindow(win.id)}
       >
         <X />
@@ -386,7 +437,7 @@ export function Window({
       <button
         className="traffic-light minimize"
         aria-label="Minimize"
-        title="Minimize (⌘M)"
+        title="Minimize (⌥M)"
         onClick={() => wm.minimizeWindow(win.id)}
       >
         <Minus />
@@ -420,9 +471,11 @@ export function Window({
       </AnimatePresence>
       <motion.div
         ref={frame}
-        role="region"
+        // A non-modal dialog, the role screen readers expect for a window.
+        role="dialog"
+        aria-modal="false"
         aria-hidden={hidden}
-        aria-label={`${win.title} window`}
+        aria-label={win.title}
         data-app={win.appId ?? win.id}
         data-active={win.isActive}
         data-chrome={chrome}
@@ -431,10 +484,10 @@ export function Window({
         initial={
           compact
             ? { opacity: 0, ...iconMorph(iconBox) }
-            : { opacity: 0, scale: 0.97, y: 8 }
+            : { opacity: 0, transform: place(0, 8, 0.97) }
         }
         animate={target}
-        exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.18 } }}
+        exit={{ opacity: 0, transform: place(0, 0, 0.97), transition: { duration: 0.18 } }}
         className={`mac-window absolute flex flex-col overflow-hidden ${expanded ? "rounded-none" : "rounded-[16px]"}`}
         style={{
           left: expanded ? 0 : left,
@@ -447,12 +500,15 @@ export function Window({
               ? `left 0.3s ${FRAME_EASE}, top 0.3s ${FRAME_EASE}, width 0.3s ${FRAME_EASE}, height 0.3s ${FRAME_EASE}`
               : undefined,
           pointerEvents: hidden ? "none" : undefined,
-          // A phone shows one app at a time; one going Home stays visible
-          // while it zooms back into its icon.
-          visibility:
-            offSpace || (compact && !win.isActive && !closingOnPhone && !mission)
-              ? "hidden"
-              : undefined,
+          // Mission Control's labels stay readable on a scaled-down window.
+          ["--mission-inv" as string]: 1 / missionScale,
+        }}
+        // Promoted to its own layer only while it moves (see globals.css).
+        onAnimationStart={() => {
+          if (frame.current) frame.current.dataset.moving = "true";
+        }}
+        onAnimationComplete={() => {
+          if (frame.current) delete frame.current.dataset.moving;
         }}
         onPointerDownCapture={(e: React.PointerEvent) => {
           if (!win.isActive) wm.setActiveWindow(win.id);
@@ -626,7 +682,10 @@ function MissionPick({
         }
         onSelect?.();
       }}
-    />
+    >
+      {/* Like macOS, the hovered (or focused) window shows its name. */}
+      <span className="mission-title">{win.title}</span>
+    </button>
   );
 }
 

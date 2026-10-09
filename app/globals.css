@@ -222,6 +222,193 @@ input[type="checkbox"] {
     0 24px 70px #0005,
     0 0 0 0.5px #ffffff80 inset;
 }
+/* While a window flies (minimize, restore, Mission Control) it gets its own
+   layer, rasterised once and scaled by the GPU, instead of repainting the
+   window and its 70px shadow every frame. */
+.mac-window[data-moving="true"] {
+  will-change: transform, opacity;
+}
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 100000;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #0a84ff;
+  color: white;
+  font: 600 14px/1.2 -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.skip-link:focus {
+  top: 12px;
+}
+/* /profile: the plain, readable version of the portfolio. */
+/* The body never scrolls (it hosts the OS), so the page scrolls itself. */
+.profile-page {
+  height: 100dvh;
+  overflow-y: auto;
+  padding: 56px max(20px, calc((100% - 760px) / 2)) 80px;
+  color: #1d1d1f;
+  background: white;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.profile-page h1 {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.profile-page h2 {
+  margin: 40px 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.profile-page h3 {
+  margin-top: 18px;
+  font-weight: 600;
+}
+.profile-page p {
+  margin-top: 6px;
+}
+.profile-page li {
+  margin-top: 4px;
+}
+.profile-page ul {
+  padding-left: 20px;
+  list-style: disc;
+}
+.profile-page .profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 0;
+  margin-top: 12px;
+  list-style: none;
+}
+.profile-page a {
+  color: #0066cc;
+}
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.about-links > a {
+  text-decoration: none;
+}
+/* ⌥Tab app switcher */
+.app-switcher {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 20000;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  max-width: calc(100vw - 48px);
+  padding: 14px 14px 36px;
+  border-radius: 24px;
+  transform: translate(-50%, -50%);
+  background: #2c2c2ecc;
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  backdrop-filter: blur(30px) saturate(1.6);
+  box-shadow: inset 0 0 0 0.5px #ffffff33, 0 20px 60px #0006;
+}
+.app-switcher-item {
+  padding: 6px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.app-switcher-item[aria-selected="true"] {
+  background: #ffffff33;
+}
+.app-switcher-name {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fffe;
+  font-size: 13px;
+  font-weight: 500;
+}
+/* A minimized window in the Dock: a small window with its app's icon. */
+.dock-window-thumb {
+  position: relative;
+  display: flex;
+  width: 80px;
+  height: 80px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+}
+.dock-window-thumb::before {
+  content: "";
+  position: absolute;
+  inset: 14px 6px 10px;
+  border-radius: 8px;
+  background: var(--mac-surface, #fff);
+  box-shadow: 0 0 0 0.5px #0003, 0 2px 6px #0003;
+}
+.dock-window-thumb > * {
+  position: relative;
+}
+/* Lock screen: Resume and Email, for visitors who won't explore. */
+.lock-quick {
+  margin-top: 1.4vh;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.lock-quick > * {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #ffffff33;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: inset 0 0 0 0.5px #ffffff59;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lock-quick > *:hover {
+  background: #ffffff4d;
+}
+.lock-quick > *:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+/* Shown with .mobile-only, which sets display, so children stack as blocks. */
+.lock-phone-intro {
+  margin-top: 14px;
+  color: #ffffffe6;
+  text-shadow: 0 1px 6px #0000002e;
+}
+.lock-phone-intro > strong,
+.lock-phone-intro > span {
+  display: block;
+}
+.lock-phone-intro > strong {
+  font-size: 17px;
+  font-weight: 600;
+}
+.lock-phone-intro > span {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.lock-phone-intro .lock-quick {
+  margin-top: 12px;
+}
+.lock-phone-intro .lock-quick > * {
+  padding: 8px 16px;
+  font-size: 14px;
+}
 /* Sequoia tiling target shown while a window is held at a screen edge. */
 .tile-preview {
   background: #ffffff2e;
@@ -246,6 +433,31 @@ input[type="checkbox"] {
   outline: none;
   box-shadow: inset 0 0 0 6px #0a84ff;
 }
+.mission-title {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  max-width: calc(80% / var(--mission-inv, 1));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 7px;
+  background: #1d1d1fcc;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateX(-50%) scale(var(--mission-inv, 1));
+  transform-origin: bottom center;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.mission-pick:hover .mission-title,
+.mission-pick:focus-visible .mission-title {
+  opacity: 1;
+}
+
 /* The blurred, dimmed desktop behind Control Center, feathered at the
    edges so it melts into the wallpaper. */
 .cc-backdrop {
@@ -1156,17 +1368,22 @@ kbd {
     padding: 20px 16px;
   }
 }
+/* Reduce Motion, as on macOS: nothing moves or zooms, but changes still
+   cross-fade rather than snapping. (framer-motion does the same for its
+   animations through MotionConfig in desktop.tsx.) */
 [data-reduce-motion="true"] *,
 [data-reduce-motion="true"] *::before {
   animation-duration: 0.01ms !important;
-  transition-duration: 0.01ms !important;
+  transition-property: opacity, color, background-color, border-color, box-shadow !important;
+  transition-duration: 0.15s !important;
 }
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+    transition-duration: 0.15s !important;
     scroll-behavior: auto !important;
   }
 }
@@ -4108,7 +4325,7 @@ kbd {
   .ios-lock-status,
   .ios-lock-keyboard,
   .ios-lock-profile,
-  .ios-lock-clock > div:nth-child(3) {
+  .ios-lock-clock > .lock-battery {
     display: none !important;
   }
   .ios-lock-phone-status {

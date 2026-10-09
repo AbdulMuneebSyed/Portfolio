@@ -57,7 +57,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 | App | What it shows |
 |---|---|
 | About Me | Experience, skills, awards |
-| Projects | Shipped work and research: Arrwin, AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
+| Projects | Work and research: Arrwin, AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
 | Resume | PDF viewer with download (`public/syedabdulmuneebresume.pdf`) |
 | Contact | Message form (saved to Supabase), email, phone, socials |
 | GitHub | Live public activity and repositories |
@@ -95,7 +95,8 @@ control; Finder, Projects, and Settings use horizontal categories on phones.
 ### Keyboard shortcuts
 
 Use Command on macOS or Ctrl on Windows/Linux: K opens Spotlight, comma opens
-Settings, M minimizes, W closes, and backtick cycles visible windows. Finder
+Settings, and backtick cycles visible windows. Option+M minimizes and Option+W
+closes the front window (Command+M/W belong to the browser). Finder
 supports Command+O/Return to open, Command+Up for Home, Command+1/2 for views,
 and Command+[/] for navigation. Escape dismisses menus and Spotlight.
 Command+Space is supported when the operating system passes it to the page.

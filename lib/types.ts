@@ -10,6 +10,9 @@ export interface WindowState {
   lastActiveAt?: string;
   memoryMb?: number;
   isMinimized: boolean;
+  // Put away with Hide rather than Minimize: no thumbnail in the Dock, and
+  // the app's own Dock icon brings it back.
+  isHidden?: boolean;
   isMaximized: boolean;
   position: { x: number; y: number };
   size: { width: number; height: number };

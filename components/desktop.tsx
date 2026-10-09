@@ -2,11 +2,15 @@
 
 import type React from "react";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { MotionConfig, AnimatePresence, motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
-import { spaceOf, useWindowManager } from "@/lib/window-manager";
+import {
+  hideOtherWindows,
+  spaceOf,
+  useWindowManager,
+} from "@/lib/window-manager";
 import { SpacesBar } from "./mac/spaces-bar";
 import { AppIcon } from "@/lib/app-icons";
 import { useSystemControls } from "@/lib/system-controls";
@@ -39,26 +43,39 @@ import {
 } from "@/lib/phone";
 import { PhoneAppIcon } from "@/lib/app-icons";
 import { Spotlight } from "./mac/spotlight";
+import { AppSwitcher } from "./mac/app-switcher";
 import { BootScreen } from "./mac/boot-screen";
 import { Tour } from "./mac/tour";
-import { ProjectsExplorer } from "./windows/projects-explorer";
-import { ResumeWindow } from "./windows/resume-window";
-import { AboutWindow } from "./windows/about-window";
-import { ContactWindow } from "./windows/contact-window";
-import { Minesweeper } from "./windows/minesweeper";
-import { Snake } from "./windows/snake";
-import { SettingsWindow } from "./windows/settings-window";
-import { ComputerExplorer } from "./windows/computer-explorer";
-import { InternetExplorer } from "./windows/internet-explorer";
-import { Calculator } from "./windows/calculator";
-import { FeedbackWindow } from "./windows/feedback-window-clean";
-import { PixelMusicPlayer } from "./windows/modern-music-player";
-import { PhotoPreview } from "./windows/photo-preview";
-import { Notepad } from "./windows/notepad";
-import { TerminalWindow } from "./windows/terminal-window";
-import { GitHubActivityViewer } from "./windows/github-activity-viewer";
-import { RecycleBin } from "./windows/recycle-bin";
-import { TaskManagerWindow } from "./windows/task-manager-window";
+
+// Every app's code loads on its own, so the lock screen and desktop come up
+// without it; they're fetched while the visitor looks around (see
+// prefetchApps) and open instantly by the time anyone clicks.
+const APP_LOADERS: (() => Promise<unknown>)[] = [];
+function lazyApp<P>(loader: () => Promise<React.ComponentType<P>>) {
+  APP_LOADERS.push(loader);
+  return dynamic(loader, { ssr: false });
+}
+function prefetchApps() {
+  for (const load of APP_LOADERS) void load();
+}
+const ProjectsExplorer = lazyApp(() => import("./windows/projects-explorer").then((m) => m.ProjectsExplorer));
+const ResumeWindow = lazyApp(() => import("./windows/resume-window").then((m) => m.ResumeWindow));
+const AboutWindow = lazyApp(() => import("./windows/about-window").then((m) => m.AboutWindow));
+const ContactWindow = lazyApp(() => import("./windows/contact-window").then((m) => m.ContactWindow));
+const Minesweeper = lazyApp(() => import("./windows/minesweeper").then((m) => m.Minesweeper));
+const Snake = lazyApp(() => import("./windows/snake").then((m) => m.Snake));
+const SettingsWindow = lazyApp(() => import("./windows/settings-window").then((m) => m.SettingsWindow));
+const ComputerExplorer = lazyApp(() => import("./windows/computer-explorer").then((m) => m.ComputerExplorer));
+const InternetExplorer = lazyApp(() => import("./windows/internet-explorer").then((m) => m.InternetExplorer));
+const Calculator = lazyApp(() => import("./windows/calculator").then((m) => m.Calculator));
+const FeedbackWindow = lazyApp(() => import("./windows/feedback-window-clean").then((m) => m.FeedbackWindow));
+const PixelMusicPlayer = lazyApp(() => import("./windows/modern-music-player").then((m) => m.PixelMusicPlayer));
+const PhotoPreview = lazyApp(() => import("./windows/photo-preview").then((m) => m.PhotoPreview));
+const Notepad = lazyApp(() => import("./windows/notepad").then((m) => m.Notepad));
+const TerminalWindow = lazyApp(() => import("./windows/terminal-window").then((m) => m.TerminalWindow));
+const GitHubActivityViewer = lazyApp(() => import("./windows/github-activity-viewer").then((m) => m.GitHubActivityViewer));
+const RecycleBin = lazyApp(() => import("./windows/recycle-bin").then((m) => m.RecycleBin));
+const TaskManagerWindow = lazyApp(() => import("./windows/task-manager-window").then((m) => m.TaskManagerWindow));
 
 // App Store mini-apps load the first time one opens.
 const MINI_APP_NAMES = [
@@ -128,6 +145,18 @@ const windowComponents: Record<string, React.ComponentType<any>> = {
   TaskManagerWindow,
 };
 
+// An app's contents. Memoised so moving, focusing or minimizing one window
+// doesn't re-render every open app: only its own metadata changes it.
+const AppBody = memo(function AppBody({
+  component: Component,
+  metadata,
+}: {
+  component: React.ComponentType<any>;
+  metadata?: Record<string, unknown>;
+}) {
+  return <Component {...(metadata || {})} />;
+});
+
 interface DesktopProps {
   onLock: () => void;
 }
@@ -135,14 +164,11 @@ interface DesktopProps {
 export function Desktop({ onLock }: DesktopProps) {
   useGlobalClickSound();
 
-  const {
-    desktopIcons,
-    windows,
-    isShutdown,
-    wallpaper,
-    loadState,
-    resetIconPositions,
-  } = useWindowManager();
+  const desktopIcons = useWindowManager((state) => state.desktopIcons);
+  const windows = useWindowManager((state) => state.windows);
+  const isShutdown = useWindowManager((state) => state.isShutdown);
+  const wallpaper = useWindowManager((state) => state.wallpaper);
+  const { loadState, resetIconPositions } = useWindowManager.getState();
   const aeroEffects = useWindowManager((state) => state.aeroEffects);
   const spaces = useWindowManager((state) => state.spaces);
   const activeSpaceId = useWindowManager((state) => state.activeSpaceId);
@@ -266,10 +292,15 @@ export function Desktop({ onLock }: DesktopProps) {
           setIsTourRunning(true);
           return;
         }
+        // First answer "who is this": About Me opens by itself, unless the
+        // visitor already asked for something from the lock screen.
+        const { windows } = useWindowManager.getState();
+        if (!useNotifications.getState().pendingOpen && windows.length === 0)
+          launchApp("about");
         notify({
           appId: "about",
           title: "Welcome to Muneeb OS",
-          body: "Click here to meet Muneeb, or press ⌘K to search every app.",
+          body: "Everything here is an app. Press ⌘K to search them all.",
         });
       }, 1200);
       return () => clearTimeout(id);
@@ -279,6 +310,9 @@ export function Desktop({ onLock }: DesktopProps) {
   useEffect(() => {
     loadState();
     loadControls();
+    // Fetch every app's code once the desktop is up and the browser is idle.
+    const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 300));
+    idle(prefetchApps);
   }, [loadState, loadControls]);
 
   // Notifications that drop in while the visitor looks around, and the app
@@ -338,10 +372,24 @@ export function Desktop({ onLock }: DesktopProps) {
       } else if (mod && e.altKey && key === "escape") {
         e.preventDefault();
         launchApp("task-manager");
-      } else if (mod && key === "m" && wm.activeWindowId) {
+      // ⌘M and ⌘W belong to the browser (they minimize it or close the tab),
+      // so ⌥M and ⌥W are the advertised keys; ⌘ still works where it reaches
+      // the page. e.code, since ⌥ turns the letter into a symbol on a Mac.
+      } else if (
+        ((mod && key === "m") || (e.altKey && e.code === "KeyM")) &&
+        wm.activeWindowId
+      ) {
         e.preventDefault();
         wm.minimizeWindow(wm.activeWindowId);
-      } else if (mod && key === "w" && wm.activeWindowId) {
+      } else if (e.altKey && e.code === "KeyH" && wm.activeWindowId) {
+        // ⌥H hides the front app; ⌥⇧H hides the others (⌘H hides the browser).
+        e.preventDefault();
+        if (e.shiftKey) hideOtherWindows();
+        else wm.minimizeWindow(wm.activeWindowId, { hide: true });
+      } else if (
+        ((mod && key === "w") || (e.altKey && e.code === "KeyW")) &&
+        wm.activeWindowId
+      ) {
         e.preventDefault();
         wm.closeWindow(wm.activeWindowId);
       } else if (mod && key === "`") {
@@ -568,20 +616,25 @@ export function Desktop({ onLock }: DesktopProps) {
           onSkip={handleTourComplete}
         />
 
-        <MenuBar
-          onOpenSpotlight={openSpotlight}
-          onStartTour={handleStartTour}
-          onLock={onLock}
-          onRestart={handleRestart}
-        />
+        {/* Each device mounts only its own shell. */}
+        {!phone && (
+          <MenuBar
+            onOpenSpotlight={openSpotlight}
+            onStartTour={handleStartTour}
+            onLock={onLock}
+            onRestart={handleRestart}
+          />
+        )}
 
-        <MobileHome
-          appOpen={mobileAppOpen}
-          darkApp={mobileAppDark}
-          onHome={goMobileHome}
-          onSearch={openSpotlight}
-          onSwitcher={() => setMissionOpen(true)}
-        />
+        {phone && (
+          <MobileHome
+            appOpen={mobileAppOpen}
+            darkApp={mobileAppDark}
+            onHome={goMobileHome}
+            onSearch={openSpotlight}
+            onSwitcher={() => setMissionOpen(true)}
+          />
+        )}
 
         {/* Desktop files, anchored top-right */}
         <div
@@ -728,7 +781,7 @@ export function Desktop({ onLock }: DesktopProps) {
                   setMissionOpen(false);
                 }}
               >
-                <WindowComponent {...(window.metadata || {})} />
+                <AppBody component={WindowComponent} metadata={window.metadata} />
               </Window>
             );
           })}
@@ -755,9 +808,11 @@ export function Desktop({ onLock }: DesktopProps) {
           </button>
         )}
 
-        <Dock onSearch={openSpotlight} />
+        {!phone && <Dock onSearch={openSpotlight} />}
 
         <NotificationBanners />
+
+        {!phone && <AppSwitcher />}
 
         {/* Control Center's Display slider: dims everything, like a screen. */}
         {brightness < 1 && (
