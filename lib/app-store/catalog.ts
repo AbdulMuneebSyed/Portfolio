@@ -4,7 +4,7 @@ import { projects, timeline } from "../portfolio-data";
 // Everything the App Store lists. Three kinds of item:
 // - "project": shipped work; the main button opens the live site
 // - "app": a MuneebOS app from the registry; Open, or Get when installable
-// - "experience": a job, presented as an app; opens About Me › Experience
+// - "experience": a job, presented as an app; Open shows the company site
 
 export type StoreTab =
   | "discover"
@@ -467,6 +467,14 @@ const EXPERIENCE_TINTS: Record<string, string> = {
   "ecell-mjcet": "#ff3b6b",
 };
 
+// Each company's own site, opened in Safari from the item's Open button.
+const EXPERIENCE_SITES: Record<string, string> = {
+  pulsegen: "https://www.pulsegen.io/",
+  mathongo: "https://www.mathongo.com/",
+  airesumate: "https://airesumate.com/",
+  "ecell-mjcet": "https://www.ecell-mjcet.com/",
+};
+
 const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
   const [role, company] = entry.title.split(" · ");
   return {
@@ -479,6 +487,7 @@ const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
     highlights: entry.points,
     appId: "about",
     aboutTab: "Experience",
+    website: EXPERIENCE_SITES[entry.id],
     chart: { rank: index + 1, list: "Experience" },
     size: entry.location,
     age: "4+",

@@ -1,5 +1,18 @@
 // Portfolio content shared by About Me, Projects and the App Store.
 
+// Who Muneeb is, in one line, and how to reach him. Shown wherever a
+// visitor should get it without exploring: lock screens, About, metadata.
+export const profile = {
+  name: "Syed Abdul Muneeb",
+  role: "SDE at PulseGen",
+  status: "Open to SDE roles",
+  location: "Hyderabad, India",
+  email: "samuneeb786@gmail.com",
+  linkedin: "https://www.linkedin.com/in/syed-abdul-muneeb/",
+  github: "https://github.com/AbdulMuneebSyed",
+  resume: "/syedabdulmuneebresume.pdf",
+};
+
 export interface Project {
   id: string;
   title: string;
@@ -29,7 +42,7 @@ export const projects: Project[] = [
     demoLink: "https://www.pulsegen.io",
     category: "AI Agents",
     highlights: [
-      "Streaming LLM chat in production",
+      "Streaming LLM chat with contradiction detection",
       "Daily Brief with Gmail and other connectors via MCP",
       "Tenant-isolated knowledge workflows",
     ],

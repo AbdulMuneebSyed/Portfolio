@@ -20,6 +20,12 @@ const nextConfig = {
         destination: "/syedabdulmuneebresume.pdf",
         permanent: true,
       },
+      {
+        // An older resume that was still being served.
+        source: "/:file(2Syed.+SE.+Resume\\.pdf)",
+        destination: "/syedabdulmuneebresume.pdf",
+        permanent: true,
+      },
     ];
   },
 };

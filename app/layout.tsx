@@ -2,30 +2,35 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
+import { education, profile } from "@/lib/portfolio-data";
 import "./globals.css";
 import "./app-store.css";
+
+// Role and impact first: this is what search results and link previews show.
+const DESCRIPTION =
+  "Syed Abdul Muneeb is a software engineer at PulseGen, Hyderabad, building AI-agent products: streaming LLM chat, MCP integrations and multi-tenant search. Previously scaled MathonGO to 30K+ daily users. Open to SDE roles.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.syedabdulmuneeb.dev"),
   title: {
-    default: "Syed Abdul Muneeb | Software Engineer Portfolio",
+    default: "Syed Abdul Muneeb | Software Engineer, AI agents and full stack",
     template: "%s | Syed Abdul Muneeb",
   },
-  description:
-    "Explore the interactive portfolio of Syed Abdul Muneeb, a Software Engineer. Experience Muneeb OS, a macOS-style desktop showcasing projects, skills, and experience.",
+  description: DESCRIPTION,
   keywords: [
     "Syed Abdul Muneeb",
     "Software Engineer",
-    "Portfolio",
-    "Web Developer",
+    "SDE",
+    "Full Stack Developer",
+    "AI Agents",
+    "LLM",
+    "MCP",
     "React",
     "Next.js",
-    "macOS Portfolio",
-    "Interactive Portfolio",
-    "Frontend Developer",
-    "Full Stack Developer",
-    "JavaScript",
+    "Node.js",
     "TypeScript",
+    "Hyderabad",
+    "PulseGen",
   ],
   authors: [{ name: "Syed Abdul Muneeb" }],
   creator: "Syed Abdul Muneeb",
@@ -41,29 +46,19 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  // Share images come from app/opengraph-image.tsx and twitter-image.tsx.
   openGraph: {
-    type: "website",
+    type: "profile",
     locale: "en_US",
     url: "https://www.syedabdulmuneeb.dev",
-    title: "Syed Abdul Muneeb - Software Engineer Portfolio",
-    description:
-      "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
-    siteName: "Syed Abdul Muneeb Portfolio",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Muneeb OS Portfolio",
-      },
-    ],
+    title: "Syed Abdul Muneeb, Software Engineer",
+    description: DESCRIPTION,
+    siteName: "Syed Abdul Muneeb",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Syed Abdul Muneeb - Software Engineer Portfolio",
-    description:
-      "Welcome to Muneeb OS! An interactive macOS-style portfolio showcasing my work as a Software Engineer.",
-    images: ["/og-image.png"],
+    title: "Syed Abdul Muneeb, Software Engineer",
+    description: DESCRIPTION,
   },
 };
 
@@ -75,15 +70,31 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: "Syed Abdul Muneeb",
+    name: profile.name,
     url: "https://www.syedabdulmuneeb.dev",
-    jobTitle: "Software Engineer",
-    sameAs: [
-      "https://www.linkedin.com/in/syed-abdul-muneeb/",
-      "https://github.com/AbdulMuneebSyed",
+    image: "https://www.syedabdulmuneeb.dev/avatar-1200.jpg",
+    email: `mailto:${profile.email}`,
+    jobTitle: "Software Development Engineer",
+    worksFor: { "@type": "Organization", name: "PulseGen", url: "https://www.pulsegen.io" },
+    alumniOf: { "@type": "CollegeOrUniversity", name: education.school },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Hyderabad",
+      addressCountry: "IN",
+    },
+    knowsAbout: [
+      "AI agents",
+      "Large language models",
+      "Model Context Protocol",
+      "React",
+      "Next.js",
+      "Node.js",
+      "TypeScript",
+      "MongoDB",
     ],
+    sameAs: [profile.linkedin, profile.github],
     description:
-      "Full-stack engineer who ships AI-agent products to production: streaming LLM chat, MCP and REST integrations, and multi-tenant search at PulseGen.",
+      "Full-stack engineer who builds AI-agent products: streaming LLM chat, MCP and REST integrations, and multi-tenant search at PulseGen.",
   };
 
   return (

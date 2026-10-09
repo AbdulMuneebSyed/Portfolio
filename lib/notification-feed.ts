@@ -46,7 +46,7 @@ export const FEED: FeedItem[] = [
     tier: 1,
     appId: "resume",
     title: "Resume.pdf updated",
-    body: "Now an SDE at PulseGen, building Arrwin, an AI assistant for PMs. Open the full resume.",
+    body: "Now an SDE at PulseGen, working on AI-agent products. Open the full resume.",
   },
   {
     id: "open-to-roles",
@@ -60,7 +60,7 @@ export const FEED: FeedItem[] = [
     tier: 2,
     appId: "projects",
     title: "Arrwin · PulseGen",
-    body: "Streaming LLM chat and a Daily Brief over MCP connectors, in production for PMs.",
+    body: "An AI assistant for PMs: streaming LLM chat and a Daily Brief over MCP connectors.",
   },
   {
     id: "agent-research",

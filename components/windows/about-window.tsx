@@ -8,10 +8,19 @@ import {
   Award,
   Mail,
   FileText,
+  Download,
+  Linkedin,
+  Github,
 } from "lucide-react";
 import { launchApp } from "@/lib/launch-app";
 import Image from "next/image";
-import { awards, education, skillGroups, timeline } from "@/lib/portfolio-data";
+import {
+  awards,
+  education,
+  profile,
+  skillGroups,
+  timeline,
+} from "@/lib/portfolio-data";
 
 export function AboutWindow({ tab: initialTab }: { tab?: string }) {
   const [tab, setTab] = useState(initialTab ?? "Overview");
@@ -62,7 +71,7 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
               <h1>Syed Abdul Muneeb</h1>
               <p className="mac-muted">Hyderabad, India</p>
               <p className="about-bio">
-                Full-stack engineer who ships AI-agent products to production.
+                Full-stack engineer who builds AI-agent products.
                 Built streaming LLM chat, MCP and REST integrations, and
                 multi-tenant search at PulseGen, and scaled a learning platform
                 serving 30K+ daily users at MathonGO. Most comfortable owning a
@@ -70,8 +79,12 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
               </p>
               <dl className="about-facts">
                 <div>
+                  <dt>Status</dt>
+                  <dd>{profile.status}</dd>
+                </div>
+                <div>
                   <dt>Currently</dt>
-                  <dd>SDE at PulseGen, building Arrwin</dd>
+                  <dd>SDE at PulseGen, working on AI agents</dd>
                 </div>
                 <div>
                   <dt>Previously</dt>
@@ -88,13 +101,42 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
                   </dd>
                 </div>
               </dl>
-              <button
-                className="mac-button primary"
-                onClick={() => launchApp("contact")}
-              >
-                <Mail size={14} />
-                Get in touch
-              </button>
+              {/* Everything a recruiter needs, one click each. */}
+              <div className="about-links">
+                <button
+                  className="mac-button primary"
+                  onClick={() => launchApp("contact")}
+                >
+                  <Mail size={14} />
+                  Get in touch
+                </button>
+                <a
+                  className="mac-button"
+                  href={profile.resume}
+                  download="syedabdulmuneebresume.pdf"
+                >
+                  <Download size={14} />
+                  Resume PDF
+                </a>
+                <a
+                  className="mac-button"
+                  href={profile.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Linkedin size={14} />
+                  LinkedIn
+                </a>
+                <a
+                  className="mac-button"
+                  href={profile.github}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Github size={14} />
+                  GitHub
+                </a>
+              </div>
             </>
           )}
           {tab === "Experience" && (

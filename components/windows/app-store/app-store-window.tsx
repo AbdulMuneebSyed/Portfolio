@@ -21,12 +21,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
-  MUNEEBOS_VERSION,
   STORE_ITEMS,
   getStoreItem,
 } from "@/lib/app-store/catalog";
 import { TAB_TITLES } from "@/lib/app-store/editorial";
-import { useInstalledApps } from "@/lib/app-store/installed";
 import {
   StoreNavContext,
   routeTitle,
@@ -81,13 +79,6 @@ function initialStack(route?: Route): Route[] {
   return [{ kind: "tab", id: "discover" }, route];
 }
 
-export function usePendingUpdates() {
-  const updatedTo = useInstalledApps((s) => s.updatedTo);
-  const load = useInstalledApps((s) => s.load);
-  useEffect(load, [load]);
-  return updatedTo === MUNEEBOS_VERSION ? 0 : 1;
-}
-
 // Deep links arrive as window metadata: { route, at }. `at` changes on every
 // request so asking for the page that's already showing still works.
 export function AppStoreWindow({ route, at }: { route?: Route; at?: number }) {
@@ -100,7 +91,6 @@ export function AppStoreWindow({ route, at }: { route?: Route; at?: number }) {
   const main = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const scrollPositions = useRef<number[]>([]);
-  const pendingUpdates = usePendingUpdates();
 
   const top = stack[stack.length - 1];
   const baseTab = stack[0].kind === "tab" ? stack[0].id : "discover";
@@ -263,11 +253,6 @@ export function AppStoreWindow({ route, at }: { route?: Route; at?: number }) {
                 >
                   <item.icon />
                   <span className="flex-1">{item.label}</span>
-                  {item.id === "updates" && pendingUpdates > 0 && (
-                    <span className="store-badge" aria-label={`${pendingUpdates} update`}>
-                      {pendingUpdates}
-                    </span>
-                  )}
                 </button>
               ))}
             </nav>
@@ -316,9 +301,6 @@ export function AppStoreWindow({ route, at }: { route?: Route; at?: number }) {
                       onClick={() => selectTab(item.id)}
                     >
                       {item.label}
-                      {item.id === "updates" && pendingUpdates > 0 && (
-                        <span className="store-badge">{pendingUpdates}</span>
-                      )}
                     </button>
                   ))}
                 </nav>
@@ -347,9 +329,6 @@ export function AppStoreWindow({ route, at }: { route?: Route; at?: number }) {
                 >
                   <tab.icon size={23} />
                   {tab.label}
-                  {tab.id === "updates" && pendingUpdates > 0 && (
-                    <span className="store-badge">{pendingUpdates}</span>
-                  )}
                 </button>
               );
             })}

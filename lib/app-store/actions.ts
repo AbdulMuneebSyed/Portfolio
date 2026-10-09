@@ -50,30 +50,6 @@ export function uninstallApp(appId: string) {
   useInstalledApps.getState().setInstalled(appId, false);
 }
 
-// Updates › Update: a short progress animation, then MuneebOS counts as
-// updated to `version` (clearing the Dock badge).
-export function runSystemUpdate(
-  version: string,
-  onProgress: (value: number) => void,
-): Promise<void> {
-  return new Promise((resolve) => {
-    const started = Date.now();
-    const timer = setInterval(() => {
-      const t = Math.min(1, (Date.now() - started) / 2400);
-      onProgress(t);
-      if (t < 1) return;
-      clearInterval(timer);
-      useInstalledApps.getState().setUpdatedTo(version);
-      notify({
-        appId: "app-store",
-        title: `MuneebOS ${version} installed`,
-        body: "The App Store and twelve new apps are ready.",
-      });
-      resolve();
-    }, TICK_MS);
-  });
-}
-
 // Account › Redeem Gift Card. Returns the redeemed app ids, or null for an
 // unknown code.
 const GAME_IDS = [

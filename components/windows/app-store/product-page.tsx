@@ -13,6 +13,9 @@ import {
   Mail,
   Trash2,
   UserRound,
+  Briefcase,
+  CalendarDays,
+  MapPin,
 } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
 import { useAppName } from "@/lib/phone";
@@ -33,8 +36,34 @@ import { LivePreview } from "./live-preview";
 import { useStoreNav } from "./nav";
 import { categoryIcon } from "./category-icons";
 
+// A job reads as a job: role, dates and place, not chart rank, age rating
+// and download size.
+function experienceFacts(item: StoreItem) {
+  const [role, period] = item.subtitle.split(" · ");
+  return { role, period: period ?? item.versions[0]?.date ?? "", location: item.size };
+}
+
 function Stats({ item }: { item: StoreItem }) {
   const CategoryIcon = categoryIcon(item.category);
+  if (item.kind === "experience") {
+    const facts = experienceFacts(item);
+    const stats = [
+      { label: "Role", value: <Briefcase size={22} />, sub: facts.role },
+      { label: "When", value: <CalendarDays size={22} />, sub: facts.period },
+      { label: "Where", value: <MapPin size={22} />, sub: facts.location },
+    ];
+    return (
+      <div className="store-stats" role="list">
+        {stats.map((s) => (
+          <div key={s.label} role="listitem">
+            <small>{s.label}</small>
+            <strong>{s.value}</strong>
+            <span>{s.sub}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
   const stats = [
     item.chart && {
       label: "Chart",
@@ -53,7 +82,7 @@ function Stats({ item }: { item: StoreItem }) {
           ? `+ ${item.techStack.length - 1} more`
           : "Stack",
     },
-    { label: item.kind === "experience" ? "Location" : "Size", value: item.size, sub: item.kind === "experience" ? "Office" : "Download" },
+    { label: "Size", value: item.size, sub: "Download" },
   ].filter(Boolean) as { label: string; value: React.ReactNode; sub: string }[];
 
   return (
@@ -211,6 +240,29 @@ function WhatsNew({ item }: { item: StoreItem }) {
 
 function Information({ item }: { item: StoreItem }) {
   const app = item.appId ? getApp(item.appId) : undefined;
+  if (item.kind === "experience") {
+    const facts = experienceFacts(item);
+    const rows: [string, string][] = [
+      ["Company", item.name],
+      ["Role", facts.role],
+      ["Dates", facts.period],
+      ["Location", facts.location],
+      ...(item.website ? ([["Website", item.website.replace(/^https?:\/\/(www\.)?|\/$/g, "")]] as [string, string][]) : []),
+    ];
+    return (
+      <section className="store-section">
+        <SectionHeader title="Information" />
+        <dl className="store-info">
+          {rows.map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    );
+  }
   const rows: [string, string][] = [
     ["Developer", STORE_DEVELOPER],
     ["Category", item.category],

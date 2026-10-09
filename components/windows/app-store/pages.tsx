@@ -22,7 +22,7 @@ import {
   type StoreTab,
 } from "@/lib/app-store/catalog";
 import { EDITORIAL, type Section } from "@/lib/app-store/editorial";
-import { redeemCode, runSystemUpdate } from "@/lib/app-store/actions";
+import { redeemCode } from "@/lib/app-store/actions";
 import { useInstalledApps } from "@/lib/app-store/installed";
 import {
   AppGrid,
@@ -160,9 +160,6 @@ export function SearchPage({ query }: { query: string }) {
 }
 
 export function UpdatesPage() {
-  const updatedTo = useInstalledApps((s) => s.updatedTo);
-  const [progress, setProgress] = useState<number | null>(null);
-  const current = updatedTo === MUNEEBOS_VERSION;
   const muneebos = getStoreItem("muneebos")!;
   // Apps that arrived with this MuneebOS version.
   const recent = STORE_ITEMS.filter(
@@ -174,32 +171,6 @@ export function UpdatesPage() {
 
   return (
     <>
-      <section className="store-update-banner">
-        <AppIcon appId="muneebos" size={64} />
-        <div className="min-w-0 flex-1">
-          <strong>{current ? "MuneebOS is up to date" : "Update Available"}</strong>
-          <small>
-            MuneebOS {current ? MUNEEBOS_VERSION : `${MUNEEBOS_VERSION} — ${muneebos.versions[0].notes}`}
-          </small>
-          {progress !== null && (
-            <span className="store-update-progress">
-              <span style={{ width: `${progress * 100}%` }} />
-            </span>
-          )}
-        </div>
-        {!current && progress === null && (
-          <button
-            className="store-get"
-            data-prominent="true"
-            onClick={() => {
-              setProgress(0);
-              void runSystemUpdate(MUNEEBOS_VERSION, setProgress).then(() => setProgress(null));
-            }}
-          >
-            Update
-          </button>
-        )}
-      </section>
       <section className="store-section">
         <SectionHeader title={`New in MuneebOS ${MUNEEBOS_VERSION}`} />
         <div className="store-updates">

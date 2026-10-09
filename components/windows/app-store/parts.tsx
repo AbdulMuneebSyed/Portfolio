@@ -37,7 +37,8 @@ export function runItemAction(item: StoreItem, action: ItemAction) {
     void installApp(item.appId);
     return;
   }
-  if (action === "view" && item.website) {
+  // A job opens its company's site in Safari.
+  if ((action === "view" || item.kind === "experience") && item.website) {
     launchApp("ie", { url: item.website, at: Date.now() });
     return;
   }

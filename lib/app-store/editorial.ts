@@ -70,18 +70,18 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
           art: { colors: ["#0b2a5b", "#2f80ed", "#8fd3ff"], motif: "rings", iconId: "getmarks" },
         },
         {
-          itemId: "game-2048",
-          eyebrow: "New in the Arcade",
-          title: "Twelve new apps and games",
-          subtitle: "Get them free and they join your Dock.",
-          art: { colors: ["#3d2b00", "#edc22e", "#ff9f0a"], motif: "pixels", iconId: "game-2048" },
+          itemId: "agent-checkpoints",
+          eyebrow: "Research",
+          title: "Agents that keep their place",
+          subtitle: "Checkpointed state for long-horizon, tool-using LLM agents.",
+          art: { colors: ["#062a3a", "#30b0c7", "#a0e9ff"], motif: "grid", iconId: "agent-checkpoints" },
         },
       ],
     },
     {
       type: "shelf",
       title: "Shipped to Production",
-      itemIds: ["arrwin", "airesumate", "getmarks", "hypogen", "agent-checkpoints", "capco", "ecell", "launchpad", "muneebos"],
+      itemIds: ["airesumate", "getmarks", "agent-checkpoints", "capco", "ecell", "launchpad", "muneebos"],
     },
     {
       type: "stories",
@@ -90,7 +90,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
           itemId: "about",
           eyebrow: "Meet the developer",
           title: "Hi, I'm Muneeb",
-          subtitle: "Full-stack engineer shipping AI-agent products.",
+          subtitle: "Full-stack engineer building AI-agent products.",
           art: { colors: ["#4a2600", "#ff9f0a", "#ffd60a"], motif: "confetti", iconId: "about" },
         },
         {
@@ -111,6 +111,11 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     },
     {
       type: "shelf",
+      title: "Where I've Worked",
+      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-ecell-mjcet"],
+    },
+    {
+      type: "shelf",
       title: "Try It Right Here",
       itemIds: [
         "game-2048",
@@ -123,11 +128,6 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
         "breakout",
         "pomodoro",
       ],
-    },
-    {
-      type: "shelf",
-      title: "Where I've Worked",
-      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-ecell-mjcet"],
     },
   ],
   arcade: [
@@ -213,7 +213,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
           itemId: "exp-pulsegen",
           eyebrow: "Now working at",
           title: "PulseGen",
-          subtitle: "Arrwin, an AI assistant for PMs, and search across 400K+ accounts.",
+          subtitle: "AI agents for PMs, and search across 400K+ accounts.",
           art: { colors: ["#1a1446", "#5856d6", "#64d2ff"], motif: "grid", iconId: "exp-pulsegen" },
         },
         {

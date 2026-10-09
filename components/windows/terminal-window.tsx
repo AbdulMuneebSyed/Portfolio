@@ -141,7 +141,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Syed Abdul Muneeb - full-stack engineer shipping AI-agent products. SDE at PulseGen, building Arrwin; previously MathonGO (GetMarks). Co-founder of AiResumate.",
+          text: "Syed Abdul Muneeb - full-stack engineer building AI-agent products. SDE at PulseGen, working on AI agents; previously MathonGO (GetMarks). Co-founder of AiResumate.",
         },
       ]);
       return;

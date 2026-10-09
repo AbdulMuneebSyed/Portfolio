@@ -8,8 +8,10 @@ import {
   BatteryCharging,
   BatteryFull,
   Camera,
+  FileText,
   Flashlight,
   Keyboard,
+  Mail,
   Signal,
   Wifi,
 } from "lucide-react";
@@ -19,6 +21,7 @@ import { useWindowManager } from "@/lib/window-manager";
 import { useBatteryStatus } from "@/lib/use-battery";
 import { usePhone } from "@/lib/phone";
 import { type Notice, useNotifications } from "@/lib/notifications";
+import { profile } from "@/lib/portfolio-data";
 import { NoticeList } from "./notice-list";
 
 interface LockScreenProps {
@@ -35,6 +38,15 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const phone = usePhone();
   const [torch, setTorch] = useState(false);
   const hasNotices = useNotifications((state) => state.notices.length > 0);
+  // A short window fits fewer notifications above the name and buttons.
+  const [noticeLimit, setNoticeLimit] = useState(3);
+  useEffect(() => {
+    const update = () =>
+      setNoticeLimit(innerHeight < 640 ? 1 : innerHeight < 800 ? 2 : 3);
+    update();
+    addEventListener("resize", update);
+    return () => removeEventListener("resize", update);
+  }, []);
 
   useEffect(() => {
     useWindowManager.getState().loadState();
@@ -59,8 +71,27 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
     unlock();
   };
 
+  // The fast path for someone who won't explore: unlock straight into the
+  // resume, or write an email without unlocking at all.
+  const openResume = () => {
+    useNotifications.getState().setPendingOpen("resume");
+    unlock();
+  };
+  const quickLinks = (
+    <div className="lock-quick" onClick={(e) => e.stopPropagation()}>
+      <button onClick={openResume}>
+        <FileText size={15} strokeWidth={2.2} /> Resume
+      </button>
+      <a href={`mailto:${profile.email}`}>
+        <Mail size={15} strokeWidth={2.2} /> Email
+      </a>
+    </div>
+  );
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Enter on a focused button or link is that control's own click.
+      if ((event.target as HTMLElement).closest?.("button, a")) return;
       if (event.key === "Enter" || event.key === " ") unlock();
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -144,8 +175,16 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         >
           {time}
         </div>
+        {/* iPhone: who this is, under the clock. */}
+        <div className="lock-phone-intro mobile-only">
+          <strong>{profile.name}</strong>
+          <span>
+            {profile.role} · {profile.status}
+          </span>
+          {quickLinks}
+        </div>
         {battery && (
-          <div className={`mt-[1.5vh] flex items-center gap-2 text-[clamp(16px,2.4vh,24px)] font-semibold ${vibrantText}`}>
+          <div className={`lock-battery mt-[1.5vh] flex items-center gap-2 text-[clamp(16px,2.4vh,24px)] font-semibold ${vibrantText}`}>
             {battery.charging ? (
               <BatteryCharging className="size-[1.2em]" strokeWidth={2} />
             ) : (
@@ -159,7 +198,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
       {/* Unread notifications wait under the clock until they're opened. */}
       {!phone && (
         <div className="relative z-10 mt-[5vh] w-[360px] max-w-[calc(100vw-32px)]">
-          <NoticeList variant="lock" limit={3} onOpen={openNotice} />
+          <NoticeList variant="lock" limit={noticeLimit} onOpen={openNotice} />
         </div>
       )}
 
@@ -182,9 +221,13 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           />
         </button>
         <div className="mt-[1.4vh] text-[clamp(14px,1.8vh,18px)] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
-          Syed Abdul Muneeb
+          {profile.name}
         </div>
-        <div className="mt-[1vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+        <div className="mt-[0.4vh] text-[clamp(12px,1.45vh,15px)] font-medium text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+          {profile.role} · {profile.status}
+        </div>
+        {quickLinks}
+        <div className="mt-[1.2vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
           Click or press Enter to unlock
         </div>
       </div>
