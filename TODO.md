@@ -66,7 +66,7 @@ Browser checks at 390 × 844 also passed for Calculator, Safari, Music, About, P
 ## Resume update (2026-10-08)
 
 - New resume at `public/syedabdulmuneebresume.pdf` (replaces `Syed Abdul Muneeb's SDE Resume (15).pdf`); `public/resume/page-1.webp` re-rendered from it.
-- `lib/portfolio-data.ts` follows the resume: SDE at PulseGen (Arrwin), AiResumate as the Capco-cs role, new Projects & Research (Arrwin, Hypogen, the checkpointed-agents paper) alongside LaunchPad and the Capco vendor portal, which stay although the resume no longer lists them.
+- `lib/portfolio-data.ts` follows the resume: SDE at PulseGen (Arrwin), AiResumate (co-founder) and Capco-CS (full-stack developer) as separate roles, new Projects & Research (Arrwin, Hypogen, the checkpointed-agents paper) alongside LaunchPad and the Capco vendor portal, which stay although the resume no longer lists them.
 - Site URL is now `https://www.syedabdulmuneeb.dev` (metadata, sitemap, robots, JSON-LD); it already serves this build.
 
 ## Remaining work

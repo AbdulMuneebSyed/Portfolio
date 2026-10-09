@@ -112,7 +112,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     {
       type: "shelf",
       title: "Where I've Worked",
-      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-ecell-mjcet"],
+      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-capco-cs", "exp-ecell-mjcet"],
     },
     {
       type: "shelf",
@@ -228,7 +228,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
     {
       type: "shelf",
       title: "Experience",
-      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-ecell-mjcet", "resume", "contact"],
+      itemIds: ["exp-pulsegen", "exp-mathongo", "exp-airesumate", "exp-capco-cs", "exp-ecell-mjcet", "resume", "contact"],
     },
     {
       type: "shelf",

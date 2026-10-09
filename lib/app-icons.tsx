@@ -112,6 +112,7 @@ const ICONS: Record<string, IconSpec> = {
   "exp-pulsegen": { kind: "glyph", glyph: Activity, from: "#8a88ff", to: "#3d3ab8" },
   "exp-mathongo": { kind: "glyph", glyph: GraduationCap, from: "#5aa8ff", to: "#1662c9" },
   "exp-airesumate": { kind: "glyph", glyph: Sparkles, from: "#9d84ff", to: "#5a33e6" },
+  "exp-capco-cs": { kind: "glyph", glyph: Headset, from: "#3ccfcf", to: "#0d8585" },
   "exp-ecell-mjcet": { kind: "glyph", glyph: Users, from: "#ff6b8b", to: "#d1124a" },
 };
 

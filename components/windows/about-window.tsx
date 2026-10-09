@@ -88,7 +88,7 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
                 </div>
                 <div>
                   <dt>Previously</dt>
-                  <dd>MathonGO · Co-founder of AiResumate</dd>
+                  <dd>MathonGO · Capco-CS · Co-founder of AiResumate</dd>
                 </div>
                 <div>
                   <dt>Research</dt>

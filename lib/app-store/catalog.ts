@@ -465,6 +465,7 @@ const EXPERIENCE_TINTS: Record<string, string> = {
   mathongo: "#2f80ed",
   airesumate: "#7c5cff",
   "ecell-mjcet": "#ff3b6b",
+  "capco-cs": "#14a3a3",
 };
 
 // Each company's own site, opened in Safari from the item's Open button.
@@ -472,6 +473,7 @@ const EXPERIENCE_SITES: Record<string, string> = {
   pulsegen: "https://www.pulsegen.io/",
   mathongo: "https://www.mathongo.com/",
   airesumate: "https://airesumate.com/",
+  "capco-cs": "https://www.capco-cs.com/",
   "ecell-mjcet": "https://www.ecell-mjcet.com/",
 };
 

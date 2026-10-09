@@ -218,11 +218,23 @@ export const timeline = [
   {
     id: "airesumate",
     period: "Dec 2024 – May 2025",
-    title: "Co-founder & Full Stack Developer · AiResumate (Capco-cs)",
+    title: "Co-founder & Full Stack Developer · AiResumate",
     location: "Remote",
     points: [
       "Shipped an AI resume platform (Next.js) routing between Gemini, OpenAI GPT and Claude for real-time ATS scoring and rewriting, via serverless REST endpoints.",
       "Integrated Cashfree payments with zero-downtime Vercel CI/CD; reached 1K+ visitors and $150+ revenue in month one.",
+    ],
+  },
+  // A separate company from AiResumate: Muneeb built its CRM, vendor portal
+  // and support chatbot.
+  {
+    id: "capco-cs",
+    period: "Dec 2024 – May 2025",
+    title: "Full Stack Developer · Capco-CS",
+    location: "Remote",
+    points: [
+      "Built a custom CRM and a React/Supabase vendor portal: +30% client management efficiency, +25% vendor onboarding.",
+      "Integrated a Gemini-powered support chatbot, making support responses 90% faster.",
     ],
   },
   {
