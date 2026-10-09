@@ -1,15 +1,17 @@
-import { feedBody, pickNext } from "./notification-feed";
+import { FEED, feedBody, pickNext } from "./notification-feed";
 import { notify, useNotifications } from "./notifications";
 import { useWindowManager } from "./window-manager";
 
 // When feed notifications drop in. Only time spent looking at the page
-// counts: the first arrives after 30–45 s, then the gaps start at 60–100 s
+// counts: the first, the LinkedIn invite, arrives 10–15 s after the desktop
+// opens, then the gaps start at 60–100 s
 // and stretch by 1.3× each time, at most six a visit. Anything already on
 // screen (a banner, a dialog, Notification Center, typing) pushes the next
 // one back 10 s.
 // A visitor never gets the same one twice within two weeks.
 // `?notifications=fast` runs the clock 15× faster for testing.
-const FIRST_DELAY: [number, number] = [30_000, 45_000];
+const FIRST_DELAY: [number, number] = [10_000, 15_000];
+const FIRST_ID = "linkedin-connect";
 const GAP: [number, number] = [60_000, 100_000];
 const GAP_GROWTH = 1.3;
 const MAX_PER_VISIT = 6;
@@ -37,7 +39,8 @@ function isBusy() {
   if (useNotifications.getState().banners.length > 0) return true;
   if (
     document.querySelector(
-      '[aria-modal="true"], [role="dialog"], [role="alertdialog"], [data-notification-center]',
+      // Windows are dialogs too (non-modal); only real dialogs count.
+      '[aria-modal="true"], [role="dialog"]:not(.mac-window), [role="alertdialog"], [data-notification-center]',
     )
   )
     return true;
@@ -67,7 +70,11 @@ export function startNotificationFeed() {
       due = active + RETRY_MS / speed;
       return;
     }
-    const item = pickNext(new Set(Object.keys(seen)), opened);
+    const first = FEED.find((i) => i.id === FIRST_ID);
+    const item =
+      sent === 0 && first && !seen[first.id] && !opened.has(first.appId)
+        ? first
+        : pickNext(new Set(Object.keys(seen)), opened);
     if (!item) return stop();
     notify({ appId: item.appId, title: item.title, body: feedBody(item) });
     seen[item.id] = Date.now();
