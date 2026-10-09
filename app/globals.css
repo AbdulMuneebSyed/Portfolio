@@ -354,35 +354,6 @@ input[type="checkbox"] {
 .dock-window-thumb > * {
   position: relative;
 }
-/* Lock screen: Resume and Email, for visitors who won't explore. */
-.lock-quick {
-  margin-top: 1.4vh;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-.lock-quick > * {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #ffffff33;
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  backdrop-filter: blur(20px) saturate(1.4);
-  box-shadow: inset 0 0 0 0.5px #ffffff59;
-  color: white;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.lock-quick > *:hover {
-  background: #ffffff4d;
-}
-.lock-quick > *:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-}
 /* Shown with .mobile-only, which sets display, so children stack as blocks. */
 .lock-phone-intro {
   margin-top: 14px;
@@ -401,13 +372,6 @@ input[type="checkbox"] {
   margin-top: 2px;
   font-size: 14px;
   font-weight: 500;
-}
-.lock-phone-intro .lock-quick {
-  margin-top: 12px;
-}
-.lock-phone-intro .lock-quick > * {
-  padding: 8px 16px;
-  font-size: 14px;
 }
 /* Sequoia tiling target shown while a window is held at a screen edge. */
 .tile-preview {

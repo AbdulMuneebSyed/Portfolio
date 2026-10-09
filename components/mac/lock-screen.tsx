@@ -8,10 +8,8 @@ import {
   BatteryCharging,
   BatteryFull,
   Camera,
-  FileText,
   Flashlight,
   Keyboard,
-  Mail,
   Signal,
   Wifi,
 } from "lucide-react";
@@ -70,23 +68,6 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
     notifications.setPendingOpen(notice.appId);
     unlock();
   };
-
-  // The fast path for someone who won't explore: unlock straight into the
-  // resume, or write an email without unlocking at all.
-  const openResume = () => {
-    useNotifications.getState().setPendingOpen("resume");
-    unlock();
-  };
-  const quickLinks = (
-    <div className="lock-quick" onClick={(e) => e.stopPropagation()}>
-      <button onClick={openResume}>
-        <FileText size={15} strokeWidth={2.2} /> Resume
-      </button>
-      <a href={`mailto:${profile.email}`}>
-        <Mail size={15} strokeWidth={2.2} /> Email
-      </a>
-    </div>
-  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -181,7 +162,6 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           <span>
             {profile.role} · {profile.status}
           </span>
-          {quickLinks}
         </div>
         {battery && (
           <div className={`lock-battery mt-[1.5vh] flex items-center gap-2 text-[clamp(16px,2.4vh,24px)] font-semibold ${vibrantText}`}>
@@ -226,7 +206,6 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         <div className="mt-[0.4vh] text-[clamp(12px,1.45vh,15px)] font-medium text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
           {profile.role} · {profile.status}
         </div>
-        {quickLinks}
         <div className="mt-[1.2vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
           Click or press Enter to unlock
         </div>
