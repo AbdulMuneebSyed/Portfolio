@@ -222,12 +222,6 @@ input[type="checkbox"] {
     0 24px 70px #0005,
     0 0 0 0.5px #ffffff80 inset;
 }
-/* While a window flies (minimize, restore, Mission Control) it gets its own
-   layer, rasterised once and scaled by the GPU, instead of repainting the
-   window and its 70px shadow every frame. */
-.mac-window[data-moving="true"] {
-  will-change: transform, opacity;
-}
 .skip-link {
   position: fixed;
   left: 12px;

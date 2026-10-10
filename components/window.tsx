@@ -503,13 +503,11 @@ export function Window({
           // Mission Control's labels stay readable on a scaled-down window.
           ["--mission-inv" as string]: 1 / missionScale,
         }}
-        // Promoted to its own layer only while it moves (see globals.css).
-        onAnimationStart={() => {
-          if (frame.current) frame.current.dataset.moving = "true";
-        }}
-        onAnimationComplete={() => {
-          if (frame.current) delete frame.current.dataset.moving;
-        }}
+        // No will-change toggling here: the browser already gives a window
+        // its own layer while a transform animates, and promoting and
+        // demoting it by hand re-rasterised the whole window at the start
+        // and end of every animation (a visible jitter, worst on the first
+        // open or close after a reload).
         onPointerDownCapture={(e: React.PointerEvent) => {
           if (!win.isActive) wm.setActiveWindow(win.id);
           // iPhone: a swipe from the left edge goes back a page.

@@ -58,6 +58,13 @@ function lazyApp<P>(loader: () => Promise<React.ComponentType<P>>) {
 function prefetchApps() {
   for (const load of APP_LOADERS) void load();
 }
+// This module loads while the lock screen is up (components/shell.tsx), so
+// fetch the apps then too: by the first click every app's code is ready, and
+// a window never fills in halfway through its opening animation.
+if (typeof window !== "undefined") {
+  const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 200));
+  idle(prefetchApps);
+}
 const ProjectsExplorer = lazyApp(() => import("./windows/projects-explorer").then((m) => m.ProjectsExplorer));
 const ResumeWindow = lazyApp(() => import("./windows/resume-window").then((m) => m.ResumeWindow));
 const AboutWindow = lazyApp(() => import("./windows/about-window").then((m) => m.AboutWindow));
@@ -310,9 +317,6 @@ export function Desktop({ onLock }: DesktopProps) {
   useEffect(() => {
     loadState();
     loadControls();
-    // Fetch every app's code once the desktop is up and the browser is idle.
-    const idle = window.requestIdleCallback ?? ((fn: () => void) => setTimeout(fn, 300));
-    idle(prefetchApps);
   }, [loadState, loadControls]);
 
   // Notifications that drop in while the visitor looks around, and the app
