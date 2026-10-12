@@ -4,8 +4,8 @@ import type React from "react";
 
 import { useState } from "react";
 import { Mail, Send, Github, Linkedin, ArrowUp, Phone } from "lucide-react";
-import { supabase } from "@/lib/supabase-client";
-import { notify } from "@/lib/notifications";
+import { submitForm } from "@/lib/supabase-client";
+import { profile } from "@/lib/portfolio-data";
 
 export function ContactWindow() {
   const [formData, setFormData] = useState({
@@ -38,20 +38,22 @@ export function ContactWindow() {
     setErrorMessage("");
 
     try {
-      const { error } = await supabase.from("bugs_and_suggestions").insert({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        report_text: `[CONTACT FORM] Subject: ${
-          formData.subject.trim() || "(no subject)"
-        }\n\n${formData.message.trim()}`,
-      });
-      if (error) throw error;
+      await submitForm(
+        "bugs_and_suggestions",
+        {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          report_text: `[CONTACT FORM] Subject: ${
+            formData.subject.trim() || "(no subject)"
+          }\n\n${formData.message.trim()}`,
+        },
+        {
+          appId: "contact",
+          title: "Message sent",
+          body: `Thanks, ${formData.name.trim()}! Muneeb will reply to ${formData.email.trim()}.`,
+        },
+      );
       setStatus("sent");
-      notify({
-        appId: "contact",
-        title: "Message sent",
-        body: `Thanks, ${formData.name.trim()}! Muneeb will reply to ${formData.email.trim()}.`,
-      });
       setFormData({ name: "", email: "", subject: "", message: "" });
       setTimeout(() => setStatus("idle"), 3500);
     } catch (err: any) {
@@ -81,12 +83,12 @@ export function ContactWindow() {
           <img src="/avatar-256.jpg" alt="Syed Abdul Muneeb" />
           <strong>Syed Abdul Muneeb</strong>
           <p>Software Engineer</p>
-          <a href="mailto:samuneeb786@gmail.com">samuneeb786@gmail.com</a>
+          <a href={`mailto:${profile.email}`}>{profile.email}</a>
           <a href="tel:+919966782707">+91 99667 82707</a>
           <span>Hyderabad, India</span>
           <div className="flex gap-4 mt-4">
             <a
-              href="https://github.com/AbdulMuneebSyed"
+              href={profile.github}
               aria-label="GitHub"
               target="_blank"
               rel="noopener noreferrer"
@@ -94,7 +96,7 @@ export function ContactWindow() {
               <Github size={17} />
             </a>
             <a
-              href="https://www.linkedin.com/in/syed-abdul-muneeb/"
+              href={profile.linkedin}
               aria-label="LinkedIn"
               target="_blank"
               rel="noopener noreferrer"
@@ -128,9 +130,9 @@ export function ContactWindow() {
         <div className="mail-phone-actions mobile-only">
           {[
             { label: "call", href: "tel:+919966782707", icon: Phone },
-            { label: "mail", href: "mailto:samuneeb786@gmail.com", icon: Mail },
-            { label: "LinkedIn", href: "https://www.linkedin.com/in/syed-abdul-muneeb/", icon: Linkedin },
-            { label: "GitHub", href: "https://github.com/AbdulMuneebSyed", icon: Github },
+            { label: "mail", href: `mailto:${profile.email}`, icon: Mail },
+            { label: "LinkedIn", href: profile.linkedin, icon: Linkedin },
+            { label: "GitHub", href: profile.github, icon: Github },
           ].map((action) => (
             <a
               key={action.label}
@@ -194,7 +196,7 @@ export function ContactWindow() {
         )}
         <div className="mac-statusbar">
           <span>Contact Muneeb</span>
-          <a href="mailto:samuneeb786@gmail.com">Open in your mail app ↗</a>
+          <a href={`mailto:${profile.email}`}>Open in your mail app ↗</a>
         </div>
       </form>
     </div>

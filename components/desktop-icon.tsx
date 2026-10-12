@@ -28,7 +28,9 @@ const EDGE_HOLD_MS = 650;
 // Desktop files are anchored to the top-right corner like Finder:
 // `position.x` is the distance from the container's right edge.
 export function DesktopIconComponent({ icon }: DesktopIconProps) {
-  const { updateIconPosition } = useWindowManager();
+  // An action only: subscribing to the whole store re-rendered every icon on
+  // any window change.
+  const { updateIconPosition } = useWindowManager.getState();
   // A ref, not state: the second click of a fast double-click can arrive
   // before React re-renders with the first one.
   const lastClick = useRef(0);
@@ -50,6 +52,9 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     offsetRight: number;
     offsetY: number;
   } | null>(null);
+  // Starts listening for the drag; set by the effect below. Document
+  // listeners only exist while a file is pressed, not one set per file.
+  const listenForDrag = useRef<() => void>(() => {});
 
   useEffect(() => {
     const getContainer = () =>
@@ -117,6 +122,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
     };
 
     const handleMouseUp = (event: MouseEvent) => {
+      stopListening();
       clearEdge();
       const wasDragging = draggingRef.current;
       const position = wasDragging ? toContainerPosition(event) : null;
@@ -144,24 +150,17 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
       window.setTimeout(() => setIsSnapping(false), 180);
     };
 
-    const handleDocumentMouseDown = (event: MouseEvent) => {
-      const onOtherIcon = (event.target as Element).closest?.("[data-icon-id]");
-      if (onOtherIcon && (event.shiftKey || event.metaKey)) return;
-      if (!iconRef.current?.contains(event.target as Node)) {
-        const { selected, select } = useDesktopSelection.getState();
-        if (selected.includes(icon.id))
-          select(selected.filter((id) => id !== icon.id));
-      }
-    };
-
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mousedown", handleDocumentMouseDown);
-
-    return () => {
+    const stopListening = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mousedown", handleDocumentMouseDown);
+    };
+    listenForDrag.current = () => {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    return () => {
+      stopListening();
       clearEdge();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,6 +224,7 @@ export function DesktopIconComponent({ icon }: DesktopIconProps) {
         offsetRight: rect.right - e.clientX,
         offsetY: e.clientY - rect.top,
       };
+      listenForDrag.current();
     }
   };
 

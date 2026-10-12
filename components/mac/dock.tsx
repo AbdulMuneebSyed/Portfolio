@@ -13,43 +13,29 @@ import { DOCK_APP_IDS, getApp } from "@/lib/app-registry";
 import { AppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
 import { useSystemControls } from "@/lib/system-controls";
-import { Search } from "lucide-react";
 import { useWindowManager } from "@/lib/window-manager";
+import { useViewport } from "@/lib/phone";
+import { useShallow } from "zustand/react/shallow";
 
 // Icon canvas sizes; Big Sur artwork fills ~80% of the canvas.
 const BASE_SIZE = 56;
 const MAX_SIZE = 80;
 const MAGNIFY_DISTANCE = 130;
 
-export function Dock({ onSearch }: { onSearch: () => void }) {
-  const [compact, setCompact] = useState(false);
-  const [viewportWidth, setViewportWidth] = useState(1440);
+// The Mac Dock (the phone has its own, in mobile-home.tsx).
+export function Dock() {
+  const { width: viewportWidth } = useViewport();
   const reduceMotion = useSystemControls((s) => s.reduceMotion);
-  useEffect(() => {
-    const update = () => {
-      setCompact(innerWidth < 700);
-      setViewportWidth(innerWidth);
-    };
-    update();
-    addEventListener("resize", update);
-    return () => removeEventListener("resize", update);
-  }, []);
   const mouseX = useMotionValue(Infinity);
-  const windows = useWindowManager((state) => state.windows);
+  // Only what the Dock shows, compared shallowly, so moving or focusing a
+  // window doesn't re-render it.
+  const runningAppIds = new Set(
+    useWindowManager(useShallow((s) => s.windows.map((w) => w.appId ?? w.id))),
+  );
 
-  const runningAppIds = new Set(windows.map((w) => w.appId ?? w.id));
-
-  const ids: string[] = compact
-    ? ["computer", "projects", "contact", "settings"]
-    : [...DOCK_APP_IDS];
+  const ids: string[] = [...DOCK_APP_IDS];
   const extra = [...runningAppIds].filter((id) => !ids.includes(id));
-  // Like macOS, minimized windows sit at the end of the Dock, before Trash.
-  const minimized = compact
-    ? []
-    : windows.filter((w) => w.isMinimized && !w.isHidden);
-  const dockIds = compact
-    ? ids
-    : [...ids.slice(0, -1), ...extra, ...minimized.map((w) => `window:${w.id}`), "recycle"];
+  const dockIds = [...ids.slice(0, -1), ...extra, "recycle"];
   // As on macOS, a full Dock shrinks its icons to stay on screen.
   const iconCount = dockIds.filter((id) => id !== "separator").length;
   const base = Math.max(
@@ -61,7 +47,7 @@ export function Dock({ onSearch }: { onSearch: () => void }) {
       <motion.nav
         aria-label="Dock"
         onMouseMove={(e: React.MouseEvent) =>
-          !compact && !reduceMotion && mouseX.set(e.clientX)
+          !reduceMotion && mouseX.set(e.clientX)
         }
         onMouseLeave={() => mouseX.set(Infinity)}
         style={{ height: base + 8 }}
@@ -73,18 +59,6 @@ export function Dock({ onSearch }: { onSearch: () => void }) {
               key={`separator-${index}`}
               className="mx-1.5 h-[46px] w-px self-center bg-black/20"
             />
-          ) : id.startsWith("window:") ? (
-            <DockItem
-              key={id}
-              appId={
-                minimized.find((w) => `window:${w.id}` === id)?.appId ??
-                id.slice(7)
-              }
-              windowId={id.slice(7)}
-              base={base}
-              mouseX={mouseX}
-              isRunning={false}
-            />
           ) : (
             <DockItem
               key={id}
@@ -95,15 +69,6 @@ export function Dock({ onSearch }: { onSearch: () => void }) {
             />
           ),
         )}
-        {compact && (
-          <button
-            className="flex size-14 items-center justify-center text-white"
-            aria-label="All apps and search"
-            onClick={onSearch}
-          >
-            <Search size={26} />
-          </button>
-        )}
       </motion.nav>
     </div>
   );
@@ -111,16 +76,13 @@ export function Dock({ onSearch }: { onSearch: () => void }) {
 
 interface DockItemProps {
   appId: string;
-  // Set for a minimized window: shown as a small window with its app's
-  // icon, and clicking it restores that window.
-  windowId?: string;
   // Resting size; magnified it grows to MAX_SIZE.
   base: number;
   mouseX: MotionValue<number>;
   isRunning: boolean;
 }
 
-function DockItem({ appId, windowId, base, mouseX, isRunning }: DockItemProps) {
+function DockItem({ appId, base, mouseX, isRunning }: DockItemProps) {
   const ref = useRef<HTMLButtonElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   // Just the fields this item shows, so other windows changing (focus,
@@ -131,19 +93,23 @@ function DockItem({ appId, windowId, base, mouseX, isRunning }: DockItemProps) {
   const startedAt = useWindowManager(
     (s) => s.windows.find((w) => (w.appId ?? w.id) === appId)?.startedAt,
   );
-  const windowTitle = useWindowManager((s) =>
-    windowId ? s.windows.find((w) => w.id === windowId)?.title : undefined,
-  );
-  const app = windowId
-    ? windowTitle
-      ? { title: windowTitle }
-      : undefined
-    : getApp(appId) ?? (runningTitle ? { title: runningTitle } : undefined);
+  const app = getApp(appId) ?? (runningTitle ? { title: runningTitle } : undefined);
 
+  // Distance from the pointer to this icon's resting centre, measured once
+  // when the pointer enters the Dock (and forgotten when it leaves) instead
+  // of on every mousemove while the icons are resizing.
+  const restCenter = useRef<number | null>(null);
   const distance = useTransform(mouseX, (x) => {
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return Infinity;
-    return x - (rect.left + rect.width / 2);
+    if (x === Infinity) {
+      restCenter.current = null;
+      return Infinity;
+    }
+    if (restCenter.current === null) {
+      const rect = ref.current?.getBoundingClientRect();
+      if (!rect) return Infinity;
+      restCenter.current = rect.left + rect.width / 2;
+    }
+    return x - restCenter.current;
   });
   const targetSize = useTransform(
     distance,
@@ -163,18 +129,14 @@ function DockItem({ appId, windowId, base, mouseX, isRunning }: DockItemProps) {
   // Only a window started moments ago bounces; restored ones don't.
   const [bouncing, setBouncing] = useState(false);
   useEffect(() => {
-    if (!windowId && startedAt && Date.now() - Date.parse(startedAt) < 1000)
+    if (startedAt && Date.now() - Date.parse(startedAt) < 1000)
       setBouncing(true);
-  }, [startedAt, windowId]);
+  }, [startedAt]);
 
   if (!app) return null;
 
   const handleClick = () => {
     const { windows, restoreWindow } = useWindowManager.getState();
-    if (windowId) {
-      restoreWindow(windowId);
-      return;
-    }
     const existing = windows.find((w) => (w.appId ?? w.id) === appId);
     if (existing) {
       restoreWindow(existing.id);
@@ -186,9 +148,9 @@ function DockItem({ appId, windowId, base, mouseX, isRunning }: DockItemProps) {
   return (
     <motion.button
       ref={ref}
-      id={windowId ? `dock-window-${windowId}` : `dock-item-${appId}`}
-      data-dock-id={windowId ? undefined : appId}
-      aria-label={windowId ? `${app.title}, minimized` : app.title}
+      id={`dock-item-${appId}`}
+      data-dock-id={appId}
+      aria-label={app.title}
       onClick={handleClick}
       // The name shows for keyboard focus too, not only on hover.
       onMouseEnter={() => setIsHovered(true)}
@@ -218,13 +180,7 @@ function DockItem({ appId, windowId, base, mouseX, isRunning }: DockItemProps) {
           className="flex flex-none origin-bottom"
           style={{ scale: iconScale }}
         >
-          {windowId ? (
-            <span className="dock-window-thumb">
-              <AppIcon appId={appId} size={46} />
-            </span>
-          ) : (
-            <AppIcon appId={appId} size={MAX_SIZE} />
-          )}
+          <AppIcon appId={appId} size={MAX_SIZE} />
         </motion.span>
       </motion.span>
       {isRunning && (

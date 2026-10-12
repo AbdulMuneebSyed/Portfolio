@@ -1,6 +1,7 @@
 import type { AppRegistryEntry, DesktopIcon } from "./types";
 import { gridCell } from "./desktop-grid";
 import { installOverride } from "./app-store/installed";
+import { profile } from "./portfolio-data";
 
 export const APP_REGISTRY: AppRegistryEntry[] = [
   {
@@ -101,7 +102,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     category: "Portfolio",
     description: "Open Syed Abdul Muneeb's LinkedIn profile.",
     defaultSize: { width: 800, height: 600 },
-    externalUrl: "https://www.linkedin.com/in/syed-abdul-muneeb/",
+    externalUrl: profile.linkedin,
     launchAliases: ["linkedin", "profile"],
   },
   {

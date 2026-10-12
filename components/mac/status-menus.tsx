@@ -36,6 +36,7 @@ import { useNowPlaying } from "@/lib/now-playing";
 import { takeScreenshot } from "@/lib/screenshot";
 import { songs } from "@/lib/songs";
 import { useWindowManager } from "@/lib/window-manager";
+import { useShallow } from "zustand/react/shallow";
 
 const NETWORK_NAME = "MuneebOS";
 
@@ -355,7 +356,15 @@ function GlassSlider({
 }
 
 function NowPlayingTile({ onOpenMusic }: { onOpenMusic: () => void }) {
-  const { index, isPlaying, toggle, next, previous } = useNowPlaying();
+  const { index, isPlaying, toggle, next, previous } = useNowPlaying(
+    useShallow(({ index, isPlaying, toggle, next, previous }) => ({
+      index,
+      isPlaying,
+      toggle,
+      next,
+      previous,
+    })),
+  );
   const song = songs[index];
 
   return (
@@ -601,7 +610,7 @@ export function NotificationCenter({ onClose }: { onClose: () => void }) {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 380, opacity: 0 }}
       transition={{ type: "spring", stiffness: 380, damping: 36 }}
-      data-notification-center
+      data-blocks-notifications
       className="w-[348px] max-w-[calc(100vw-20px)] max-h-[calc(100dvh-50px)] overflow-y-auto space-y-2.5 text-[#1d1d1f] dark:text-white [text-shadow:none]"
       onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
     >

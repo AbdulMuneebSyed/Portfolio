@@ -29,6 +29,9 @@ import {
   NotificationCenter,
   WifiMenu,
 } from "./status-menus";
+import { profile } from "@/lib/portfolio-data";
+import { useMinute } from "@/lib/clock";
+import { shortcutKeys } from "@/lib/shortcuts";
 
 type MenuItem =
   | { separator: true }
@@ -61,7 +64,7 @@ export function MenuBar({
   onRestart,
 }: MenuBarProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [now, setNow] = useState<Date | null>(null);
+  const now = useMinute();
   const barRef = useRef<HTMLDivElement>(null);
   // Notification Center renders outside the bar (see below), so outside
   // clicks are checked against both.
@@ -131,11 +134,6 @@ export function MenuBar({
       activeWindow.title)
     : "Finder";
 
-  useEffect(() => {
-    setNow(new Date());
-    const id = window.setInterval(() => setNow(new Date()), 15_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   useEffect(() => {
     if (!openMenuId) return;
@@ -168,7 +166,7 @@ export function MenuBar({
         { separator: true },
         {
           label: "System Settings…",
-          shortcut: "⌘,",
+          shortcut: shortcutKeys("settings"),
           onSelect: () => launchApp("settings"),
         },
         { separator: true },
@@ -184,14 +182,14 @@ export function MenuBar({
       items: [
         {
           label: `Hide ${activeAppName}`,
-          shortcut: "⌥H",
+          shortcut: shortcutKeys("hide"),
           disabled: !activeWindow,
           onSelect: () =>
             activeWindow && minimizeWindow(activeWindow.id, { hide: true }),
         },
         {
           label: "Hide Others",
-          shortcut: "⌥⇧H",
+          shortcut: shortcutKeys("hideOthers"),
           disabled: !activeWindow,
           onSelect: hideOthers,
         },
@@ -211,7 +209,7 @@ export function MenuBar({
         { separator: true },
         {
           label: "Close Window",
-          shortcut: "⌥W",
+          shortcut: shortcutKeys("close"),
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
         },
@@ -227,7 +225,7 @@ export function MenuBar({
         {
           label: "Copy Email Address",
           onSelect: () => {
-            void navigator.clipboard?.writeText("samuneeb786@gmail.com");
+            void navigator.clipboard?.writeText(profile.email);
           },
         },
       ],
@@ -256,7 +254,7 @@ export function MenuBar({
         { label: "GitHub", onSelect: () => launchApp("github-activity") },
         { label: "LinkedIn", onSelect: () => launchApp("linkedin") },
         { separator: true },
-        { label: "Spotlight…", shortcut: "⌘K", onSelect: onOpenSpotlight },
+        { label: "Spotlight…", shortcut: shortcutKeys("spotlight"), onSelect: onOpenSpotlight },
       ],
     },
     {
@@ -265,7 +263,7 @@ export function MenuBar({
       items: [
         {
           label: "Minimize",
-          shortcut: "⌥M",
+          shortcut: shortcutKeys("minimize"),
           disabled: !activeWindow,
           onSelect: () => activeWindow && minimizeWindow(activeWindow.id),
         },
@@ -276,14 +274,14 @@ export function MenuBar({
         },
         {
           label: "Close Window",
-          shortcut: "⌥W",
+          shortcut: shortcutKeys("close"),
           disabled: !activeWindow,
           onSelect: () => activeWindow && closeWindow(activeWindow.id),
         },
         { separator: true },
         {
           label: "Mission Control",
-          shortcut: "⌃↑",
+          shortcut: shortcutKeys("missionControl"),
           onSelect: () => useMissionControl.getState().toggle(),
         },
         // Move the front window to another desktop (Spaces).
@@ -333,7 +331,7 @@ export function MenuBar({
           label: "View Source on GitHub",
           onSelect: () =>
             window.open(
-              "https://github.com/AbdulMuneebSyed",
+              profile.github,
               "_blank",
               "noopener,noreferrer",
             ),

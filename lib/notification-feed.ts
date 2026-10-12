@@ -1,9 +1,10 @@
 // The notifications that drop in while someone looks around, drawn from the
-// resume. Tier 1 goes first (LinkedIn, GitHub, the resume), then highlights,
-// then nudges towards corners of the OS people miss.
+// resume. Tier 0 opens every visit (the LinkedIn invite), then tier 1
+// (GitHub, the resume), highlights, and nudges towards corners of the OS
+// people miss.
 export interface FeedItem {
   id: string;
-  tier: 1 | 2 | 3;
+  tier: 0 | 1 | 2 | 3;
   appId: string;
   title: string;
   body: string | ((now: Date) => string);
@@ -29,7 +30,7 @@ function hyderabadTime(now: Date) {
 export const FEED: FeedItem[] = [
   {
     id: "linkedin-connect",
-    tier: 1,
+    tier: 0,
     appId: "linkedin",
     title: "LinkedIn",
     body: "Syed Abdul Muneeb wants to connect. SDE at PulseGen, Hyderabad.",

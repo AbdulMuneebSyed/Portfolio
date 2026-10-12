@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { batched, readJSON, writeJSON } from "./storage";
 
 // Menu bar / Control Center settings, remembered between visits.
 interface SystemControlsState {
@@ -61,8 +62,7 @@ const DEFAULTS: Persisted = {
 export const MIN_BRIGHTNESS = 0.3;
 
 export const useSystemControls = create<SystemControlsState>((set, get) => {
-  const save = () => {
-    if (typeof window === "undefined") return;
+  const write = () => {
     const state = get();
     const persisted: Persisted = {
       reduceMotion: state.reduceMotion,
@@ -77,11 +77,12 @@ export const useSystemControls = create<SystemControlsState>((set, get) => {
       brightness: state.brightness,
       volume: state.volume,
     };
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
-    } catch {
-      /* storage unavailable */
-    }
+    writeJSON(STORAGE_KEY, persisted);
+  };
+  // Sliders call this on every input event, so the write is batched.
+  const batch = batched(write, 250);
+  const save = () => {
+    if (typeof window !== "undefined") batch.schedule();
   };
 
   const update = (patch: Partial<Persisted>) => {
@@ -105,12 +106,8 @@ export const useSystemControls = create<SystemControlsState>((set, get) => {
     setVolume: (volume) => update({ volume: Math.min(1, Math.max(0, volume)) }),
     loadControls: () => {
       if (typeof window === "undefined") return;
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-        if (saved) set({ ...DEFAULTS, ...saved });
-      } catch {
-        /* corrupted settings — keep defaults */
-      }
+      const saved = readJSON<Partial<Persisted> | null>(STORAGE_KEY, null);
+      if (saved && typeof saved === "object") set({ ...DEFAULTS, ...saved });
     },
   };
 });

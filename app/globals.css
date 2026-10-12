@@ -327,27 +327,6 @@ input[type="checkbox"] {
   font-size: 13px;
   font-weight: 500;
 }
-/* A minimized window in the Dock: a small window with its app's icon. */
-.dock-window-thumb {
-  position: relative;
-  display: flex;
-  width: 80px;
-  height: 80px;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 6px;
-}
-.dock-window-thumb::before {
-  content: "";
-  position: absolute;
-  inset: 14px 6px 10px;
-  border-radius: 8px;
-  background: var(--mac-surface, #fff);
-  box-shadow: 0 0 0 0.5px #0003, 0 2px 6px #0003;
-}
-.dock-window-thumb > * {
-  position: relative;
-}
 /* Shown with .mobile-only, which sets display, so children stack as blocks. */
 .lock-phone-intro {
   margin-top: 14px;
@@ -4305,12 +4284,12 @@ kbd {
   .ios-lock-clock {
     margin-top: calc(var(--ios-status) + 14px);
   }
-  .ios-lock-clock > div:first-child {
+  .ios-lock-clock > .lock-date {
     font-size: 21px;
     font-weight: 600;
     color: #ffffffe6;
   }
-  .ios-lock-clock > div:nth-child(2) {
+  .ios-lock-clock > .lock-time {
     margin-top: -4px;
     font-size: clamp(88px, 27vw, 116px);
     font-weight: 700;

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { useSystemControls } from "./system-controls";
+import { readJSON, writeJSON } from "./storage";
 
 // Notifications, macOS/iOS style. Each one shows briefly as a banner and
 // stays in Notification Center and on the lock screen until it's opened or
@@ -49,13 +50,7 @@ function playChime() {
   }
 }
 
-const save = (notices: Notice[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notices));
-  } catch {
-    /* storage unavailable */
-  }
-};
+const save = (notices: Notice[]) => writeJSON(STORAGE_KEY, notices);
 
 export const useNotifications = create<NotificationState>((set, get) => ({
   banners: [],
@@ -84,12 +79,8 @@ export const useNotifications = create<NotificationState>((set, get) => ({
   },
   setPendingOpen: (pendingOpen) => set({ pendingOpen }),
   loadNotifications: () => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-      if (Array.isArray(saved)) set({ notices: saved.slice(0, MAX_NOTICES) });
-    } catch {
-      /* corrupted — start empty */
-    }
+    const saved = readJSON<unknown>(STORAGE_KEY, []);
+    if (Array.isArray(saved)) set({ notices: saved.slice(0, MAX_NOTICES) });
   },
 }));
 

@@ -65,6 +65,7 @@ export function PhoneTour({
             tabIndex={-1}
             className="pwelcome"
             role="dialog"
+            data-blocks-notifications
             aria-modal="true"
             aria-label="Welcome to Muneeb OS"
             initial={{ y: "100%" }}

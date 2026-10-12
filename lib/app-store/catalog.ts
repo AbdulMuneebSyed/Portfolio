@@ -1,5 +1,5 @@
 import { getApp } from "../app-registry";
-import { projects, timeline } from "../portfolio-data";
+import { profile, projects, timeline } from "../portfolio-data";
 
 // Everything the App Store lists. Three kinds of item:
 // - "project": shipped work; the main button opens the live site
@@ -59,6 +59,8 @@ export interface StoreItem {
   highlights?: string[];
   techStack?: string[];
   website?: string;
+  // Set on "experience" items: the job itself.
+  experience?: { role: string; company: string; period: string; location: string };
   appId?: string;
   aboutTab?: string;
   chart?: { rank: number; list: string };
@@ -396,7 +398,7 @@ const PROJECT_ITEMS: StoreItem[] = [
     category: "Interactive",
     description: project("muneebos").description,
     techStack: project("muneebos").techStack,
-    website: "https://github.com/AbdulMuneebSyed",
+    website: profile.github,
     chart: { rank: 1, list: "Interactive" },
     award: "You're using it",
     size: "Web",
@@ -478,7 +480,7 @@ const EXPERIENCE_SITES: Record<string, string> = {
 };
 
 const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
-  const [role, company] = entry.title.split(" · ");
+  const { role, company } = entry;
   return {
     id: `exp-${entry.id}`,
     kind: "experience",
@@ -490,6 +492,7 @@ const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
     appId: "about",
     aboutTab: "Experience",
     website: EXPERIENCE_SITES[entry.id],
+    experience: { role, company, period: entry.period, location: entry.location },
     chart: { rank: index + 1, list: "Experience" },
     size: entry.location,
     age: "4+",

@@ -27,6 +27,7 @@ import { useSystemControls } from "@/lib/system-controls";
 import { useNowPlaying } from "@/lib/now-playing";
 import { songs } from "@/lib/songs";
 import { launchApp } from "@/lib/launch-app";
+import { useShallow } from "zustand/react/shallow";
 
 // iPhone Control Center (iOS 26): a blurred, dimmed screen holding separate
 // glass modules on a 4-column grid. The modules don't blur themselves: the
@@ -117,7 +118,17 @@ export function PhoneControlCenter({
   onClose: () => void;
 }) {
   const c = useSystemControls();
-  const player = useNowPlaying();
+  // Not currentTime: it changes four times a second while music plays, and
+  // this sheet stays mounted when closed.
+  const player = useNowPlaying(
+    useShallow(({ index, isPlaying, toggle, next, previous }) => ({
+      index,
+      isPlaying,
+      toggle,
+      next,
+      previous,
+    })),
+  );
   const song = songs[player.index];
   const [airplane, setAirplane] = useState(false);
   const [cellular, setCellular] = useState(true);
@@ -144,6 +155,7 @@ export function PhoneControlCenter({
             key="pcc"
             className="pcc"
             role="dialog"
+            data-blocks-notifications
             aria-label="Control Center"
             initial={{ y: -40, scale: 0.94 }}
             animate={{ y: 0, scale: 1 }}

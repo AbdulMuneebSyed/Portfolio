@@ -19,6 +19,7 @@ import {
   education,
   profile,
   skillGroups,
+  jobTitle,
   timeline,
 } from "@/lib/portfolio-data";
 
@@ -143,11 +144,11 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
             <>
               <h1>Experience</h1>
               {timeline.map((item) => (
-                <section className="experience-entry" key={item.title}>
+                <section className="experience-entry" key={item.id}>
                   <p className="mac-muted text-xs">
                     {item.period} · {item.location}
                   </p>
-                  <h2>{item.title}</h2>
+                  <h2>{jobTitle(item)}</h2>
                   <ul>
                     {item.points.map((point) => (
                       <li key={point}>{point}</li>

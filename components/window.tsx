@@ -1,11 +1,12 @@
 "use client";
 
 import {
+  memo,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
-  type ReactNode,
+  type ComponentType,
   type PointerEvent,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -14,8 +15,15 @@ import { useWindowManager } from "@/lib/window-manager";
 import { useSystemControls } from "@/lib/system-controls";
 import { DOCK_RESERVED_HEIGHT, MENU_BAR_HEIGHT } from "@/lib/launch-app";
 import type { WindowState } from "@/lib/types";
-import { launchRect, phoneApp, usePhone, useSwitcherPan } from "@/lib/phone";
+import {
+  launchRect,
+  phoneApp,
+  usePhone,
+  useSwitcherPan,
+  useViewport,
+} from "@/lib/phone";
 import { spaceTargetAt, useMissionControl } from "@/lib/mission-control";
+import { shortcutKeys } from "@/lib/shortcuts";
 
 // Where Mission Control places this window: a centre point and a box the
 // scaled-down window must fit in.
@@ -29,6 +37,51 @@ export interface MissionSlot {
 type TileZone = "left" | "right" | "fill";
 
 const FRAME_EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
+type Presentation =
+  | "open"
+  | "phoneOpen"
+  | "missionTile"
+  | "switcherCard"
+  | "dockMinimize"
+  | "hide"
+  | "phoneClosing";
+
+// How a window moves into each presentation.
+const WINDOW_TRANSITIONS: Record<Presentation, object> = {
+  open: {
+    default: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] },
+  },
+  phoneOpen: {
+    default: { type: "spring", stiffness: 300, damping: 32 },
+    opacity: { duration: 0.12 },
+  },
+  missionTile: {
+    default: { type: "spring", stiffness: 260, damping: 30 },
+  },
+  switcherCard: {
+    default: { type: "spring", stiffness: 340, damping: 34 },
+  },
+  // Scale effect: shrinks into its app's Dock icon, moving off at once and
+  // easing in.
+  dockMinimize: {
+    default: { duration: 0.3, ease: [0.3, 0.1, 0.2, 1] },
+    opacity: { duration: 0.3, ease: [0.6, 0, 1, 1] },
+  },
+  // Hide (⌥H): a quick fade where it is.
+  hide: { duration: 0.15 },
+  // Back into its Home Screen icon.
+  phoneClosing: {
+    default: { type: "spring", stiffness: 460, damping: 40 },
+    opacity: { duration: 0.16, delay: 0.08 },
+  },
+};
+
+// The Dock's stacking level (components/mac/dock.tsx, z-[9000]).
+const DOCK_Z = 9000;
+
+// Presentations that put the window away; it hides once they finish.
+const HIDING = new Set<Presentation>(["dockMinimize", "hide", "phoneClosing"]);
+
 // How much of a window must stay on screen when it's dragged off an edge.
 const GRAB_MARGIN = 80;
 
@@ -52,17 +105,21 @@ function isDragRegion(target: HTMLElement, frameTop: number, clientY: number) {
   return !!target.closest(".mac-sidebar") && clientY - frameTop < 52;
 }
 
-export function Window({
+// Memoised, with stable props from the Desktop, so dragging or focusing one
+// window doesn't re-render the others.
+export const Window = memo(function Window({
   window: win,
-  children,
+  app: App,
   mission,
   onMissionSelect,
   offSpace = false,
 }: {
   window: WindowState;
-  children: ReactNode;
+  // The app's component, rendered with the window's metadata.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  app: ComponentType<any>;
   mission?: MissionSlot | null;
-  onMissionSelect?: () => void;
+  onMissionSelect?: (id: string) => void;
   // On another desktop: kept mounted (so the app keeps its state) but hidden.
   offSpace?: boolean;
 }) {
@@ -80,11 +137,7 @@ export function Window({
     setTileZoneState(zone);
   };
   const untiled = useRef<{ width: number; height: number } | null>(null);
-  const [viewport, setViewport] = useState(() =>
-    typeof window === "undefined"
-      ? { width: 1200, height: 800 }
-      : { width: innerWidth, height: innerHeight },
-  );
+  const viewport = useViewport();
   const gesture = useRef<{
     x: number;
     y: number;
@@ -93,16 +146,11 @@ export function Window({
     width: number;
     height: number;
     edge: string;
+    // Where a dragged window will land; committed to the store on release.
+    to?: { x: number; y: number };
   } | null>(null);
   const frame = useRef<HTMLDivElement>(null);
   const edgeSwipe = useRef<{ x: number; y: number } | null>(null);
-  useEffect(() => {
-    const resize = () =>
-      setViewport({ width: innerWidth, height: innerHeight });
-    resize();
-    addEventListener("resize", resize);
-    return () => removeEventListener("resize", resize);
-  }, []);
   // On a phone every app fills the screen, under the status bar.
   const compact = usePhone();
   const availableHeight = compact
@@ -213,7 +261,7 @@ export function Window({
                 ? "fill"
                 : null,
       );
-      wm.updateWindowPosition(win.id, {
+      const to = {
         x: Math.max(
           GRAB_MARGIN - g.width,
           Math.min(g.left + dx, viewport.width - GRAB_MARGIN),
@@ -222,7 +270,13 @@ export function Window({
           MENU_BAR_HEIGHT + 4,
           Math.min(g.top + dy, viewport.height - DOCK_RESERVED_HEIGHT - 32),
         ),
-      });
+      };
+      // Moved with CSS `translate` (on the GPU, alongside the transform
+      // framer-motion owns) while dragging; the store, and everything that
+      // reads it, only hears about the move on release.
+      g.to = to;
+      if (frame.current)
+        frame.current.style.translate = `${to.x - g.left}px ${to.y - g.top}px`;
       return;
     }
     let right = g.left + g.width;
@@ -254,6 +308,10 @@ export function Window({
   const end = () => {
     const g = gesture.current;
     gesture.current = null;
+    if (g?.to) {
+      wm.updateWindowPosition(win.id, g.to);
+      if (frame.current) frame.current.style.translate = "";
+    }
     const zone = tileZoneRef.current;
     if (!g || !zone) return;
     const rect = tileRect(zone);
@@ -305,17 +363,15 @@ export function Window({
       clipPath: `inset(${crop}px 0px ${crop}px 0px round ${radius}px)`,
     };
   };
-  // Where a minimized window flies: its own spot at the end of the Dock,
-  // which only exists once this render commits, so it is measured in a
-  // layout effect (before the frame is painted) and the flight starts then.
+  // Where a minimized window flies: its app's icon in the Dock, measured in a
+  // layout effect (before the frame is painted) so the Dock is up to date,
+  // e.g. a running app's icon has been added.
   const [dockTarget, setDockTarget] = useState<string | null>(null);
   useLayoutEffect(() => {
     if (!win.isMinimized || compact) return setDockTarget(null);
     // Hidden (not minimized), it just fades where it is.
     if (win.isHidden) return setDockTarget(place(0, 0, 0.98));
-    const icon =
-      document.getElementById(`dock-window-${win.id}`) ??
-      document.getElementById(`dock-item-${appId}`);
+    const icon = document.getElementById(`dock-item-${appId}`);
     const box = icon?.getBoundingClientRect();
     setDockTarget(
       box
@@ -329,14 +385,6 @@ export function Window({
     // Measured once per minimize; later renders keep the same target.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win.isMinimized, win.isHidden, compact]);
-  // Hidden windows keep their layout (visibility, not display: none), so
-  // restoring one doesn't lay out and paint the whole app on its first frame.
-  // Off-space windows, and phone apps that aren't in front, hide at once.
-  const shownVisibility =
-    offSpace || (compact && !win.isActive && !closingOnPhone && !mission)
-      ? "hidden"
-      : "visible";
-  const instant = { duration: 0 };
   const missionScale = mission
     ? Math.min(
         1,
@@ -344,77 +392,91 @@ export function Window({
         mission.maxHeight / frameBox.height,
       )
     : 1;
-  let target;
-  if (compact && mission) {
-    const scale = mission.maxWidth / frameBox.width;
-    target = {
-      opacity: 1,
-      visibility: "visible",
-      transform: place(mission.cx - centerX, mission.cy - centerY, scale),
-      clipPath: `inset(0px 0px 0px 0px round ${38 / scale}px)`,
-      transition: {
-        default: { type: "spring", stiffness: 340, damping: 34 },
-        visibility: instant,
-      },
-    };
-  } else if (compact && win.isMinimized) {
-    target = {
-      opacity: 0,
-      ...iconMorph(iconBox),
-      transitionEnd: { visibility: "hidden" },
-      transition: {
-        default: { type: "spring", stiffness: 460, damping: 40 },
-        opacity: { duration: 0.16, delay: 0.08 },
-      },
-    };
-  } else if (win.isMinimized && dockTarget) {
-    // Scale effect: the window shrinks into its spot in the Dock. It moves
-    // off at once and eases in.
-    target = {
-      opacity: 0,
-      transform: dockTarget,
-      transitionEnd: { visibility: "hidden" },
-      transition: win.isHidden
-        ? { duration: 0.15 }
-        : {
-            default: { duration: 0.3, ease: [0.3, 0.1, 0.2, 1] },
-            opacity: { duration: 0.3, ease: [0.6, 0, 1, 1] },
-          },
-    };
-  } else if (mission) {
-    const scale = missionScale;
-    target = {
-      opacity: 1,
-      visibility: "visible",
-      transform: place(mission.cx - centerX, mission.cy - centerY, scale),
-      transition: {
-        default: { type: "spring", stiffness: 260, damping: 30 },
-        visibility: instant,
-      },
-    };
-  } else if (compact) {
-    target = {
-      opacity: 1,
-      visibility: shownVisibility,
-      transform: place(0, 0, 1),
-      clipPath: fullClip,
-      transition: {
-        default: { type: "spring", stiffness: 300, damping: 32 },
-        opacity: { duration: 0.12 },
-        visibility: instant,
-      },
-    };
-  } else {
-    target = {
-      opacity: 1,
-      visibility: shownVisibility,
-      transform: place(0, 0, 1),
-      transition: {
-        default: { duration: 0.3, ease: [0.2, 0.8, 0.2, 1] },
-        visibility: instant,
-      },
-    };
+
+  // What the window is doing right now; WINDOW_TRANSITIONS says how it gets
+  // there, the switch below where it ends up. (Minimizing waits for the
+  // Dock target, measured just after this render.)
+  const presentation: Presentation =
+    compact && mission
+      ? "switcherCard"
+      : compact && win.isMinimized
+        ? "phoneClosing"
+        : win.isMinimized && dockTarget
+          ? win.isHidden
+            ? "hide"
+            : "dockMinimize"
+          : mission
+            ? "missionTile"
+            : compact
+              ? "phoneOpen"
+              : "open";
+  let pose;
+  switch (presentation) {
+    case "switcherCard": {
+      const scale = mission!.maxWidth / frameBox.width;
+      pose = {
+        opacity: 1,
+        transform: place(mission!.cx - centerX, mission!.cy - centerY, scale),
+        clipPath: `inset(0px 0px 0px 0px round ${38 / scale}px)`,
+      };
+      break;
+    }
+    case "phoneClosing":
+      pose = { opacity: 0, ...iconMorph(iconBox) };
+      break;
+    case "dockMinimize":
+    case "hide":
+      pose = { opacity: 0, transform: dockTarget! };
+      break;
+    case "missionTile":
+      pose = {
+        opacity: 1,
+        transform: place(mission!.cx - centerX, mission!.cy - centerY, missionScale),
+      };
+      break;
+    case "phoneOpen":
+      pose = {
+        opacity: 1,
+        transform: place(0, 0, 1),
+        clipPath: fullClip,
+      };
+      break;
+    case "open":
+      pose = { opacity: 1, transform: place(0, 0, 1) };
   }
+  const target = { ...pose, transition: WINDOW_TRANSITIONS[presentation] };
+
+  // Visibility is React's, not the animation's. Hidden windows keep their
+  // layout (visibility, not display: none), so restoring one doesn't lay out
+  // the whole app on its first frame. Off-space windows, and phone apps that
+  // aren't in front, hide at once; a window being put away hides once its
+  // animation has finished ("parked"). A finish that arrives after the
+  // window was brought back again is ignored, so it can't hide a window
+  // that's on screen.
+  const putAway = HIDING.has(presentation);
+  const [parked, setParked] = useState(false);
+  if (parked && !putAway) setParked(false);
+  const presentationNow = useRef(presentation);
+  presentationNow.current = presentation;
+
+  // Flying into or out of the Dock, the window passes over it, as on macOS.
+  // Underneath, it showed through the Dock's frosted glass as a blurred white
+  // patch, and the browser re-blurred the glass on every frame.
+  const [leavingDock, setLeavingDock] = useState(false);
+  const wasInDock = useRef(false);
+  const inDock = presentation === "dockMinimize";
+  if (wasInDock.current && !inDock && !leavingDock && !win.isMinimized)
+    setLeavingDock(true);
+  if (inDock && leavingDock) setLeavingDock(false);
+  wasInDock.current = inDock;
+  const overDock = inDock ? !parked : leavingDock;
+  const visibility =
+    !mission &&
+    (offSpace ||
+      (compact && !win.isActive && !closingOnPhone) ||
+      (putAway && parked))
+      ? "hidden"
+      : "visible";
 
   const titleBar = TITLE_BARS[win.component];
   const chrome = titleBar?.style ?? "unified";
@@ -429,7 +491,7 @@ export function Window({
       <button
         className="traffic-light close"
         aria-label="Close"
-        title="Close (⌥W)"
+        title={`Close (${shortcutKeys("close")})`}
         onClick={() => wm.closeWindow(win.id)}
       >
         <X />
@@ -437,7 +499,7 @@ export function Window({
       <button
         className="traffic-light minimize"
         aria-label="Minimize"
-        title="Minimize (⌥M)"
+        title={`Minimize (${shortcutKeys("minimize")})`}
         onClick={() => wm.minimizeWindow(win.id)}
       >
         <Minus />
@@ -494,14 +556,24 @@ export function Window({
           top: expanded ? (compact ? 0 : MENU_BAR_HEIGHT) : top,
           width: expanded ? viewport.width : width,
           height: expanded ? availableHeight : height,
-          zIndex: win.zIndex,
+          zIndex: overDock ? DOCK_Z + 1 : win.zIndex,
           transition:
             animateFrame && !reduceMotion
               ? `left 0.3s ${FRAME_EASE}, top 0.3s ${FRAME_EASE}, width 0.3s ${FRAME_EASE}, height 0.3s ${FRAME_EASE}`
               : undefined,
           pointerEvents: hidden ? "none" : undefined,
+          visibility,
           // Mission Control's labels stay readable on a scaled-down window.
           ["--mission-inv" as string]: 1 / missionScale,
+        }}
+        // Only the animation that actually put the window away (to opacity
+        // 0) parks it. framer-motion also reports interrupted animations and
+        // the instant one from the render before the Dock was measured; those
+        // used to hide the window before it had moved at all.
+        onAnimationComplete={(done: { opacity?: number }) => {
+          if (done?.opacity === 0 && HIDING.has(presentationNow.current))
+            setParked(true);
+          else if (done?.opacity === 1) setLeavingDock(false);
         }}
         // No will-change toggling here: the browser already gives a window
         // its own layer while a transform animates, and promoting and
@@ -578,7 +650,7 @@ export function Window({
             },
           })}
         >
-          {children}
+          <AppBody app={App} metadata={win.metadata} />
         </div>
         {!expanded &&
           [
@@ -602,14 +674,27 @@ export function Window({
           ))}
         {mission &&
           (compact ? (
-            <SwitcherCard win={win} onSelect={onMissionSelect} />
+            <SwitcherCard win={win} onSelect={() => onMissionSelect?.(win.id)} />
           ) : (
-            <MissionPick win={win} onSelect={onMissionSelect} />
+            <MissionPick win={win} onSelect={() => onMissionSelect?.(win.id)} />
           ))}
       </motion.div>
     </>
   );
-}
+});
+
+// An app's contents. Memoised so a window moving, focusing or minimizing
+// doesn't re-render its app: only the app's own metadata changes it.
+const AppBody = memo(function AppBody({
+  app: App,
+  metadata,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  app: ComponentType<any>;
+  metadata?: Record<string, unknown>;
+}) {
+  return <App {...(metadata || {})} />;
+});
 
 // Mission Control's click target over a window. Click to pick the window;
 // drag it onto a desktop in the strip to move it there (or onto + for a

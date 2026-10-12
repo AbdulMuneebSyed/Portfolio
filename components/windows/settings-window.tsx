@@ -8,6 +8,7 @@ import { useBatteryStatus } from "@/lib/use-battery";
 import { MAC_WALLPAPERS } from "@/lib/wallpapers";
 import { launchApp } from "@/lib/launch-app";
 import { usePhone } from "@/lib/phone";
+import { SHORTCUTS, shortcutKeys } from "@/lib/shortcuts";
 
 // Same order, grouping, and icons as macOS System Settings. Icons are
 // from the Alfred System Settings workflow (public/icons/settings).
@@ -84,13 +85,10 @@ export function SettingsWindow({ section }: { section?: string }) {
   });
   const controls = useSystemControls();
   const battery = useBatteryStatus();
-  const {
-    wallpaper,
-    setWallpaper,
-    resetIconPositions,
-    aeroEffects,
-    setAeroEffects,
-  } = useWindowManager();
+  const wallpaper = useWindowManager((s) => s.wallpaper);
+  const aeroEffects = useWindowManager((s) => s.aeroEffects);
+  const { setWallpaper, resetIconPositions, setAeroEffects } =
+    useWindowManager.getState();
   useEffect(() => {
     if (section) {
       setActive(section);
@@ -286,7 +284,7 @@ export function SettingsWindow({ section }: { section?: string }) {
                   <span className="mac-muted">On</span>
                 </Row>
                 <Row label="Mission Control">
-                  <kbd>⌃↑ / F3</kbd>
+                  <kbd>{SHORTCUTS.missionControl.keys}</kbd>
                 </Row>
               </div>
               <h2 className="mt-6">Desktops</h2>
@@ -449,25 +447,29 @@ export function SettingsWindow({ section }: { section?: string }) {
             <>
               <h2>Keyboard Shortcuts</h2>
               <div className="settings-group desktop-only">
-                {[
-                  ["Spotlight", "⌘K / ⌘Space"],
-                  ["System Settings", "⌘,"],
-                  ["Minimize window", "⌥M"],
-                  ["Close window", "⌥W"],
-                  ["Hide app / hide others", "⌥H / ⌥⇧H"],
-                  ["Switch apps", "⌥Tab"],
-                  ["Cycle windows", "⌘`"],
-                  ["Mission Control", "⌃↑ / F3"],
-                  ["Previous / next desktop", "⌃← / ⌃→"],
-                  ["Go to desktop 1–6", "⌃1 … ⌃6"],
-                  ["Move folder to Trash", "⌘⌫"],
-                  ["Open selected file", "⌘O / Return"],
-                  ["Finder: enclosing folder", "⌘↑"],
-                  ["Finder: icon / list view", "⌘1 / ⌘2"],
-                  ["Dismiss menu or search", "Esc"],
-                ].map(([label, key]) => (
-                  <Row key={label} label={label}>
-                    <kbd>{key}</kbd>
+                {(
+                  [
+                    "spotlight",
+                    "settings",
+                    "minimize",
+                    "close",
+                    "hide",
+                    "hideOthers",
+                    "switchApps",
+                    "cycleWindows",
+                    "missionControl",
+                    "switchDesktop",
+                    "goToDesktop",
+                    "activityMonitor",
+                    "moveToTrash",
+                    "openFile",
+                    "enclosingFolder",
+                    "finderViews",
+                    "dismiss",
+                  ] as const
+                ).map((id) => (
+                  <Row key={id} label={SHORTCUTS[id].label}>
+                    <kbd>{SHORTCUTS[id].keys}</kbd>
                   </Row>
                 ))}
               </div>
@@ -485,8 +487,8 @@ export function SettingsWindow({ section }: { section?: string }) {
                 ))}
               </div>
               <div className="settings-group mobile-only">
-                <Row label="Search"><kbd>⌘K</kbd></Row>
-                <Row label="Settings"><kbd>⌘,</kbd></Row>
+                <Row label="Search"><kbd>{shortcutKeys("spotlight")}</kbd></Row>
+                <Row label="Settings"><kbd>{shortcutKeys("settings")}</kbd></Row>
               </div>
               <p className="settings-caption desktop-only">
                 Use Ctrl in place of ⌘ on Windows and Linux. Some shortcuts are
@@ -552,7 +554,7 @@ function DesktopsGroup() {
         </button>
       </Row>
       <Row label="Switch between desktops">
-        <kbd>⌃← / ⌃→</kbd>
+        <kbd>{SHORTCUTS.switchDesktop.keys}</kbd>
       </Row>
     </div>
   );

@@ -1,17 +1,18 @@
-import { FEED, feedBody, pickNext } from "./notification-feed";
+import { feedBody, pickNext } from "./notification-feed";
 import { notify, useNotifications } from "./notifications";
 import { useWindowManager } from "./window-manager";
+import { readJSON, writeJSON } from "./storage";
 
 // When feed notifications drop in. Only time spent looking at the page
-// counts: the first, the LinkedIn invite, arrives 10–15 s after the desktop
-// opens, then the gaps start at 60–100 s
+// counts: the first (tier 0, the LinkedIn invite) arrives 10–15 s after the
+// desktop opens, then the gaps start at 60–100 s
 // and stretch by 1.3× each time, at most six a visit. Anything already on
-// screen (a banner, a dialog, Notification Center, typing) pushes the next
-// one back 10 s.
+// screen (a banner, an overlay marked data-blocks-notifications such as
+// Spotlight or Notification Center, the tour, typing) pushes the next one
+// back 10 s.
 // A visitor never gets the same one twice within two weeks.
 // `?notifications=fast` runs the clock 15× faster for testing.
 const FIRST_DELAY: [number, number] = [10_000, 15_000];
-const FIRST_ID = "linkedin-connect";
 const GAP: [number, number] = [60_000, 100_000];
 const GAP_GROWTH = 1.3;
 const MAX_PER_VISIT = 6;
@@ -23,24 +24,22 @@ const SEEN_FOR_MS = 14 * 86_400_000;
 const between = ([min, max]: [number, number]) => min + Math.random() * (max - min);
 
 function loadSeen(now: number): Record<string, number> {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SEEN_KEY) ?? "{}");
-    return Object.fromEntries(
-      Object.entries(saved).filter(
-        ([, at]) => typeof at === "number" && now - at < SEEN_FOR_MS,
-      ),
-    ) as Record<string, number>;
-  } catch {
-    return {};
-  }
+  const saved = readJSON<unknown>(SEEN_KEY, {});
+  if (!saved || typeof saved !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(saved).filter(
+      ([, at]) => typeof at === "number" && now - at < SEEN_FOR_MS,
+    ),
+  ) as Record<string, number>;
 }
 
 function isBusy() {
   if (useNotifications.getState().banners.length > 0) return true;
   if (
     document.querySelector(
-      // Windows are dialogs too (non-modal); only real dialogs count.
-      '[aria-modal="true"], [role="dialog"]:not(.mac-window), [role="alertdialog"], [data-notification-center]',
+      // Shepherd builds the Mac tour's popovers itself, so they can't carry
+      // the attribute.
+      "[data-blocks-notifications], .shepherd-element",
     )
   )
     return true;
@@ -70,19 +69,11 @@ export function startNotificationFeed() {
       due = active + RETRY_MS / speed;
       return;
     }
-    const first = FEED.find((i) => i.id === FIRST_ID);
-    const item =
-      sent === 0 && first && !seen[first.id] && !opened.has(first.appId)
-        ? first
-        : pickNext(new Set(Object.keys(seen)), opened);
+    const item = pickNext(new Set(Object.keys(seen)), opened);
     if (!item) return stop();
     notify({ appId: item.appId, title: item.title, body: feedBody(item) });
     seen[item.id] = Date.now();
-    try {
-      localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
-    } catch {
-      /* storage unavailable */
-    }
+    writeJSON(SEEN_KEY, seen);
     if (++sent >= MAX_PER_VISIT) return stop();
     due = active + gap / speed;
     gap *= GAP_GROWTH;

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { sameUrl } from "./safari-url";
+import { profile } from "./portfolio-data";
+import { readJSON, writeJSON } from "./storage";
 
 // Safari's saved data: bookmarks, Reading List, history and which Start Page
 // sections are shown. Remembered between visits like the real app.
@@ -34,7 +36,7 @@ export const START_SECTIONS: { id: StartSection; label: string }[] = [
 export const DEFAULT_BOOKMARKS: SafariPage[] = [
   {
     title: "LinkedIn",
-    url: "https://www.linkedin.com/in/syed-abdul-muneeb/",
+    url: profile.linkedin,
     description:
       "Professional profile of Syed Abdul Muneeb - Software Developer and Entrepreneur",
   },
@@ -138,14 +140,7 @@ export const useSafari = create<SafariState>((set, get) => {
     set(patch);
     if (typeof window === "undefined") return;
     const { bookmarks, readingList, history, sections, sidebarOpen } = get();
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ bookmarks, readingList, history, sections, sidebarOpen }),
-      );
-    } catch {
-      /* storage unavailable */
-    }
+    writeJSON(STORAGE_KEY, { bookmarks, readingList, history, sections, sidebarOpen });
   };
 
   return {
@@ -153,12 +148,7 @@ export const useSafari = create<SafariState>((set, get) => {
     loaded: false,
     load: () => {
       if (get().loaded) return;
-      let saved: Partial<Persisted> = {};
-      try {
-        saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
-      } catch {
-        /* corrupt or unavailable */
-      }
+      const saved = readJSON<Partial<Persisted>>(STORAGE_KEY, {}) ?? {};
       set({
         loaded: true,
         bookmarks: Array.isArray(saved.bookmarks)

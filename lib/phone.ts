@@ -11,6 +11,35 @@ function subscribe(onChange: () => void) {
   return () => query.removeEventListener("change", onChange);
 }
 
+// For event handlers and effects, outside React's render.
+export const isPhone = () => matchMedia(PHONE_QUERY).matches;
+
+// The window's size, shared by every component through one resize listener.
+// The snapshot is cached so unchanged sizes don't re-render.
+let viewport = { width: 1200, height: 800 };
+function subscribeViewport(onChange: () => void) {
+  const update = () => {
+    if (viewport.width === innerWidth && viewport.height === innerHeight) return;
+    viewport = { width: innerWidth, height: innerHeight };
+    onChange();
+  };
+  update();
+  addEventListener("resize", update);
+  return () => removeEventListener("resize", update);
+}
+const SERVER_VIEWPORT = { width: 1200, height: 800 };
+export function useViewport() {
+  return useSyncExternalStore(
+    subscribeViewport,
+    () => {
+      if (viewport.width !== innerWidth || viewport.height !== innerHeight)
+        viewport = { width: innerWidth, height: innerHeight };
+      return viewport;
+    },
+    () => SERVER_VIEWPORT,
+  );
+}
+
 // Read synchronously on the first client render, so a window never paints
 // as a floating Mac window before snapping to full screen.
 export function usePhone() {

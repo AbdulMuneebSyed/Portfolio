@@ -5,10 +5,8 @@ export interface WindowState {
   title: string;
   icon: string | any; // Can be string or imported image object
   component: string;
-  status?: "running" | "minimized" | "suspended";
   startedAt?: string;
   lastActiveAt?: string;
-  memoryMb?: number;
   isMinimized: boolean;
   // Put away with Hide rather than Minimize: no thumbnail in the Dock, and
   // the app's own Dock icon brings it back.

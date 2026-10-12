@@ -1,21 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileText, Download } from "lucide-react";
+import { readString, writeString } from "@/lib/storage";
+
+const STORAGE_KEY = "muneebos-notes";
 
 export function Notepad() {
   const [text, setText] = useState("");
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
+    const saved = readString(STORAGE_KEY);
     setText(
-      localStorage.getItem("muneebos-notes") ??
+      saved ??
         "Project Notes\n\nA little space for your ideas.",
     );
     setLoaded(true);
   }, []);
+  // Saved a beat after typing stops, not on every keystroke; the latest text
+  // is also written when the window closes or the page is hidden, so nothing
+  // typed is lost.
+  const latest = useRef<string | null>(null);
+  const save = () => {
+    if (latest.current === null) return;
+    writeString(STORAGE_KEY, latest.current);
+    latest.current = null;
+  };
   useEffect(() => {
-    if (loaded) localStorage.setItem("muneebos-notes", text);
+    if (!loaded) return;
+    latest.current = text;
+    const id = window.setTimeout(save, 400);
+    return () => window.clearTimeout(id);
   }, [text, loaded]);
+  useEffect(() => {
+    addEventListener("pagehide", save);
+    return () => {
+      removeEventListener("pagehide", save);
+      save();
+    };
+  }, []);
   const download = () => {
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
     const link = document.createElement("a");

@@ -4,6 +4,7 @@ import {
   profile,
   projects,
   skillGroups,
+  jobTitle,
   timeline,
 } from "@/lib/portfolio-data";
 
@@ -45,7 +46,7 @@ export function Profile({ hidden = false }: { hidden?: boolean }) {
         <h2>Experience</h2>
         {timeline.map((job) => (
           <article key={job.id}>
-            <h3>{job.title}</h3>
+            <h3>{jobTitle(job)}</h3>
             <p>
               {job.period} · {job.location}
             </p>

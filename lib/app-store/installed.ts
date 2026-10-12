@@ -1,56 +1,37 @@
 import { create } from "zustand";
+import { readJSON, writeJSON } from "../storage";
 
 // Which installable apps the visitor has added or removed in the App Store,
 // remembered between visits. Apps without an override use their registry
-// default (`preinstalled`). Install progress is not saved. `updatedTo` is
-// the MuneebOS version the visitor last installed from Updates.
+// default (`preinstalled`). `installing` (not saved) holds when each
+// running install started; the ring animates itself in CSS from that.
 
 const STORAGE_KEY = "muneebos-app-store-v1";
 
 interface InstalledState {
   overrides: Record<string, boolean>;
-  updatedTo: string | null;
-  progress: Record<string, number>;
+  installing: Record<string, number>;
   loaded: boolean;
   load: () => void;
   setInstalled: (id: string, installed: boolean) => void;
-  setProgress: (id: string, value: number | null) => void;
-  setUpdatedTo: (version: string) => void;
+  setInstalling: (id: string, startedAt: number | null) => void;
 }
 
 export const useInstalledApps = create<InstalledState>((set, get) => {
-  const save = () => {
-    const { overrides, updatedTo } = get();
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ overrides, updatedTo }),
-      );
-    } catch {
-      /* storage unavailable */
-    }
-  };
+  const save = () => writeJSON(STORAGE_KEY, { overrides: get().overrides });
   return {
     overrides: {},
-    updatedTo: null,
-    progress: {},
+    installing: {},
     loaded: false,
     load: () => {
       if (get().loaded || typeof window === "undefined") return;
-      let saved: { overrides?: Record<string, boolean>; updatedTo?: unknown } =
-        {};
-      try {
-        saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
-      } catch {
-        /* corrupt or unavailable */
-      }
+      const saved =
+        readJSON<{ overrides?: Record<string, boolean> } | null>(STORAGE_KEY, {}) ?? {};
       const overrides =
         saved.overrides && typeof saved.overrides === "object"
           ? saved.overrides
           : {};
-      const updatedTo =
-        typeof saved.updatedTo === "string" ? saved.updatedTo : null;
-      set({ loaded: true, overrides, updatedTo });
+      set({ loaded: true, overrides });
     },
     setInstalled: (id, installed) => {
       get().load();
@@ -58,16 +39,11 @@ export const useInstalledApps = create<InstalledState>((set, get) => {
       set({ overrides });
       save();
     },
-    setProgress: (id, value) => {
-      const progress = { ...get().progress };
-      if (value === null) delete progress[id];
-      else progress[id] = value;
-      set({ progress });
-    },
-    setUpdatedTo: (updatedTo) => {
-      get().load();
-      set({ updatedTo });
-      save();
+    setInstalling: (id, startedAt) => {
+      const installing = { ...get().installing };
+      if (startedAt === null) delete installing[id];
+      else installing[id] = startedAt;
+      set({ installing });
     },
   };
 });

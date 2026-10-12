@@ -142,7 +142,7 @@ From two independent reviews: one judging MuneebOS as an operating system, one j
 
 ### Phase 4: OS fidelity
 - [x] ⌘W/⌘M no longer advertised (the browser owns them); ⌥W/⌥M are shown in tooltips, menus, Settings and the README (⌘ still works where it reaches the page).
-- [x] Minimized windows get their own spot at the end of the Dock (before Trash), and minimize flies into it; a full Dock shrinks its icons to fit.
+- [x] A full Dock shrinks its icons to fit. (Minimized-window thumbnails at the end of the Dock were tried and removed: minimizing shrinks the window into its app's icon, as before.)
 - [x] ⌥Tab app switcher (⇧ steps back, Esc cancels); Hide (⌥H) puts a window away without a Dock thumbnail, Hide Others (⌥⇧H).
 - [x] Menu bar ←/→ between menus and type-ahead.
 - [x] Mission Control shows the hovered or focused window's title (windows are Tab-focusable). Minimized windows stay out, as on macOS.

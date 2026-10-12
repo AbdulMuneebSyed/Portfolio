@@ -17,17 +17,18 @@ import avatar from "../../public/avatar-256.jpg";
 import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 import { useWindowManager } from "@/lib/window-manager";
 import { useBatteryStatus } from "@/lib/use-battery";
-import { usePhone } from "@/lib/phone";
+import { usePhone, useViewport } from "@/lib/phone";
 import { type Notice, useNotifications } from "@/lib/notifications";
 import { profile } from "@/lib/portfolio-data";
 import { NoticeList } from "./notice-list";
+import { formatClock, useMinute } from "@/lib/clock";
 
 interface LockScreenProps {
   onUnlock: () => void;
 }
 
 export function LockScreen({ onUnlock }: LockScreenProps) {
-  const [now, setNow] = useState<Date | null>(null);
+  const now = useMinute();
   const [isUnlocking, setIsUnlocking] = useState(false);
   const hasUnlockedRef = useRef(false);
   const touchStartY = useRef(0);
@@ -36,22 +37,13 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const phone = usePhone();
   const [torch, setTorch] = useState(false);
   const hasNotices = useNotifications((state) => state.notices.length > 0);
-  // A short window fits fewer notifications above the name and buttons.
-  const [noticeLimit, setNoticeLimit] = useState(3);
-  useEffect(() => {
-    const update = () =>
-      setNoticeLimit(innerHeight < 640 ? 1 : innerHeight < 800 ? 2 : 3);
-    update();
-    addEventListener("resize", update);
-    return () => removeEventListener("resize", update);
-  }, []);
+  // A short window fits fewer notifications above the name.
+  const { height } = useViewport();
+  const noticeLimit = height < 640 ? 1 : height < 800 ? 2 : 3;
 
   useEffect(() => {
     useWindowManager.getState().loadState();
     useNotifications.getState().loadNotifications();
-    setNow(new Date());
-    const id = window.setInterval(() => setNow(new Date()), 1000);
-    return () => window.clearInterval(id);
   }, []);
 
   const unlock = () => {
@@ -80,9 +72,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   });
 
   // macOS lock screen style: 12-hour time without am/pm, e.g. "6:56".
-  const time = now
-    ? `${now.getHours() % 12 || 12}:${String(now.getMinutes()).padStart(2, "0")}`
-    : "";
+  const time = now ? formatClock(now) : "";
   const date =
     now?.toLocaleDateString("en-GB", {
       weekday: "short",
@@ -148,11 +138,11 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
       </div>
 
       <div className="ios-lock-clock relative z-10 mt-[8.5vh] flex flex-col items-center text-center">
-        <div className={`text-[clamp(22px,3.3vh,34px)] font-semibold ${vibrantText}`}>
+        <div className={`lock-date text-[clamp(22px,3.3vh,34px)] font-semibold ${vibrantText}`}>
           {date}
         </div>
         <div
-          className={`-mt-[0.5vh] text-[clamp(96px,15.5vh,156px)] font-bold leading-[1] tracking-[-0.025em] ${vibrantText}`}
+          className={`lock-time -mt-[0.5vh] text-[clamp(96px,15.5vh,156px)] font-bold leading-[1] tracking-[-0.025em] ${vibrantText}`}
         >
           {time}
         </div>

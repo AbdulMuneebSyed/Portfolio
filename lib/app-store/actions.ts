@@ -3,8 +3,7 @@ import { notify } from "../notifications";
 import { useWindowManager } from "../window-manager";
 import { useInstalledApps } from "./installed";
 
-const INSTALL_MS = 1600;
-const TICK_MS = 80;
+export const INSTALL_MS = 1600;
 
 // Get: shows download progress, then installs the app and posts a banner
 // (unless `quiet`). Resolves once the app is installed.
@@ -15,19 +14,15 @@ export function installApp(
   const app = getApp(appId);
   const store = useInstalledApps.getState();
   if (!app?.installable || isAppInstalled(appId)) return Promise.resolve();
-  if (store.progress[appId] !== undefined) return Promise.resolve();
+  if (store.installing[appId] !== undefined) return Promise.resolve();
 
   return new Promise((resolve) => {
-    const started = Date.now();
-    store.setProgress(appId, 0);
-    const timer = setInterval(() => {
-      const t = Math.min(1, (Date.now() - started) / INSTALL_MS);
-      // Ease out, like a download that speeds up then settles.
-      useInstalledApps.getState().setProgress(appId, 1 - (1 - t) ** 2);
-      if (t < 1) return;
-      clearInterval(timer);
+    // The store only changes at the start and the end; the ring in between
+    // is a CSS animation (GetButton).
+    store.setInstalling(appId, Date.now());
+    setTimeout(() => {
       const state = useInstalledApps.getState();
-      state.setProgress(appId, null);
+      state.setInstalling(appId, null);
       state.setInstalled(appId, true);
       if (!quiet)
         notify({
@@ -36,7 +31,7 @@ export function installApp(
           body: "Open it from the App Store, Finder, Spotlight or the Dock.",
         });
       resolve();
-    }, TICK_MS);
+    }, INSTALL_MS);
   });
 }
 

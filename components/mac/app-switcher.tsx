@@ -5,6 +5,7 @@ import { AppIcon } from "@/lib/app-icons";
 import { getApp } from "@/lib/app-registry";
 import { useWindowManager } from "@/lib/window-manager";
 import type { WindowState } from "@/lib/types";
+import { isShortcut } from "@/lib/shortcuts";
 
 // The app switcher: hold ⌥ and press Tab (⌘Tab belongs to the OS) to step
 // through open apps, most recent first; let go of ⌥ to switch. ⇧ steps back,
@@ -18,7 +19,7 @@ export function AppSwitcher() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const { apps, index } = state.current;
-      if (e.key === "Tab" && e.altKey && !e.metaKey && !e.ctrlKey) {
+      if (isShortcut("switchApps", e)) {
         e.preventDefault();
         if (apps) {
           setIndex((index + (e.shiftKey ? apps.length - 1 : 1)) % apps.length);
@@ -44,9 +45,7 @@ export function AppSwitcher() {
       const target = apps[index];
       setApps(null);
       if (!target) return;
-      const wm = useWindowManager.getState();
-      if (target.isMinimized) wm.restoreWindow(target.id);
-      else wm.setActiveWindow(target.id);
+      useWindowManager.getState().restoreWindow(target.id);
     };
     const cancel = () => setApps(null);
     addEventListener("keydown", onKeyDown);
@@ -72,9 +71,7 @@ export function AppSwitcher() {
           onPointerEnter={() => setIndex(i)}
           onClick={() => {
             setApps(null);
-            const wm = useWindowManager.getState();
-            if (w.isMinimized) wm.restoreWindow(w.id);
-            else wm.setActiveWindow(w.id);
+            useWindowManager.getState().restoreWindow(w.id);
           }}
         >
           <AppIcon appId={w.appId ?? w.id} size={72} />

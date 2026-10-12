@@ -36,54 +36,39 @@ import { LivePreview } from "./live-preview";
 import { useStoreNav } from "./nav";
 import { categoryIcon } from "./category-icons";
 
-// A job reads as a job: role, dates and place, not chart rank, age rating
-// and download size.
-function experienceFacts(item: StoreItem) {
-  const [role, period] = item.subtitle.split(" · ");
-  return { role, period: period ?? item.versions[0]?.date ?? "", location: item.size };
-}
+type Stat = { label: string; value: React.ReactNode; sub: string };
 
 function Stats({ item }: { item: StoreItem }) {
   const CategoryIcon = categoryIcon(item.category);
-  if (item.kind === "experience") {
-    const facts = experienceFacts(item);
-    const stats = [
-      { label: "Role", value: <Briefcase size={22} />, sub: facts.role },
-      { label: "When", value: <CalendarDays size={22} />, sub: facts.period },
-      { label: "Where", value: <MapPin size={22} />, sub: facts.location },
-    ];
-    return (
-      <div className="store-stats" role="list">
-        {stats.map((s) => (
-          <div key={s.label} role="listitem">
-            <small>{s.label}</small>
-            <strong>{s.value}</strong>
-            <span>{s.sub}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  const stats = [
-    item.chart && {
-      label: "Chart",
-      value: `No. ${item.chart.rank}`,
-      sub: item.chart.list,
-    },
-    item.award && { label: "Award", value: "★", sub: item.award },
-    { label: "Age", value: item.age, sub: "Years" },
-    { label: "Category", value: <CategoryIcon size={22} />, sub: item.category },
-    { label: "Developer", value: <UserRound size={22} />, sub: STORE_DEVELOPER },
-    item.techStack && {
-      label: "Built with",
-      value: item.techStack[0],
-      sub:
-        item.techStack.length > 1
-          ? `+ ${item.techStack.length - 1} more`
-          : "Stack",
-    },
-    { label: "Size", value: item.size, sub: "Download" },
-  ].filter(Boolean) as { label: string; value: React.ReactNode; sub: string }[];
+  const job = item.experience;
+  // A job reads as a job: role, dates and place, not chart rank, age rating
+  // and download size.
+  const stats: Stat[] = job
+    ? [
+        { label: "Role", value: <Briefcase size={22} />, sub: job.role },
+        { label: "When", value: <CalendarDays size={22} />, sub: job.period },
+        { label: "Where", value: <MapPin size={22} />, sub: job.location },
+      ]
+    : ([
+        item.chart && {
+          label: "Chart",
+          value: `No. ${item.chart.rank}`,
+          sub: item.chart.list,
+        },
+        item.award && { label: "Award", value: "★", sub: item.award },
+        { label: "Age", value: item.age, sub: "Years" },
+        { label: "Category", value: <CategoryIcon size={22} />, sub: item.category },
+        { label: "Developer", value: <UserRound size={22} />, sub: STORE_DEVELOPER },
+        item.techStack && {
+          label: "Built with",
+          value: item.techStack[0],
+          sub:
+            item.techStack.length > 1
+              ? `+ ${item.techStack.length - 1} more`
+              : "Stack",
+        },
+        { label: "Size", value: item.size, sub: "Download" },
+      ].filter(Boolean) as Stat[]);
 
   return (
     <div className="store-stats" role="list">
@@ -97,7 +82,6 @@ function Stats({ item }: { item: StoreItem }) {
     </div>
   );
 }
-
 
 function SlideView({ slide, item }: { slide: Slide; item: StoreItem }) {
   return (
@@ -240,43 +224,35 @@ function WhatsNew({ item }: { item: StoreItem }) {
 
 function Information({ item }: { item: StoreItem }) {
   const app = item.appId ? getApp(item.appId) : undefined;
-  if (item.kind === "experience") {
-    const facts = experienceFacts(item);
-    const rows: [string, string][] = [
-      ["Company", item.name],
-      ["Role", facts.role],
-      ["Dates", facts.period],
-      ["Location", facts.location],
-      ...(item.website ? ([["Website", item.website.replace(/^https?:\/\/(www\.)?|\/$/g, "")]] as [string, string][]) : []),
-    ];
-    return (
-      <section className="store-section">
-        <SectionHeader title="Information" />
-        <dl className="store-info">
-          {rows.map(([k, v]) => (
-            <div key={k}>
-              <dt>{k}</dt>
-              <dd>{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-    );
-  }
-  const rows: [string, string][] = [
-    ["Developer", STORE_DEVELOPER],
-    ["Category", item.category],
-    ["Size", item.size],
-    ["Compatibility", item.platforms.join(", ")],
-    ["Languages", "English"],
-    ["Age Rating", item.age],
-    ...(item.techStack ? ([["Built with", item.techStack.join(", ")]] as [string, string][]) : []),
-    ...(app?.launchAliases?.length
-      ? ([["Terminal", `open ${app.launchAliases[0]}`]] as [string, string][])
-      : []),
-    ["Price", "Free"],
-    ["Copyright", `© 2026 ${STORE_DEVELOPER}`],
-  ];
+  const job = item.experience;
+  const rows = (
+    job
+      ? [
+          ["Company", job.company],
+          ["Role", job.role],
+          ["Dates", job.period],
+          ["Location", job.location],
+          item.website && [
+            "Website",
+            item.website.replace(/^https?:\/\/(www\.)?|\/$/g, ""),
+          ],
+        ]
+      : [
+          ["Developer", STORE_DEVELOPER],
+          ["Category", item.category],
+          ["Size", item.size],
+          ["Compatibility", item.platforms.join(", ")],
+          ["Languages", "English"],
+          ["Age Rating", item.age],
+          item.techStack && ["Built with", item.techStack.join(", ")],
+          app?.launchAliases?.length && [
+            "Terminal",
+            `open ${app.launchAliases[0]}`,
+          ],
+          ["Price", "Free"],
+          ["Copyright", `© 2026 ${STORE_DEVELOPER}`],
+        ]
+  ).filter(Boolean) as [string, string][];
   return (
     <section className="store-section">
       <SectionHeader title="Information" />

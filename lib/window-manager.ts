@@ -7,6 +7,7 @@ import {
 } from "./app-registry";
 import { DEFAULT_WALLPAPER } from "@/lib/wallpapers";
 import { GRID_CELL_HEIGHT, gridCell, nearestFreeCell } from "./desktop-grid";
+import { batched, readString, writeJSON } from "./storage";
 
 interface WindowManagerState {
   windows: WindowState[];
@@ -16,7 +17,6 @@ interface WindowManagerState {
   desktopIcons: DesktopIcon[];
   isShutdown: boolean;
   wallpaper: string;
-  taskbarTransparency: number;
   aeroEffects: boolean;
 
   openWindow: (window: Omit<WindowState, "zIndex" | "isActive">) => void;
@@ -38,7 +38,6 @@ interface WindowManagerState {
   shutdown: () => void;
   restart: () => void;
   setWallpaper: (wallpaper: string) => void;
-  setTaskbarTransparency: (transparency: number) => void;
   setAeroEffects: (enabled: boolean) => void;
   loadState: () => void;
   saveState: () => void;
@@ -112,13 +111,6 @@ function frontWindowIn(windows: WindowState[], spaces: string[], spaceId: string
 const DESKTOP_LAYOUT_VERSION = 5;
 const DEFAULT_ICONS: DesktopIcon[] = getDesktopIconsFromRegistry();
 
-function estimateMemoryMb(component: string, id: string) {
-  const seed = `${component}:${id}`
-    .split("")
-    .reduce((total, char) => total + char.charCodeAt(0), 0);
-  return 42 + (seed % 96);
-}
-
 function serializeWindows(windows: WindowState[]) {
   return windows.map((window) => ({
     id: window.id,
@@ -127,10 +119,8 @@ function serializeWindows(windows: WindowState[]) {
     title: window.title,
     icon: window.icon,
     component: window.component,
-    status: window.status,
     startedAt: window.startedAt,
     lastActiveAt: window.lastActiveAt,
-    memoryMb: window.memoryMb,
     isMinimized: window.isMinimized,
     isHidden: window.isHidden,
     isMaximized: window.isMaximized,
@@ -161,14 +151,11 @@ function mergeSavedDesktopIcons(savedIcons: DesktopIcon[]) {
   return [...mergedDefaults, ...customIcons];
 }
 
-let pendingSave: ReturnType<typeof setTimeout> | null = null;
-let flushHooked = false;
+const STORAGE_KEY = "muneebos-mac-state-v2";
 
-function flushState() {
-  if (pendingSave) clearTimeout(pendingSave);
-  pendingSave = null;
-  writeState(useWindowManager.getState());
-}
+// Batched: actions fire on every pointermove of a drag, and writing the
+// whole desktop to localStorage each time stalls animations.
+const stateSave = batched(() => writeState(useWindowManager.getState()));
 
 function writeState(state: WindowManagerState) {
   const stateToSave = {
@@ -177,7 +164,6 @@ function writeState(state: WindowManagerState) {
     windows: serializeWindows(state.windows),
     nextProcessId: state.nextProcessId,
     wallpaper: state.wallpaper,
-    taskbarTransparency: state.taskbarTransparency,
     aeroEffects: state.aeroEffects,
     spaces: state.spaces,
     activeSpaceId: state.activeSpaceId,
@@ -185,7 +171,7 @@ function writeState(state: WindowManagerState) {
     trash: state.trash,
   };
 
-  localStorage.setItem("muneebos-mac-state-v2", JSON.stringify(stateToSave));
+  writeJSON(STORAGE_KEY, stateToSave);
 }
 
 export const useWindowManager = create<WindowManagerState>((set, get) => ({
@@ -196,7 +182,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   desktopIcons: DEFAULT_ICONS,
   isShutdown: false,
   wallpaper: DEFAULT_WALLPAPER,
-  taskbarTransparency: 85,
   aeroEffects: true,
   spaces: [FIRST_SPACE],
   activeSpaceId: FIRST_SPACE,
@@ -206,9 +191,9 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
   loadState: () => {
     if (typeof window === "undefined") return;
     // A save still waiting would be older than what's on screen.
-    if (pendingSave) flushState();
+    stateSave.flush();
 
-    const savedState = localStorage.getItem("muneebos-mac-state-v2");
+    const savedState = readString(STORAGE_KEY);
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
@@ -251,13 +236,11 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
             ...window,
             isActive: false,
             zIndex: 100 + index,
-            status: window.isMinimized ? "minimized" : "running",
           })),
           nextZIndex: 100 + savedWindows.length,
           nextProcessId,
           activeWindowId: null,
           wallpaper: parsed.wallpaper || get().wallpaper,
-          taskbarTransparency: parsed.taskbarTransparency ?? 85,
           aeroEffects: parsed.aeroEffects ?? true,
         });
       } catch (e) {
@@ -266,21 +249,8 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     }
   },
 
-  // Batched: actions fire on every pointermove of a drag, and writing the
-  // whole desktop to localStorage each time stalls animations. Saved a beat
-  // later, or straight away when the page is hidden or closed.
   saveState: () => {
-    if (typeof window === "undefined") return;
-    if (typeof document === "undefined") return writeState(get());
-    if (pendingSave) return;
-    pendingSave = setTimeout(flushState, 300);
-    if (!flushHooked) {
-      flushHooked = true;
-      addEventListener("pagehide", flushState);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") flushState();
-      });
-    }
+    if (typeof window !== "undefined") stateSave.schedule();
   },
 
   // Clean Up: line the current desktop's files up in columns from the
@@ -324,11 +294,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
     get().saveState();
   },
 
-  setTaskbarTransparency: (transparency) => {
-    set({ taskbarTransparency: transparency });
-    get().saveState();
-  },
-
   setAeroEffects: (enabled) => {
     set({ aeroEffects: enabled });
     get().saveState();
@@ -348,7 +313,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
                   metadata: window.metadata ?? w.metadata,
                   isMinimized: false,
                   isActive: true,
-                  status: "running",
                   lastActiveAt: new Date().toISOString(),
                   zIndex: state.nextZIndex,
                 }
@@ -371,10 +335,8 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
             ...window,
             appId: app?.id ?? window.id,
             processId: state.nextProcessId,
-            status: "running",
             startedAt: now,
             lastActiveAt: now,
-            memoryMb: estimateMemoryMb(window.component, window.id),
             spaceId: state.activeSpaceId,
             zIndex: state.nextZIndex,
             isActive: true,
@@ -421,7 +383,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
                 isMinimized: true,
                 isHidden: !!options?.hide,
                 isActive: false,
-                status: "minimized" as const,
               }
             : { ...w, isActive: w.id === next },
         ),
@@ -449,7 +410,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
               isMinimized: false,
               isHidden: false,
               isActive: true,
-              status: "running",
               lastActiveAt: new Date().toISOString(),
               zIndex: state.nextZIndex,
             }
@@ -472,7 +432,6 @@ export const useWindowManager = create<WindowManagerState>((set, get) => ({
           ? {
               ...w,
               isActive: true,
-              status: w.isMinimized ? "minimized" : "running",
               lastActiveAt: new Date().toISOString(),
               zIndex: state.nextZIndex,
             }

@@ -51,6 +51,7 @@ function PhoneSearch({
     <motion.div
       className="psearch"
       role="dialog"
+      data-blocks-notifications
       aria-label="Search"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -259,6 +260,7 @@ export function Spotlight({ open, onClose }: SpotlightProps) {
             className="ios-search-panel font-mac absolute inset-x-0 top-[22%] mx-auto w-[680px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[14px] border border-black/10 bg-[#ececec]/80 dark:border-white/10 dark:bg-[#2c2c2e]/85 shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_0_0_0.5px_rgba(255,255,255,0.6)] backdrop-blur-3xl backdrop-saturate-150"
             onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
             role="dialog"
+            data-blocks-notifications
             aria-label="Spotlight search"
           >
             <div className="flex items-center gap-3 px-4 py-3">

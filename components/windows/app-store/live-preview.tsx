@@ -30,10 +30,6 @@ const PREVIEWS: Record<string, React.ComponentType<any>> = {
   ...MINI_APPS,
 };
 
-export function hasLivePreview(appId: string) {
-  return appId in PREVIEWS;
-}
-
 // The app drawn at its normal window size, then scaled to fit the slide.
 export function LivePreview({ appId }: { appId: string }) {
   const box = useRef<HTMLDivElement>(null);

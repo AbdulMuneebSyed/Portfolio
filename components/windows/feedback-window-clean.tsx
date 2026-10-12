@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { Send, Bug, MessageCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase-client";
-import { notify } from "@/lib/notifications";
+import { submitForm } from "@/lib/supabase-client";
 
 interface ReviewFormData {
   name: string;
@@ -48,38 +47,42 @@ export function FeedbackWindow() {
           setSubmitStatus("Please add name & review text (rating optional)");
           return;
         }
-        const { error } = await supabase.from("review").insert({
-          name: reviewData.name.trim(),
-          email: reviewData.email.trim() || null,
-          rating: reviewData.rating ?? null,
-          review_text: reviewData.review_text.trim(),
-        });
-        if (error) throw error;
+        await submitForm(
+          "review",
+          {
+            name: reviewData.name.trim(),
+            email: reviewData.email.trim() || null,
+            rating: reviewData.rating ?? null,
+            review_text: reviewData.review_text.trim(),
+          },
+          {
+            appId: "feedback",
+            title: "Review sent",
+            body: "Thanks for the review — it helps a lot.",
+          },
+        );
         setReviewData({ name: "", email: "", review_text: "", rating: null });
         setSubmitStatus("Saved review successfully");
-        notify({
-          appId: "feedback",
-          title: "Review sent",
-          body: "Thanks for the review — it helps a lot.",
-        });
       } else {
         if (!reportData.name.trim() || !reportData.report_text.trim()) {
           setSubmitStatus("Please add name & details");
           return;
         }
-        const { error } = await supabase.from("bugs_and_suggestions").insert({
-          name: reportData.name.trim(),
-          email: reportData.email.trim() || null,
-          report_text: reportData.report_text.trim(),
-        });
-        if (error) throw error;
+        await submitForm(
+          "bugs_and_suggestions",
+          {
+            name: reportData.name.trim(),
+            email: reportData.email.trim() || null,
+            report_text: reportData.report_text.trim(),
+          },
+          {
+            appId: "feedback",
+            title: "Report sent",
+            body: "Thanks! I'll look into it.",
+          },
+        );
         setReportData({ name: "", email: "", report_text: "" });
         setSubmitStatus("Saved report successfully");
-        notify({
-          appId: "feedback",
-          title: "Report sent",
-          body: "Thanks! I'll look into it.",
-        });
       }
       setTimeout(() => setSubmitStatus(null), 2500);
     } catch (e: any) {

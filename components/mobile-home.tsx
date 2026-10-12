@@ -13,6 +13,7 @@ import { useInstalledApps } from "@/lib/app-store/installed";
 import { launchApp } from "@/lib/launch-app";
 import { phoneTitle, rememberLaunch } from "@/lib/phone";
 import { timeline } from "@/lib/portfolio-data";
+import { formatClock, useMinute } from "@/lib/clock";
 
 const homeApps = [
   "about",
@@ -94,7 +95,7 @@ function ProfileWidget() {
         <span>Software Engineer</span>
         <span className="ios-widget-now">
           <span className="ios-widget-dot" aria-hidden="true" />
-          {now.title.replace(" · ", " at ")}
+          {now.role} at {now.company}
         </span>
         <span className="ios-widget-place">
           <MapPin size={11} aria-hidden="true" /> {now.location}
@@ -119,7 +120,7 @@ export function MobileHome({
   // Swipe up and hold: the App Switcher.
   onSwitcher: () => void;
 }) {
-  const [now, setNow] = useState<Date | null>(null);
+  const now = useMinute();
   const folders = useFolders();
   const [folder, setFolder] = useState<string | null>(null);
   const [controlOpen, setControlOpen] = useState(false);
@@ -132,11 +133,6 @@ export function MobileHome({
     home.current?.toggleAttribute("inert", appOpen);
   }, [appOpen]);
 
-  useEffect(() => {
-    setNow(new Date());
-    const id = window.setInterval(() => setNow(new Date()), 15_000);
-    return () => window.clearInterval(id);
-  }, []);
 
   // Swipe up from the bottom edge to go Home, like Face ID iPhones; swipe
   // up and pause for the App Switcher.
@@ -224,7 +220,7 @@ export function MobileHome({
             pull.current = null;
           }}
         >
-          {now?.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?[AP]M$/i, "")}
+          {now && formatClock(now)}
         </button>
         <span className="ios-island" aria-hidden="true" />
         <button
@@ -313,6 +309,7 @@ export function MobileHome({
             <motion.div
               className="ios-folder-panel"
               role="dialog"
+              data-blocks-notifications
               aria-label={`${folder} folder`}
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

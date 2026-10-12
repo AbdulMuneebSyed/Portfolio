@@ -10,6 +10,7 @@ import {
   Search,
   Star,
 } from "lucide-react";
+import { profile } from "@/lib/portfolio-data";
 
 type GitHubEvent = {
   id: string;
@@ -76,7 +77,7 @@ const fallbackRepos: GitHubRepo[] = [
   {
     id: 2,
     name: "task-management-interface",
-    html_url: "https://github.com/AbdulMuneebSyed",
+    html_url: profile.github,
     description: "Productivity dashboard and collaboration workflow.",
     language: "TypeScript",
     stargazers_count: 0,

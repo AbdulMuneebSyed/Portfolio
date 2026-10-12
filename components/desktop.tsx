@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { MotionConfig, AnimatePresence, motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
@@ -34,18 +34,22 @@ import { MenuBar } from "./mac/menu-bar";
 import { Dock } from "./mac/dock";
 import { MobileHome } from "./mobile-home";
 import {
-  PHONE_QUERY,
+  isPhone,
   phoneApp,
   phoneTitle,
   switcherSlots,
   usePhone,
   useSwitcherPan,
+  useViewport,
 } from "@/lib/phone";
 import { PhoneAppIcon } from "@/lib/app-icons";
 import { Spotlight } from "./mac/spotlight";
 import { AppSwitcher } from "./mac/app-switcher";
 import { BootScreen } from "./mac/boot-screen";
 import { Tour } from "./mac/tour";
+import { readString, writeString } from "@/lib/storage";
+import type { DesktopIcon } from "@/lib/types";
+import { isShortcut } from "@/lib/shortcuts";
 
 // Every app's code loads on its own, so the lock screen and desktop come up
 // without it; they're fetched while the visitor looks around (see
@@ -152,17 +156,118 @@ const windowComponents: Record<string, React.ComponentType<any>> = {
   TaskManagerWindow,
 };
 
-// An app's contents. Memoised so moving, focusing or minimizing one window
-// doesn't re-render every open app: only its own metadata changes it.
-const AppBody = memo(function AppBody({
-  component: Component,
-  metadata,
+// The desktop's files, with rubber-band selection: drag on the empty desktop
+// to select. Its own component, so the band's movement doesn't re-render the
+// whole Desktop. Icon positions are measured once when the drag starts, the
+// band is redrawn at most once a frame, and the selection only changes when
+// the set of files under the band does.
+function DesktopFiles({
+  filesRef,
+  icons,
 }: {
-  component: React.ComponentType<any>;
-  metadata?: Record<string, unknown>;
+  filesRef: React.RefObject<HTMLDivElement>;
+  icons: DesktopIcon[];
 }) {
-  return <Component {...(metadata || {})} />;
-});
+  type Box = { left: number; top: number; right: number; bottom: number };
+  const [band, setBand] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const drag = useRef<{
+    x0: number;
+    y0: number;
+    rects: { id: string; box: Box }[];
+    hits: string;
+    frame: number;
+  } | null>(null);
+
+  const end = () => {
+    if (drag.current) cancelAnimationFrame(drag.current.frame);
+    drag.current = null;
+    setBand(null);
+  };
+
+  // Pressing anywhere but a file deselects the files, and pressing a file
+  // (without ⇧ or ⌘) leaves only that one selected. One listener for all
+  // files; it runs after the pressed file's own handler.
+  useEffect(() => {
+    const onMouseDown = (event: MouseEvent) => {
+      const pressed = (event.target as Element).closest?.<HTMLElement>("[data-icon-id]");
+      if (pressed && (event.shiftKey || event.metaKey)) return;
+      const { selected, select } = useDesktopSelection.getState();
+      const keep = selected.filter((id) => id === pressed?.dataset.iconId);
+      if (keep.length !== selected.length) select(keep);
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, []);
+
+  return (
+    <>
+      <div
+        ref={filesRef}
+        onPointerDown={(e) => {
+          if (e.target !== e.currentTarget || e.button !== 0) return;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          useDesktopSelection.getState().clear();
+          const rects = [
+            ...e.currentTarget.querySelectorAll<HTMLElement>("[data-icon-id]"),
+          ].map((el) => ({
+            id: el.dataset.iconId as string,
+            box: el.getBoundingClientRect(),
+          }));
+          drag.current = { x0: e.clientX, y0: e.clientY, rects, hits: "", frame: 0 };
+          setBand({ x0: e.clientX, y0: e.clientY, x1: e.clientX, y1: e.clientY });
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d) return;
+          const { clientX: x1, clientY: y1 } = e;
+          cancelAnimationFrame(d.frame);
+          d.frame = requestAnimationFrame(() => {
+            setBand({ x0: d.x0, y0: d.y0, x1, y1 });
+            const left = Math.min(d.x0, x1);
+            const right = Math.max(d.x0, x1);
+            const top = Math.min(d.y0, y1);
+            const bottom = Math.max(d.y0, y1);
+            const hits = d.rects
+              .filter(
+                ({ box }) =>
+                  box.left < right && box.right > left && box.top < bottom && box.bottom > top,
+              )
+              .map(({ id }) => id);
+            const key = hits.join("\n");
+            if (key === d.hits) return;
+            d.hits = key;
+            useDesktopSelection.getState().select(hits);
+          });
+        }}
+        onPointerUp={end}
+        onPointerCancel={end}
+        className="desktop-files absolute"
+        style={{
+          top: MENU_BAR_HEIGHT + 20,
+          right: 28,
+          bottom: DOCK_RESERVED_HEIGHT,
+          left: 12,
+        }}
+      >
+        {icons.map((icon) => (
+          <DesktopIconComponent key={icon.id} icon={icon} />
+        ))}
+      </div>
+
+      {band && (
+        <div
+          className="selection-band pointer-events-none fixed z-[90]"
+          style={{
+            left: Math.min(band.x0, band.x1),
+            top: Math.min(band.y0, band.y1),
+            width: Math.abs(band.x1 - band.x0),
+            height: Math.abs(band.y1 - band.y0),
+          }}
+        />
+      )}
+    </>
+  );
+}
 
 interface DesktopProps {
   onLock: () => void;
@@ -180,15 +285,16 @@ export function Desktop({ onLock }: DesktopProps) {
   const spaces = useWindowManager((state) => state.spaces);
   const activeSpaceId = useWindowManager((state) => state.activeSpaceId);
   // Desktops are a Mac feature; the phone layout shows everything.
-  const [wide, setWide] = useState(true);
-  useEffect(() => {
-    const update = () => setWide(innerWidth >= 700);
-    update();
-    addEventListener("resize", update);
-    return () => removeEventListener("resize", update);
+  const phone = usePhone();
+  const viewport = useViewport();
+  // Mission Control or the App Switcher: bring the picked window forward.
+  // Stable, so it doesn't defeat Window's memo.
+  const selectFromMission = useCallback((id: string) => {
+    useWindowManager.getState().restoreWindow(id);
+    useMissionControl.getState().setOpen(false);
   }, []);
   const onThisSpace = (item: { spaceId?: string }) =>
-    !wide || spaceOf(item, spaces) === activeSpaceId;
+    phone || spaceOf(item, spaces) === activeSpaceId;
 
   // Switching desktops slides the new one in and briefly shows its name.
   const [spaceSwitch, setSpaceSwitch] = useState<{
@@ -242,16 +348,9 @@ export function Desktop({ onLock }: DesktopProps) {
   const [isBooting, setIsBooting] = useState(false);
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
   const [isTourRunning, setIsTourRunning] = useState(false);
-  const [showTourButton, setShowTourButton] = useState(true);
   const missionOpen = useMissionControl((state) => state.open);
   const missionDrag = useMissionControl((state) => state.drag);
   const setMissionOpen = useMissionControl((state) => state.setOpen);
-  const [band, setBand] = useState<{
-    x0: number;
-    y0: number;
-    x1: number;
-    y1: number;
-  } | null>(null);
   const filesRef = useRef<HTMLDivElement>(null);
 
   // A shared App Store link (/?app=<id>) opens that product page once the
@@ -270,14 +369,14 @@ export function Desktop({ onLock }: DesktopProps) {
   // Once, on a Mac-sized screen: a tip about the trackpad gestures, after
   // the welcome banner has had its turn.
   useEffect(() => {
-    if (innerWidth < 700) return;
+    if (isPhone()) return;
     try {
-      if (localStorage.getItem("muneebos-spaces-tip")) return;
+      if (readString("muneebos-spaces-tip")) return;
     } catch {
       return;
     }
     const id = setTimeout(() => {
-      localStorage.setItem("muneebos-spaces-tip", "shown");
+      writeString("muneebos-spaces-tip", "shown");
       notify({
         appId: "settings",
         title: "Try two fingers on the desktop",
@@ -289,13 +388,12 @@ export function Desktop({ onLock }: DesktopProps) {
 
   // Remember the first visit; the tour stays available without interrupting.
   useEffect(() => {
-    if (localStorage.getItem("hasVisitedPortfolio") === null) {
-      setShowTourButton(true);
+    if (readString("hasVisitedPortfolio") === null) {
       // Marked as visited only once the welcome actually shows.
       const id = setTimeout(() => {
-        localStorage.setItem("hasVisitedPortfolio", "true");
+        writeString("hasVisitedPortfolio", "true");
         // A phone greets with its welcome sheet, the Mac with a banner.
-        if (matchMedia(PHONE_QUERY).matches) {
+        if (isPhone()) {
           setIsTourRunning(true);
           return;
         }
@@ -345,71 +443,52 @@ export function Desktop({ onLock }: DesktopProps) {
   }, [darkMode]);
 
   useEffect(() => {
+    // The system shortcuts (lib/shortcuts.ts has the keys).
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.defaultPrevented) return;
-      const mod = e.metaKey || e.ctrlKey;
-      const key = e.key.toLowerCase();
       const wm = useWindowManager.getState();
-      if (
-        e.ctrlKey &&
-        !e.metaKey &&
-        innerWidth >= 700 &&
-        (key === "arrowleft" || key === "arrowright" || /^[1-6]$/.test(key))
-      ) {
-        // Ctrl+←/→ moves between desktops; Ctrl+1…6 jumps to one.
+      const front = wm.activeWindowId;
+      const run = (action: () => void) => {
         e.preventDefault();
+        action();
+      };
+      if (isShortcut("switchDesktop", e) || isShortcut("goToDesktop", e)) {
+        if (isPhone()) return;
         const { spaces, activeSpaceId, switchSpace } = wm;
         const index = spaces.indexOf(activeSpaceId);
-        const target = /^[1-6]$/.test(key)
-          ? spaces[Number(key) - 1]
-          : spaces[index + (key === "arrowright" ? 1 : -1)];
-        if (target) switchSpace(target);
-      } else if ((e.ctrlKey && key === "arrowup") || key === "f3") {
-        e.preventDefault();
-        if (innerWidth >= 700) useMissionControl.getState().toggle();
-      } else if (mod && (key === "k" || e.code === "Space")) {
-        e.preventDefault();
-        setIsSpotlightOpen((open) => !open);
-      } else if (mod && key === ",") {
-        e.preventDefault();
-        launchApp("settings");
-      } else if (mod && e.altKey && key === "escape") {
-        e.preventDefault();
-        launchApp("task-manager");
-      // ⌘M and ⌘W belong to the browser (they minimize it or close the tab),
-      // so ⌥M and ⌥W are the advertised keys; ⌘ still works where it reaches
-      // the page. e.code, since ⌥ turns the letter into a symbol on a Mac.
-      } else if (
-        ((mod && key === "m") || (e.altKey && e.code === "KeyM")) &&
-        wm.activeWindowId
-      ) {
-        e.preventDefault();
-        wm.minimizeWindow(wm.activeWindowId);
-      } else if (e.altKey && e.code === "KeyH" && wm.activeWindowId) {
-        // ⌥H hides the front app; ⌥⇧H hides the others (⌘H hides the browser).
-        e.preventDefault();
-        if (e.shiftKey) hideOtherWindows();
-        else wm.minimizeWindow(wm.activeWindowId, { hide: true });
-      } else if (
-        ((mod && key === "w") || (e.altKey && e.code === "KeyW")) &&
-        wm.activeWindowId
-      ) {
-        e.preventDefault();
-        wm.closeWindow(wm.activeWindowId);
-      } else if (mod && key === "`") {
-        e.preventDefault();
+        const target = isShortcut("goToDesktop", e)
+          ? spaces[Number(e.key) - 1]
+          : spaces[index + (e.key === "ArrowRight" ? 1 : -1)];
+        run(() => target && switchSpace(target));
+      } else if (isShortcut("missionControl", e)) {
+        run(() => !isPhone() && useMissionControl.getState().toggle());
+      } else if (isShortcut("spotlight", e)) {
+        run(() => setIsSpotlightOpen((open) => !open));
+      } else if (isShortcut("settings", e)) {
+        run(() => launchApp("settings"));
+      } else if (isShortcut("activityMonitor", e)) {
+        run(() => launchApp("task-manager"));
+      } else if (isShortcut("minimize", e) && front) {
+        run(() => wm.minimizeWindow(front));
+      } else if (isShortcut("hide", e) && front) {
+        run(() => wm.minimizeWindow(front, { hide: true }));
+      } else if (isShortcut("hideOthers", e) && front) {
+        run(hideOtherWindows);
+      } else if (isShortcut("close", e) && front) {
+        run(() => wm.closeWindow(front));
+      } else if (isShortcut("cycleWindows", e)) {
         const visible = wm.windows.filter(
           (w) =>
             !w.isMinimized &&
-            (innerWidth < 700 || spaceOf(w, wm.spaces) === wm.activeSpaceId),
+            (isPhone() || spaceOf(w, wm.spaces) === wm.activeSpaceId),
         );
-        const index = visible.findIndex((w) => w.id === wm.activeWindowId);
+        const index = visible.findIndex((w) => w.id === front);
         const next =
           visible[
             (index + (e.shiftKey ? visible.length - 1 : 1)) % visible.length
           ];
-        if (next) wm.setActiveWindow(next.id);
-      } else if (key === "escape") {
+        run(() => next && wm.setActiveWindow(next.id));
+      } else if (isShortcut("dismiss", e)) {
         useMissionControl.getState().setOpen(false);
         setContextMenu(null);
         setIsSpotlightOpen(false);
@@ -425,7 +504,7 @@ export function Desktop({ onLock }: DesktopProps) {
   useEffect(() => {
     const detect = createSwipeDetector();
     const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || innerWidth < 700) return; // ctrl+wheel is pinch-zoom
+      if (e.ctrlKey || isPhone()) return; // ctrl+wheel is pinch-zoom
       const target = e.target as Element | null;
       const mission = useMissionControl.getState();
       const overDesktop =
@@ -461,12 +540,10 @@ export function Desktop({ onLock }: DesktopProps) {
 
   const handleTourComplete = useCallback(() => {
     setIsTourRunning(false);
-    setShowTourButton(true);
   }, []);
 
   const handleStartTour = useCallback(() => {
     setIsTourRunning(true);
-    setShowTourButton(false);
   }, []);
 
   const openSpotlight = useCallback(() => setIsSpotlightOpen(true), []);
@@ -485,7 +562,6 @@ export function Desktop({ onLock }: DesktopProps) {
 
   // Opening or closing a window leaves Mission Control. The iPhone App
   // Switcher stays open while cards are swiped away, until none are left.
-  const phone = usePhone();
   const switcherPan = useSwitcherPan((s) => s.pan);
   const windowCount = useRef(windows.length);
   useEffect(() => {
@@ -507,46 +583,26 @@ export function Desktop({ onLock }: DesktopProps) {
     phone && missionOpen ? [...windows].sort((a, b) => a.zIndex - b.zIndex) : [];
   const switcherCards = switcherSlots(
     switcherOrder.length,
-    typeof window === "undefined" ? 393 : innerWidth,
-    typeof window === "undefined" ? 852 : innerHeight,
+    viewport.width,
+    viewport.height,
     switcherPan,
   );
   switcherOrder.forEach((w, i) => missionSlots.set(w.id, switcherCards[i]));
-  if (missionOpen && !phone && typeof window !== "undefined") {
+  if (missionOpen && !phone) {
     const visible = windows
       .filter((w) => !w.isMinimized && onThisSpace(w))
       .sort((a, b) => a.zIndex - b.zIndex);
     // Leave room at the top for the strip of desktops.
-    const barHeight = Math.round((168 * innerHeight) / innerWidth) + 52;
+    const barHeight = Math.round((168 * viewport.height) / viewport.width) + 52;
     const slots = missionLayout(visible.length, {
       x: 40,
       y: MENU_BAR_HEIGHT + barHeight + 16,
-      width: innerWidth - 80,
+      width: viewport.width - 80,
       height:
-        innerHeight - MENU_BAR_HEIGHT - barHeight - DOCK_RESERVED_HEIGHT - 36,
+        viewport.height - MENU_BAR_HEIGHT - barHeight - DOCK_RESERVED_HEIGHT - 36,
     });
     visible.forEach((w, i) => missionSlots.set(w.id, slots[i]));
   }
-
-  // Rubber-band selection: drag on empty desktop to select files.
-  const updateBand = (x1: number, y1: number) => {
-    if (!band) return;
-    setBand({ ...band, x1, y1 });
-    const left = Math.min(band.x0, x1);
-    const right = Math.max(band.x0, x1);
-    const top = Math.min(band.y0, y1);
-    const bottom = Math.max(band.y0, y1);
-    const hits = [
-      ...(filesRef.current?.querySelectorAll<HTMLElement>("[data-icon-id]") ??
-        []),
-    ].filter((el) => {
-      const r = el.getBoundingClientRect();
-      return r.left < right && r.right > left && r.top < bottom && r.bottom > top;
-    });
-    useDesktopSelection
-      .getState()
-      .select(hits.map((el) => el.dataset.iconId as string));
-  };
 
   const contextMenuItems = [
     {
@@ -641,47 +697,10 @@ export function Desktop({ onLock }: DesktopProps) {
         )}
 
         {/* Desktop files, anchored top-right */}
-        <div
-          ref={filesRef}
-          onPointerDown={(e) => {
-            if (e.target !== e.currentTarget || e.button !== 0) return;
-            e.currentTarget.setPointerCapture(e.pointerId);
-            useDesktopSelection.getState().clear();
-            setBand({
-              x0: e.clientX,
-              y0: e.clientY,
-              x1: e.clientX,
-              y1: e.clientY,
-            });
-          }}
-          onPointerMove={(e) => updateBand(e.clientX, e.clientY)}
-          onPointerUp={() => setBand(null)}
-          onPointerCancel={() => setBand(null)}
-          className="desktop-files absolute"
-
-          style={{
-            top: MENU_BAR_HEIGHT + 20,
-            right: 28,
-            bottom: DOCK_RESERVED_HEIGHT,
-            left: 12,
-          }}
-        >
-          {desktopIcons.filter(onThisSpace).map((icon) => (
-            <DesktopIconComponent key={icon.id} icon={icon} />
-          ))}
-        </div>
-
-        {band && (
-          <div
-            className="selection-band pointer-events-none fixed z-[90]"
-            style={{
-              left: Math.min(band.x0, band.x1),
-              top: Math.min(band.y0, band.y1),
-              width: Math.abs(band.x1 - band.x0),
-              height: Math.abs(band.y1 - band.y0),
-            }}
-          />
-        )}
+        <DesktopFiles
+          filesRef={filesRef}
+          icons={desktopIcons.filter(onThisSpace)}
+        />
 
         <AnimatePresence>
           {missionOpen && (
@@ -707,7 +726,7 @@ export function Desktop({ onLock }: DesktopProps) {
           missionOpen &&
           switcherOrder.map((w, i) => {
             const card = switcherCards[i];
-            const top = card.cy - (card.maxWidth * innerHeight) / innerWidth / 2 - 34;
+            const top = card.cy - (card.maxWidth * viewport.height) / viewport.width / 2 - 34;
             return (
               <div
                 key={w.id}
@@ -721,7 +740,7 @@ export function Desktop({ onLock }: DesktopProps) {
           })}
 
         <AnimatePresence>
-          {missionOpen && wide && (
+          {missionOpen && !phone && (
             <motion.div
               key="spaces-bar"
               className="fixed inset-x-0 z-[9600] flex justify-center"
@@ -776,17 +795,11 @@ export function Desktop({ onLock }: DesktopProps) {
               <Window
                 key={window.id}
                 window={window}
+                app={WindowComponent}
                 offSpace={!onThisSpace(window)}
                 mission={missionSlots.get(window.id) ?? null}
-                onMissionSelect={() => {
-                  const wm = useWindowManager.getState();
-                  if (window.isMinimized) wm.restoreWindow(window.id);
-                  wm.setActiveWindow(window.id);
-                  setMissionOpen(false);
-                }}
-              >
-                <AppBody component={WindowComponent} metadata={window.metadata} />
-              </Window>
+                onMissionSelect={selectFromMission}
+              />
             );
           })}
         </AnimatePresence>
@@ -802,7 +815,7 @@ export function Desktop({ onLock }: DesktopProps) {
           )}
         </AnimatePresence>
 
-        {showTourButton && (
+        {!isTourRunning && (
           <button
             className="tour-launcher fixed bottom-5 right-5 z-[8500] flex items-center gap-1.5 rounded-full border border-white/30 bg-white/20 px-3.5 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur-xl hover:bg-white/30"
             onClick={handleStartTour}
@@ -812,7 +825,7 @@ export function Desktop({ onLock }: DesktopProps) {
           </button>
         )}
 
-        {!phone && <Dock onSearch={openSpotlight} />}
+        {!phone && <Dock />}
 
         <NotificationBanners />
 

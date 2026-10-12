@@ -47,18 +47,6 @@
 .store-sidebar .sidebar-item[data-selected="true"] > svg {
   color: var(--mac-accent);
 }
-.store-badge {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  border-radius: 9px;
-  background: #ff3b30;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 18px;
-  text-align: center;
-}
 .store-search {
   display: flex;
   align-items: center;
@@ -215,7 +203,15 @@
   stroke-linecap: round;
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
-  transition: stroke-dashoffset 0.08s linear;
+  stroke-dashoffset: var(--ring);
+  /* Ease out, like a download that speeds up then settles. */
+  animation: store-ring-fill linear forwards;
+  animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+}
+@keyframes store-ring-fill {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 .store-progress-stop {
   fill: var(--mac-accent);
@@ -1066,39 +1062,6 @@
   font-size: 14px;
 }
 
-.store-update-banner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  border-radius: 14px;
-  background: var(--store-card);
-}
-.store-update-banner strong,
-.store-update-banner small {
-  display: block;
-}
-.store-update-banner strong {
-  font-size: 17px;
-}
-.store-update-banner small {
-  color: var(--mac-secondary);
-  font-size: 14px;
-}
-.store-update-progress {
-  display: block;
-  height: 5px;
-  margin-top: 10px;
-  border-radius: 3px;
-  background: var(--store-pill);
-  overflow: hidden;
-}
-.store-update-progress span {
-  display: block;
-  height: 100%;
-  background: var(--mac-accent);
-  transition: width 0.08s linear;
-}
 .store-updates {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2250,11 +2213,6 @@
   .store-phone-tabs button[aria-pressed="true"] {
     background: var(--ios-fill);
     color: var(--mac-accent);
-  }
-  .store-phone-tabs .store-badge {
-    position: absolute;
-    top: 4px;
-    left: calc(50% + 6px);
   }
   .mini-app {
     padding-top: 16px;

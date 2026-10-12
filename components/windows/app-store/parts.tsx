@@ -1,14 +1,14 @@
 "use client";
 
 import type React from "react";
-import { ChevronRight, CloudDownload } from "lucide-react";
+import { CloudDownload } from "lucide-react";
 import { AppIcon } from "@/lib/app-icons";
 import { useAppName } from "@/lib/phone";
 import { getApp, isAppInstalled } from "@/lib/app-registry";
 import { launchApp } from "@/lib/launch-app";
 import { getStoreItem, type StoreItem } from "@/lib/app-store/catalog";
 import type { Feature } from "@/lib/app-store/editorial";
-import { installApp } from "@/lib/app-store/actions";
+import { INSTALL_MS, installApp } from "@/lib/app-store/actions";
 import { useInstalledApps } from "@/lib/app-store/installed";
 import { StoreArt } from "./store-art";
 import { useStoreNav } from "./nav";
@@ -18,17 +18,18 @@ export type ItemAction = "get" | "installing" | "open" | "view";
 
 export function useItemAction(item: StoreItem): {
   action: ItemAction;
-  progress: number;
+  // When the install started, while it runs.
+  startedAt: number;
 } {
   // Subscribe so the button changes as soon as an install finishes.
   useInstalledApps((s) => s.overrides);
-  const progress = useInstalledApps((s) =>
-    item.appId ? s.progress[item.appId] : undefined,
+  const startedAt = useInstalledApps((s) =>
+    item.appId ? s.installing[item.appId] : undefined,
   );
-  if (progress !== undefined) return { action: "installing", progress };
-  if (item.kind === "project") return { action: item.website ? "view" : "open", progress: 0 };
-  if (item.appId && !isAppInstalled(item.appId)) return { action: "get", progress: 0 };
-  return { action: "open", progress: 0 };
+  if (startedAt !== undefined) return { action: "installing", startedAt };
+  if (item.kind === "project") return { action: item.website ? "view" : "open", startedAt: 0 };
+  if (item.appId && !isAppInstalled(item.appId)) return { action: "get", startedAt: 0 };
+  return { action: "open", startedAt: 0 };
 }
 
 export function runItemAction(item: StoreItem, action: ItemAction) {
@@ -63,7 +64,7 @@ export function GetButton({
   item: StoreItem;
   prominent?: boolean;
 }) {
-  const { action, progress } = useItemAction(item);
+  const { action, startedAt } = useItemAction(item);
   if (action === "installing") {
     const r = 11;
     const c = 2 * Math.PI * r;
@@ -72,9 +73,6 @@ export function GetButton({
         className="store-progress"
         role="progressbar"
         aria-label={`Installing ${item.name}`}
-        aria-valuenow={Math.round(progress * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
       >
         <svg viewBox="0 0 28 28" width="28" height="28">
           <circle cx="14" cy="14" r={r} className="store-progress-track" />
@@ -84,7 +82,15 @@ export function GetButton({
             r={r}
             className="store-progress-bar"
             strokeDasharray={c}
-            strokeDashoffset={c * (1 - progress)}
+            // Fills over the install in CSS; a ring shown mid-install (e.g.
+            // after navigating) starts part-way through.
+            style={
+              {
+                "--ring": `${c}px`,
+                animationDuration: `${INSTALL_MS}ms`,
+                animationDelay: `${startedAt - Date.now()}ms`,
+              } as React.CSSProperties
+            }
           />
           <rect x="11" y="11" width="6" height="6" rx="1" className="store-progress-stop" />
         </svg>
@@ -261,23 +267,5 @@ export function AppTile({ item, installedLabel }: { item: StoreItem; installedLa
         )}
       </div>
     </div>
-  );
-}
-
-export function LinkRow({
-  label,
-  onClick,
-  icon,
-}: {
-  label: string;
-  onClick: () => void;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <button className="store-link-row" onClick={onClick}>
-      {icon}
-      <span>{label}</span>
-      <ChevronRight size={15} />
-    </button>
   );
 }

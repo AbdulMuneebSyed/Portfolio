@@ -194,7 +194,8 @@ export const timeline = [
   {
     id: "pulsegen",
     period: "Feb 2026 – Present",
-    title: "SDE · PulseGen",
+    role: "SDE",
+    company: "PulseGen",
     location: "Hyderabad",
     points: [
       "Arrwin, an AI assistant for product managers: ingestion, streaming chat, contradiction detection and tenant-isolated knowledge workflows with Next.js, TypeScript, MongoDB, Redis Streams, S3 and AI agents.",
@@ -207,7 +208,8 @@ export const timeline = [
   {
     id: "mathongo",
     period: "Jul 2025 – Jan 2026",
-    title: "SDE Intern · MathonGO (GetMarks)",
+    role: "SDE Intern",
+    company: "MathonGO (GetMarks)",
     location: "Bengaluru",
     points: [
       "Built and optimized the Leaderboard and League modules for GetMarks in React with REST APIs, handling 1L+ weekly rank updates with low-latency UX.",
@@ -218,7 +220,8 @@ export const timeline = [
   {
     id: "airesumate",
     period: "Dec 2024 – May 2025",
-    title: "Co-founder & Full Stack Developer · AiResumate",
+    role: "Co-founder & Full Stack Developer",
+    company: "AiResumate",
     location: "Remote",
     points: [
       "Shipped an AI resume platform (Next.js) routing between Gemini, OpenAI GPT and Claude for real-time ATS scoring and rewriting, via serverless REST endpoints.",
@@ -230,7 +233,8 @@ export const timeline = [
   {
     id: "capco-cs",
     period: "Dec 2024 – May 2025",
-    title: "Full Stack Developer · Capco-CS",
+    role: "Full Stack Developer",
+    company: "Capco-CS",
     location: "Remote",
     points: [
       "Built a custom CRM and a React/Supabase vendor portal: +30% client management efficiency, +25% vendor onboarding.",
@@ -240,13 +244,18 @@ export const timeline = [
   {
     id: "ecell-mjcet",
     period: "Sep 2024 – Jul 2025",
-    title: "Tech Lead · E-Cell MJCET",
+    role: "Tech Lead",
+    company: "E-Cell MJCET",
     location: "Hyderabad",
     points: [
       "Led a 5-member team building the hackathon platform (Next.js): 500K+ visitors, 30K users (440% growth), 127+ registrations/day at peak.",
     ],
   },
 ];
+
+// "SDE · PulseGen", as job headings show it.
+export const jobTitle = (job: { role: string; company: string }) =>
+  `${job.role} · ${job.company}`;
 
 export const education = {
   degree: "B.E. Computer Science",

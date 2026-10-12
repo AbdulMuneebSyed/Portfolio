@@ -11,6 +11,7 @@ import {
   isAppInstalled,
 } from "@/lib/app-registry";
 import { installApp, uninstallApp } from "@/lib/app-store/actions";
+import { profile } from "@/lib/portfolio-data";
 
 type TerminalLine = {
   id: string;
@@ -172,7 +173,7 @@ export function TerminalWindow() {
       addLines([
         {
           kind: "output",
-          text: "Email samuneeb786@gmail.com, or run 'open contact' to send a message.",
+          text: `Email ${profile.email}, or run 'open contact' to send a message.`,
         },
       ]);
       return;

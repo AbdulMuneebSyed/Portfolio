@@ -192,11 +192,11 @@ test("notification times read like macOS", () => {
 
 test("the feed goes LinkedIn/GitHub/resume first and skips seen or open apps", () => {
   const { pickNext, feedBody, FEED } = load("lib/notification-feed.ts");
-  const first = pickNext(new Set(), new Set(), () => 0);
-  assert.equal(first.tier, 1);
-  const tierOne = FEED.filter((item) => item.tier === 1).map((item) => item.id);
-  // Seen everything in tier 1: the next comes from tier 2.
-  assert.equal(pickNext(new Set(tierOne), new Set()).tier, 2);
+  // The LinkedIn invite always opens a visit.
+  assert.equal(pickNext(new Set(), new Set(), () => 0.99).id, "linkedin-connect");
+  const firstTiers = FEED.filter((item) => item.tier <= 1).map((item) => item.id);
+  // Seen everything in tiers 0 and 1: the next comes from tier 2.
+  assert.equal(pickNext(new Set(firstTiers), new Set()).tier, 2);
   // An app the visitor already has open isn't nudged.
   for (let i = 0; i < 20; i++)
     assert.notEqual(pickNext(new Set(), new Set(["linkedin"])).appId, "linkedin");
@@ -235,7 +235,7 @@ test("Safari's Smart Search field opens sites and searches everything else", () 
 const { useInstalledApps: installed } = load("lib/app-store/installed.ts");
 const registry = load("lib/app-registry.ts");
 const resetInstalls = () =>
-  installed.setState({ overrides: {}, updatedTo: null, progress: {}, loaded: false });
+  installed.setState({ overrides: {}, installing: {}, loaded: false });
 
 test("store-only apps start uninstalled; Get and Delete persist across a reload", () => {
   resetInstalls();
@@ -267,9 +267,9 @@ test("Get installs after the progress animation; Delete quits the app", async ()
   resetInstalls();
   const { installApp, uninstallApp } = load("lib/app-store/actions.ts");
   const done = installApp("simon");
-  assert.equal(installed.getState().progress.simon, 0);
+  assert.equal(typeof installed.getState().installing.simon, "number");
   await done;
-  assert.equal(installed.getState().progress.simon, undefined);
+  assert.equal(installed.getState().installing.simon, undefined);
   assert.equal(registry.isAppInstalled("simon"), true);
   launchApp("simon");
   assert.ok(wm.getState().windows.some((w) => w.id === "simon"));
@@ -514,4 +514,19 @@ test("the App Switcher puts the newest app in the middle and older ones to its l
   // Dragging shifts every card by the same amount.
   const panned = switcherSlots(3, 393, 852, 120);
   panned.forEach((slot, i) => assert.equal(slot.cx - slots[i].cx, 120));
+});
+
+test("advertised shortcuts are the ones the handlers match", () => {
+  const { SHORTCUTS, isShortcut } = load("lib/shortcuts.ts");
+  const ev = (props) => ({ key: "", code: "", metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, ...props });
+  assert.equal(SHORTCUTS.minimize.keys, "⌥M");
+  assert.ok(isShortcut("minimize", ev({ key: "µ", code: "KeyM", altKey: true })));
+  assert.ok(isShortcut("close", ev({ key: "∑", code: "KeyW", altKey: true })));
+  assert.ok(isShortcut("hideOthers", ev({ key: "Ó", code: "KeyH", altKey: true, shiftKey: true })));
+  assert.ok(!isShortcut("hide", ev({ key: "Ó", code: "KeyH", altKey: true, shiftKey: true })));
+  assert.ok(isShortcut("spotlight", ev({ key: "k", metaKey: true })));
+  assert.ok(isShortcut("goToDesktop", ev({ key: "3", ctrlKey: true })));
+  assert.ok(!isShortcut("goToDesktop", ev({ key: "3", ctrlKey: true, metaKey: true })));
+  // Finder's own shortcuts are listed but handled inside Finder.
+  assert.equal(isShortcut("openFile", ev({ key: "o", metaKey: true })), false);
 });

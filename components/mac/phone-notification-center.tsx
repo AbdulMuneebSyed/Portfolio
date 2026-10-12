@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { launchApp } from "@/lib/launch-app";
 import { useNotifications } from "@/lib/notifications";
 import { NoticeList } from "./notice-list";
+import { formatClock, useMinute } from "@/lib/clock";
 
 // iPhone Notification Center: pulled down from the top-left of the status
 // bar, a blurred sheet like the lock screen with every unread notification.
@@ -19,7 +20,7 @@ export function PhoneNotificationCenter({
 }) {
   const empty = useNotifications((state) => state.notices.length === 0);
   const [swipe, setSwipe] = useState<number | null>(null);
-  const now = new Date();
+  const now = useMinute() ?? new Date();
 
   return (
     <AnimatePresence>
@@ -28,6 +29,7 @@ export function PhoneNotificationCenter({
           key="pnc"
           className="pnc"
           role="dialog"
+          data-blocks-notifications
           aria-label="Notification Center"
           initial={{ y: "-100%" }}
           animate={{ y: 0 }}
@@ -49,9 +51,7 @@ export function PhoneNotificationCenter({
               })}
             </div>
             <div>
-              {now
-                .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
-                .replace(/\s?[AP]M$/i, "")}
+              {formatClock(now)}
             </div>
           </div>
           <div className="pnc-list">

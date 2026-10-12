@@ -41,7 +41,7 @@ export function RecycleBin() {
         </button>
       </div>
       {confirming && (
-        <div className="trash-confirm" role="alertdialog" aria-label="Empty Trash">
+        <div className="trash-confirm" role="alertdialog" data-blocks-notifications aria-label="Empty Trash">
           <p>
             Permanently erase {trash.length} {trash.length === 1 ? "item" : "items"}? You
             can&apos;t undo this.

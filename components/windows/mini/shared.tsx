@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { readString, writeString } from "@/lib/storage";
 
 // Mini-apps take keys only while focused, so typing in another window never
 // reaches them. The app root takes focus when the window opens.
@@ -16,20 +17,12 @@ export function useFocusRoot<T extends HTMLElement>(preview?: boolean) {
 export function useStoredNumber(key: string, initial = 0) {
   const [value, setValue] = useState(initial);
   useEffect(() => {
-    try {
-      const saved = Number(localStorage.getItem(key));
-      if (Number.isFinite(saved) && saved > 0) setValue(saved);
-    } catch {
-      /* storage unavailable */
-    }
+    const saved = Number(readString(key));
+    if (Number.isFinite(saved) && saved > 0) setValue(saved);
   }, [key]);
   const save = (next: number) => {
     setValue(next);
-    try {
-      localStorage.setItem(key, String(next));
-    } catch {
-      /* storage unavailable */
-    }
+    writeString(key, String(next));
   };
   return [value, save] as const;
 }

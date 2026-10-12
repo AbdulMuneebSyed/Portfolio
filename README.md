@@ -101,6 +101,8 @@ supports Command+O/Return to open, Command+Up for Home, Command+1/2 for views,
 and Command+[/] for navigation. Escape dismisses menus and Spotlight.
 Command+Space is supported when the operating system passes it to the page.
 Browser and OS reserved shortcuts may take precedence; menu actions remain available.
+Every shortcut is defined once in `lib/shortcuts.ts`; the key handlers, menus,
+tooltips and System Settings › Keyboard Shortcuts all read it.
 
 Appearance, wallpaper, reduced motion, sound, notes, and window state are
 saved locally. Music and Control Center share one audio player.
