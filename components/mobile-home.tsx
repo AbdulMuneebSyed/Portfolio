@@ -14,6 +14,7 @@ import { launchApp } from "@/lib/launch-app";
 import { phoneTitle, rememberLaunch } from "@/lib/phone";
 import { timeline } from "@/lib/portfolio-data";
 import { formatClock, useMinute } from "@/lib/clock";
+import { attachRefraction } from "@/lib/glass";
 
 const homeApps = [
   "about",
@@ -129,6 +130,15 @@ export function MobileHome({
   const pull = useRef<number | null>(null);
   const pulled = useRef(false);
   const home = useRef<HTMLDivElement>(null);
+  const dock = useRef<HTMLElement>(null);
+  const searchPill = useRef<HTMLButtonElement>(null);
+  // Where the browser can, the dock and Search pill bend the wallpaper.
+  useEffect(() => {
+    const undo = [dock.current, searchPill.current].map((el) =>
+      el ? attachRefraction(el, { bezel: 22, strength: 40 }) : () => {},
+    );
+    return () => undo.forEach((u) => u());
+  }, []);
   useEffect(() => {
     home.current?.toggleAttribute("inert", appOpen);
   }, [appOpen]);
@@ -260,7 +270,7 @@ export function MobileHome({
                 aria-label={`Open ${name} folder`}
                 onClick={() => setFolder(name)}
               >
-                <span className="ios-folder-icon">
+                <span className="ios-folder-icon liquid-glass">
                   {folders[name].slice(0, 9).map((id) => (
                     <PhoneAppIcon key={id} appId={id} size={13} />
                   ))}
@@ -270,10 +280,10 @@ export function MobileHome({
             ))}
           </div>
         </div>
-        <button className="ios-search-pill" onClick={onSearch}>
+        <button ref={searchPill} className="ios-search-pill liquid-glass" onClick={onSearch}>
           <Search size={13} strokeWidth={2.6} /> Search
         </button>
-        <nav className="ios-dock" aria-label="Dock">
+        <nav ref={dock} className="ios-dock liquid-glass" aria-label="Dock">
           {dockApps.map((id) => <MobileApp key={id} id={id} />)}
         </nav>
       </div>
@@ -307,7 +317,7 @@ export function MobileHome({
               {folder}
             </motion.h2>
             <motion.div
-              className="ios-folder-panel"
+              className="ios-folder-panel liquid-glass"
               role="dialog"
               data-blocks-notifications
               aria-label={`${folder} folder`}

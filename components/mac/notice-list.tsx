@@ -24,7 +24,7 @@ function useMinuteClock() {
 const CARD = {
   center:
     "bg-white/70 text-[#1d1d1f] shadow-[0_0_0_0.5px_rgba(0,0,0,0.08)] backdrop-blur-3xl hover:bg-white/85 dark:bg-[#2c2c2e]/70 dark:text-white dark:hover:bg-[#3a3a3c]/80",
-  lock: "bg-white/[0.22] text-white shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.3)] backdrop-blur-[24px] backdrop-saturate-[1.6] hover:bg-white/30",
+  lock: "liquid-glass text-white",
 };
 
 export function NoticeList({

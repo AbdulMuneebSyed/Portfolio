@@ -2684,12 +2684,69 @@ kbd {
   --ios-dock-height: 94px;
   --ios-fill: #7676801f;
   --ios-glass: #ffffffb8;
-  --ios-glass-edge: inset 0 0 0 0.5px #ffffff80, 0 6px 20px #0000001f;
+  --ios-glass-edge: inset 0 1px 1px #ffffffe6, inset 0 0 0 0.5px #ffffff80, 0 6px 20px #0000001f;
 }
 .dark {
   --ios-fill: #7676803d;
   --ios-glass: #3a3a3cb8;
-  --ios-glass-edge: inset 0 0 0 0.5px #ffffff26, 0 6px 20px #00000059;
+  --ios-glass-edge: inset 0 1px 1px #ffffff40, inset 0 0 0 0.5px #ffffff26, 0 6px 20px #00000059;
+}
+/* Liquid Glass, as on iOS 26: a clear pane that bends a little light,
+   lit along its edges, rather than a frosted panel. The rim is a gradient
+   border that's brightest where the light hits, top left and bottom right. */
+.liquid-glass {
+  position: relative;
+  background-color: #ffffff1a;
+  background-image: linear-gradient(160deg, #ffffff38, #ffffff08 45%, #ffffff1f);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25) brightness(1.04);
+  backdrop-filter: blur(10px) saturate(1.25) brightness(1.04);
+  box-shadow:
+    inset 0 1px 1px #ffffff80,
+    inset 0 -1px 1px #ffffff1f,
+    inset 0 0 20px #ffffff0f,
+    0 8px 28px #00000029;
+}
+.liquid-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    #ffffffbf,
+    #ffffff1f 30%,
+    #ffffff00 50%,
+    #ffffff1f 70%,
+    #ffffff8c
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.dark .liquid-glass {
+  background-color: #0000001f;
+}
+/* Pressed glass swells and springs back, the way iOS 26 controls do. */
+.ios-lock-action,
+.ios-search-pill,
+.pcc-round,
+.pcc-focus {
+  transition: scale 0.5s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+.ios-lock-action:active,
+.ios-search-pill:active,
+.pcc-round:active,
+.pcc-focus:active {
+  scale: 1.12;
+  transition-duration: 0.18s;
+}
+.dark .mac-window .mac-sidebar,
+.dark .store-phone-tabs {
+  --glass-bar: #1c1c1e80;
 }
 @media (max-width: 699px), (max-width: 950px) and (max-height: 500px) {
   .desktop-only,
@@ -2886,10 +2943,6 @@ kbd {
     align-content: start;
     justify-content: center;
     padding-top: 9px;
-    background: #ffffff4d;
-    -webkit-backdrop-filter: blur(20px) saturate(1.6);
-    backdrop-filter: blur(20px) saturate(1.6);
-    box-shadow: inset 0 0 0 0.5px #ffffff59;
   }
   .ios-folder-icon .phone-icon {
     filter: none;
@@ -2917,10 +2970,6 @@ kbd {
     height: 30px;
     padding: 0 13px;
     border-radius: 15px;
-    background: #ffffff38;
-    -webkit-backdrop-filter: blur(24px) saturate(1.6);
-    backdrop-filter: blur(24px) saturate(1.6);
-    box-shadow: inset 0 0 0 0.5px #ffffff4d;
     color: white;
     font-size: 13px;
     font-weight: 600;
@@ -2937,10 +2986,6 @@ kbd {
     justify-content: space-between;
     padding: 0 calc(var(--ios-margin) - var(--ios-dock-gap));
     border-radius: 40px;
-    background: #ffffff38;
-    -webkit-backdrop-filter: blur(30px) saturate(1.8);
-    backdrop-filter: blur(30px) saturate(1.8);
-    box-shadow: inset 0 0 0 0.5px #ffffff59;
   }
   .ios-dock .ios-home-label {
     display: none;
@@ -3028,8 +3073,6 @@ kbd {
     gap: 22px 28px;
     padding: 26px 26px 22px;
     border-radius: 38px;
-    background: #ffffff40;
-    box-shadow: inset 0 0 0 0.5px #ffffff59;
   }
 
   /* ---- Control Center (iOS 26) ---- */
@@ -3105,11 +3148,6 @@ kbd {
     max-width: 340px;
     margin: 0 auto;
   }
-  .pcc-module,
-  .pcc-round {
-    background: #ffffff2e;
-    box-shadow: inset 0 0 0 0.5px #ffffff40;
-  }
   .pcc-module {
     border-radius: 30px;
   }
@@ -3129,10 +3167,17 @@ kbd {
     place-items: center;
     padding: 8px;
   }
+  /* Buttons inside a glass module are plain fills, not glass on glass. */
   .pcc-connect .pcc-round {
     width: 60px;
     height: 60px;
+    background: #ffffff24;
     box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .pcc-connect .pcc-round::after {
+    display: none;
   }
   .pcc-music {
     grid-column: span 2;
@@ -3514,10 +3559,14 @@ kbd {
     overflow-y: hidden;
     border: 0;
     border-radius: 31px;
-    background: var(--ios-glass);
-    box-shadow: var(--ios-glass-edge);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
-    backdrop-filter: blur(24px) saturate(1.8);
+    background: var(--glass-bar, #ffffff6b);
+    box-shadow:
+      inset 0 1px 1px #ffffffe6,
+      inset 0 -1px 1px #ffffff66,
+      inset 0 0 0 0.5px #ffffff59,
+      0 8px 24px #00000024;
+    -webkit-backdrop-filter: blur(10px) saturate(1.8);
+    backdrop-filter: blur(10px) saturate(1.8);
     scrollbar-width: none;
   }
   .mac-window .mac-sidebar::-webkit-scrollbar {
@@ -3528,7 +3577,7 @@ kbd {
     display: contents;
   }
   .mac-window .mac-sidebar .sidebar-heading,
-  .mac-window .mac-sidebar > :not(button, nav, .sidebar-item, .settings-nav-group),
+  .mac-window .mac-sidebar > :not(button, nav, .sidebar-item, .settings-nav-group, .glass-lens),
   .mac-window[data-app="computer"] .mac-sidebar > button:not(.sidebar-item) {
     display: none;
   }
@@ -3555,6 +3604,50 @@ kbd {
   .mac-window .settings-sidebar .sidebar-item[data-selected="true"] {
     background: var(--ios-fill);
     color: var(--mac-accent);
+  }
+  /* With the glass lens (components/mac/glass-tab-lens.tsx) the lens is the
+     selection, so the tab itself stays clear and sits above the lens. */
+  .mac-window [data-lens] :is(.sidebar-item, .store-phone-tabs > button) {
+    position: relative;
+    z-index: 1;
+    transition:
+      scale 0.45s cubic-bezier(0.3, 1.6, 0.5, 1),
+      color 0.2s;
+  }
+  .mac-window [data-lens] :is(.sidebar-item, .store-phone-tabs > button):is([data-selected="true"], [aria-pressed="true"]) {
+    background: none;
+  }
+  .mac-window [data-lens] :is(.sidebar-item, .store-phone-tabs > button)[data-under] {
+    scale: 1.14;
+    color: var(--mac-accent);
+  }
+  .mac-window[data-phone-sidebar="tabs"] .mac-sidebar[data-lens],
+  .mac-window .store-phone-tabs[data-lens] {
+    overflow: visible;
+    touch-action: none;
+  }
+  .glass-lens {
+    position: absolute;
+    left: 0;
+    z-index: 0;
+    border-radius: 999px;
+    background: var(--ios-fill);
+    pointer-events: none;
+    transition:
+      background-color 0.25s,
+      box-shadow 0.25s;
+  }
+  /* Lifted: a clear lens above the icons, lit along its rim. */
+  .glass-lens[data-pressed] {
+    z-index: 2;
+    background: #ffffff14;
+    box-shadow:
+      inset 0 1.5px 1.5px #ffffffe6,
+      inset 0 -1px 1.5px #ffffff99,
+      inset 0 0 14px #ffffff40,
+      0 6px 22px #00000033;
+    -webkit-backdrop-filter: saturate(1.5) brightness(1.08);
+    backdrop-filter: saturate(1.5) brightness(1.08);
   }
   .mac-window .mac-sidebar .sidebar-item > svg {
     width: 18px;
@@ -4307,10 +4400,6 @@ kbd {
     gap: 12px;
     padding: 13px 14px;
     border-radius: 24px;
-    background: #ffffff38;
-    -webkit-backdrop-filter: blur(24px) saturate(1.6);
-    backdrop-filter: blur(24px) saturate(1.6);
-    box-shadow: inset 0 0 0 0.5px #ffffff4d;
     color: white;
     font-size: 15px;
     line-height: 1.3;
@@ -4352,9 +4441,6 @@ kbd {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: #00000038;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
     color: white;
   }
   .ios-lock-action[aria-pressed="true"] {

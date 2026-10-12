@@ -48,7 +48,7 @@ function Round({
 }) {
   return (
     <button
-      className="pcc-round"
+      className="pcc-round liquid-glass"
       aria-label={label}
       aria-pressed={on}
       style={on && tint ? { background: tint, color: "#fff" } : undefined}
@@ -81,7 +81,7 @@ function TallSlider({
   };
   return (
     <div
-      className="pcc-module pcc-slider"
+      className="liquid-glass pcc-module pcc-slider"
       role="slider"
       aria-label={label}
       aria-valuemin={Math.round(min * 100)}
@@ -170,7 +170,7 @@ export function PhoneControlCenter({
             }}
           >
             <div className="pcc-grid">
-              <div className="pcc-module pcc-connect">
+              <div className="liquid-glass pcc-module pcc-connect">
                 <Round label="Airplane Mode" on={airplane} tint="#ff9500" onClick={() => setAirplane(!airplane)}>
                   <Plane size={24} />
                 </Round>
@@ -185,7 +185,7 @@ export function PhoneControlCenter({
                 </Round>
               </div>
 
-              <div className="pcc-module pcc-music">
+              <div className="liquid-glass pcc-module pcc-music">
                 <button className="pcc-music-head" onClick={() => run("music")}>
                   <span className="pcc-art">
                     <Music size={18} />
@@ -213,7 +213,7 @@ export function PhoneControlCenter({
               </div>
 
               <button
-                className="pcc-module pcc-focus"
+                className="liquid-glass pcc-module pcc-focus"
                 aria-pressed={c.focusOn}
                 onClick={() => c.setFocusOn(!c.focusOn)}
               >
