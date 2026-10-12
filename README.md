@@ -6,10 +6,6 @@ Control Center, and windows they can drag, zoom, and minimize.
 
 **Live:** [syedabdulmuneeb.dev](https://www.syedabdulmuneeb.dev)
 
-**Demo** (41 s, sound on):
-
-<a href="docs/media/demo.mp4"><img src="docs/media/demo-poster.jpg" alt="Play the MuneebOS demo video" width="360"></a>
-
 ![MuneebOS lock screen](public/og-image.png)
 
 ## What's inside
