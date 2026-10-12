@@ -83,161 +83,167 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   // Translucent white so the wallpaper tints the text, like macOS vibrancy.
   const vibrantText = "text-white/70 [text-shadow:0_1px_8px_rgba(0,0,0,0.08)]";
 
+  const wallpaper = {
+    backgroundImage: savedWallpaper || DEFAULT_WALLPAPER,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+  };
+
   return (
-    <motion.div
-      // A phone's lock screen slides up out of the way and follows the
-      // finger; the Mac's fades.
-      animate={
-        phone
-          ? { y: isUnlocking ? "-100%" : 0 }
-          : { opacity: isUnlocking ? 0 : 1, scale: isUnlocking ? 1.04 : 1 }
-      }
-      transition={{ duration: phone ? 0.38 : 0.45, ease: phone ? [0.3, 0, 0.2, 1] : "easeInOut" }}
-      drag={phone && !isUnlocking ? "y" : false}
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={{ top: 0.9, bottom: 0.05 }}
-      dragMomentum={false}
-      onDragEnd={(_: unknown, info: PanInfo) => {
-        if (info.offset.y < -70 || info.velocity.y < -500) unlock();
-      }}
-      className="font-mac relative flex h-dvh w-dvw cursor-default select-none flex-col items-center overflow-hidden text-white"
-      style={{
-        backgroundImage: savedWallpaper || DEFAULT_WALLPAPER,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-      onClick={unlock}
-      onTouchStart={(event: TouchEvent<HTMLDivElement>) => {
-        touchStartY.current = event.touches[0]?.clientY ?? 0;
-      }}
-      onTouchEnd={(event: TouchEvent<HTMLDivElement>) => {
-        if (touchStartY.current - (event.changedTouches[0]?.clientY ?? 0) > 40)
-          unlock();
-      }}
-    >
-      {/* iPhone status bar: Dynamic Island, then signal, Wi-Fi, battery. */}
-      <div className="ios-lock-phone-status mobile-only" aria-hidden="true">
-        <span className="ios-island" />
-        <span className="ios-lock-phone-icons">
-          <Signal size={17} strokeWidth={2.6} />
-          <Wifi size={17} strokeWidth={2.6} />
-          <BatteryFull size={25} strokeWidth={1.8} />
-        </span>
-      </div>
-      {/* Status icons, top-right */}
-      <div className="ios-lock-status absolute right-4 top-0 z-10 flex h-[30px] items-center gap-4 text-[13px] font-medium text-white">
-        <span className="ios-lock-keyboard flex items-center gap-1.5">
-          ABC <Keyboard className="size-[15px]" strokeWidth={1.75} />
-        </span>
-        {battery?.charging ? (
-          <BatteryCharging className="size-[19px]" strokeWidth={1.75} />
-        ) : (
-          <BatteryFull className="size-[19px]" strokeWidth={1.75} />
-        )}
-        <Wifi className="size-4" strokeWidth={2.25} />
-      </div>
-
-      <div className="ios-lock-clock relative z-10 mt-[8.5vh] flex flex-col items-center text-center">
-        <div className={`lock-date text-[clamp(22px,3.3vh,34px)] font-semibold ${vibrantText}`}>
-          {date}
-        </div>
-        <div
-          className={`lock-time -mt-[0.5vh] text-[clamp(96px,15.5vh,156px)] font-bold leading-[1] tracking-[-0.025em] ${vibrantText}`}
-        >
-          {time}
-        </div>
-        {/* iPhone: who this is, under the clock. */}
-        <div className="lock-phone-intro mobile-only">
-          <strong>{profile.name}</strong>
-          <span>
-            {profile.role}
-          </span>
-        </div>
-        {battery && (
-          <div className={`lock-battery mt-[1.5vh] flex items-center gap-2 text-[clamp(16px,2.4vh,24px)] font-semibold ${vibrantText}`}>
-            {battery.charging ? (
-              <BatteryCharging className="size-[1.2em]" strokeWidth={2} />
-            ) : (
-              <BatteryFull className="size-[1.2em]" strokeWidth={2} />
-            )}
-            {battery.level}%
-          </div>
-        )}
-      </div>
-
-      {/* Unread notifications wait under the clock until they're opened. */}
-      {!phone && (
-        <div className="relative z-10 mt-[5vh] w-[360px] max-w-[calc(100vw-32px)]">
-          <NoticeList variant="lock" limit={noticeLimit} onOpen={openNotice} />
-        </div>
-      )}
-
-      <div className="ios-lock-profile relative z-10 mt-auto mb-[5.5vh] flex flex-col items-center">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
+    // The wallpaper stays behind the lock screen while it slides or fades
+    // away, so the desktop never appears over a blank page.
+    <div className="h-dvh w-dvw overflow-hidden" style={wallpaper}>
+      <motion.div
+        // A phone's lock screen slides up out of the way and follows the
+        // finger; the Mac's fades.
+        animate={
+          phone
+            ? { y: isUnlocking ? "-100%" : 0 }
+            : { opacity: isUnlocking ? 0 : 1, scale: isUnlocking ? 1.04 : 1 }
+        }
+        transition={{ duration: phone ? 0.38 : 0.45, ease: phone ? [0.3, 0, 0.2, 1] : "easeInOut" }}
+        drag={phone && !isUnlocking ? "y" : false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0.9, bottom: 0.05 }}
+        dragMomentum={false}
+        onDragEnd={(_: unknown, info: PanInfo) => {
+          if (info.offset.y < -70 || info.velocity.y < -500) unlock();
+        }}
+        className="font-mac relative flex h-dvh w-dvw cursor-default select-none flex-col items-center overflow-hidden text-white"
+        style={wallpaper}
+        onClick={unlock}
+        onTouchStart={(event: TouchEvent<HTMLDivElement>) => {
+          touchStartY.current = event.touches[0]?.clientY ?? 0;
+        }}
+        onTouchEnd={(event: TouchEvent<HTMLDivElement>) => {
+          if (touchStartY.current - (event.changedTouches[0]?.clientY ?? 0) > 40)
             unlock();
-          }}
-          aria-label="Unlock"
-          className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        >
-          <Image
-            src={avatar}
-            alt="Syed Abdul Muneeb"
-            width={52}
-            height={52}
-            priority
-            className="size-[clamp(44px,5.4vh,56px)] rounded-full object-cover shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
-          />
-        </button>
-        <div className="mt-[1.4vh] text-[clamp(14px,1.8vh,18px)] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
-          {profile.name}
-        </div>
-        <div className="mt-[0.4vh] text-[clamp(12px,1.45vh,15px)] font-medium text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
-          {profile.role}
-        </div>
-        <div className="mt-[1.2vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
-          Click or press Enter to unlock
-        </div>
-      </div>
-      {/* iPhone: unread notifications (or a welcome on a first visit), and
-          the torch and camera buttons. */}
-      {phone && hasNotices ? (
-        <div className="ios-lock-notices">
-          <NoticeList variant="lock" limit={3} onOpen={openNotice} />
-        </div>
-      ) : (
-        <div className="ios-lock-notification mobile-only">
-          <Image src="/avatar-256.jpg" alt="" width={38} height={38} />
-          <span>
-            <strong>Muneeb OS</strong>
-            <span>Welcome! Swipe up to explore my portfolio.</span>
-          </span>
-          <small>now</small>
-        </div>
-      )}
-      <button
-        className="ios-lock-action ios-lock-torch mobile-only"
-        aria-label="Flashlight"
-        aria-pressed={torch}
-        onClick={(e) => {
-          e.stopPropagation();
-          setTorch(!torch);
         }}
       >
-        <Flashlight size={22} fill={torch ? "currentColor" : "none"} />
-      </button>
-      <button
-        className="ios-lock-action ios-lock-camera mobile-only"
-        aria-label="Camera"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Camera size={22} />
-      </button>
-      <button className="ios-lock-open" onClick={unlock}>
-        Swipe up to open
-        <span aria-hidden="true" />
-      </button>
-    </motion.div>
+        {/* iPhone status bar: Dynamic Island, then signal, Wi-Fi, battery. */}
+        <div className="ios-lock-phone-status mobile-only" aria-hidden="true">
+          <span className="ios-island" />
+          <span className="ios-lock-phone-icons">
+            <Signal size={17} strokeWidth={2.6} />
+            <Wifi size={17} strokeWidth={2.6} />
+            <BatteryFull size={25} strokeWidth={1.8} />
+          </span>
+        </div>
+        {/* Status icons, top-right */}
+        <div className="ios-lock-status absolute right-4 top-0 z-10 flex h-[30px] items-center gap-4 text-[13px] font-medium text-white">
+          <span className="ios-lock-keyboard flex items-center gap-1.5">
+            ABC <Keyboard className="size-[15px]" strokeWidth={1.75} />
+          </span>
+          {battery?.charging ? (
+            <BatteryCharging className="size-[19px]" strokeWidth={1.75} />
+          ) : (
+            <BatteryFull className="size-[19px]" strokeWidth={1.75} />
+          )}
+          <Wifi className="size-4" strokeWidth={2.25} />
+        </div>
+
+        <div className="ios-lock-clock relative z-10 mt-[8.5vh] flex flex-col items-center text-center">
+          <div className={`lock-date text-[clamp(22px,3.3vh,34px)] font-semibold ${vibrantText}`}>
+            {date}
+          </div>
+          <div
+            className={`lock-time -mt-[0.5vh] text-[clamp(96px,15.5vh,156px)] font-bold leading-[1] tracking-[-0.025em] ${vibrantText}`}
+          >
+            {time}
+          </div>
+          {/* iPhone: who this is, under the clock. */}
+          <div className="lock-phone-intro mobile-only">
+            <strong>{profile.name}</strong>
+            <span>
+              {profile.role}
+            </span>
+          </div>
+          {battery && (
+            <div className={`lock-battery mt-[1.5vh] flex items-center gap-2 text-[clamp(16px,2.4vh,24px)] font-semibold ${vibrantText}`}>
+              {battery.charging ? (
+                <BatteryCharging className="size-[1.2em]" strokeWidth={2} />
+              ) : (
+                <BatteryFull className="size-[1.2em]" strokeWidth={2} />
+              )}
+              {battery.level}%
+            </div>
+          )}
+        </div>
+
+        {/* Unread notifications wait under the clock until they're opened. */}
+        {!phone && (
+          <div className="relative z-10 mt-[5vh] w-[360px] max-w-[calc(100vw-32px)]">
+            <NoticeList variant="lock" limit={noticeLimit} onOpen={openNotice} />
+          </div>
+        )}
+
+        <div className="ios-lock-profile relative z-10 mt-auto mb-[5.5vh] flex flex-col items-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              unlock();
+            }}
+            aria-label="Unlock"
+            className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <Image
+              src={avatar}
+              alt="Syed Abdul Muneeb"
+              width={52}
+              height={52}
+              priority
+              className="size-[clamp(44px,5.4vh,56px)] rounded-full object-cover shadow-[0_2px_10px_rgba(0,0,0,0.25)]"
+            />
+          </button>
+          <div className="mt-[1.4vh] text-[clamp(14px,1.8vh,18px)] font-semibold [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+            {profile.name}
+          </div>
+          <div className="mt-[0.4vh] text-[clamp(12px,1.45vh,15px)] font-medium text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+            {profile.role}
+          </div>
+          <div className="mt-[1.2vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
+            Click or press Enter to unlock
+          </div>
+        </div>
+        {/* iPhone: unread notifications (or a welcome on a first visit), and
+            the torch and camera buttons. */}
+        {phone && hasNotices ? (
+          <div className="ios-lock-notices">
+            <NoticeList variant="lock" limit={3} onOpen={openNotice} />
+          </div>
+        ) : (
+          <div className="ios-lock-notification mobile-only">
+            <Image src="/avatar-256.jpg" alt="" width={38} height={38} />
+            <span>
+              <strong>Muneeb OS</strong>
+              <span>Welcome! Swipe up to explore my portfolio.</span>
+            </span>
+            <small>now</small>
+          </div>
+        )}
+        <button
+          className="ios-lock-action ios-lock-torch mobile-only"
+          aria-label="Flashlight"
+          aria-pressed={torch}
+          onClick={(e) => {
+            e.stopPropagation();
+            setTorch(!torch);
+          }}
+        >
+          <Flashlight size={22} fill={torch ? "currentColor" : "none"} />
+        </button>
+        <button
+          className="ios-lock-action ios-lock-camera mobile-only"
+          aria-label="Camera"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Camera size={22} />
+        </button>
+        <button className="ios-lock-open" onClick={unlock}>
+          Swipe up to open
+          <span aria-hidden="true" />
+        </button>
+      </motion.div>
+    </div>
   );
 }
