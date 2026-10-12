@@ -212,7 +212,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
             <NoticeList variant="lock" limit={3} onOpen={openNotice} />
           </div>
         ) : (
-          <div className="ios-lock-notification mobile-only">
+          <div className="ios-lock-notification liquid-glass mobile-only">
             <Image src="/avatar-256.jpg" alt="" width={38} height={38} />
             <span>
               <strong>Muneeb OS</strong>
@@ -222,7 +222,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           </div>
         )}
         <button
-          className="ios-lock-action ios-lock-torch mobile-only"
+          className="ios-lock-action ios-lock-torch liquid-glass mobile-only"
           aria-label="Flashlight"
           aria-pressed={torch}
           onClick={(e) => {
@@ -233,7 +233,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           <Flashlight size={22} fill={torch ? "currentColor" : "none"} />
         </button>
         <button
-          className="ios-lock-action ios-lock-camera mobile-only"
+          className="ios-lock-action ios-lock-camera liquid-glass mobile-only"
           aria-label="Camera"
           onClick={(e) => e.stopPropagation()}
         >

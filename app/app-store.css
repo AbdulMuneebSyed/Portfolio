@@ -2191,10 +2191,14 @@
     height: 62px;
     padding: 4px;
     border-radius: 31px;
-    background: var(--ios-glass);
-    box-shadow: var(--ios-glass-edge);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
-    backdrop-filter: blur(24px) saturate(1.8);
+    background: var(--glass-bar, #ffffff6b);
+    box-shadow:
+      inset 0 1px 1px #ffffffe6,
+      inset 0 -1px 1px #ffffff66,
+      inset 0 0 0 0.5px #ffffff59,
+      0 8px 24px #00000024;
+    -webkit-backdrop-filter: blur(10px) saturate(1.8);
+    backdrop-filter: blur(10px) saturate(1.8);
   }
   .store-phone-tabs button {
     position: relative;

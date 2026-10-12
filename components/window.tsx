@@ -24,6 +24,7 @@ import {
 } from "@/lib/phone";
 import { spaceTargetAt, useMissionControl } from "@/lib/mission-control";
 import { shortcutKeys } from "@/lib/shortcuts";
+import { GlassTabLens } from "@/components/mac/glass-tab-lens";
 
 // Where Mission Control places this window: a centre point and a box the
 // scaled-down window must fit in.
@@ -652,6 +653,9 @@ export const Window = memo(function Window({
         >
           <AppBody app={App} metadata={win.metadata} />
         </div>
+        {compact && !mission && ["tabs", "chips"].includes(phoneApp(appId).sidebar ?? "chips") && (
+          <GlassTabLens frame={frame} tabs={phoneApp(appId).sidebar === "tabs"} />
+        )}
         {!expanded &&
           [
             "left",
