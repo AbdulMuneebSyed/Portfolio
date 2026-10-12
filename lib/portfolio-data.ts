@@ -134,6 +134,57 @@ export const projects: Project[] = [
     ],
   },
   {
+    id: "paighaam",
+    title: "Paighaam",
+    description:
+      "A real-time chat app that translates every message into the reader's language, across 20+ languages. One-on-one and group chats, with sign-in by phone number or MetaMask.",
+    techStack: ["Next.js", "TypeScript", "Supabase Realtime", "Gemini", "Tailwind"],
+    demoLink: "https://paighaam.vercel.app",
+    category: "Full Stack",
+    highlights: [
+      "Messages translated live across 20+ languages",
+      "Transliteration, so you can read how a reply sounds",
+      "Group chats over Supabase real-time subscriptions",
+    ],
+  },
+  {
+    id: "copyonscreenshot",
+    title: "CopyOnScreenShot",
+    description:
+      "A native macOS menu bar app. Press ⌘⇧V for the last five things you copied, and every new screenshot lands straight on the clipboard. Written in Swift, with no Dock icon.",
+    techStack: ["Swift", "AppKit", "macOS"],
+    demoLink: "https://github.com/AbdulMuneebSyed/CMD-PLUS-SHIFT-PLUS-V",
+    category: "macOS",
+    highlights: [
+      "Clipboard history picker on ⌘⇧V, driven by the keyboard",
+      "Screenshots copied as images the moment they're saved",
+      "Watches folders with DispatchSource instead of polling",
+    ],
+  },
+  {
+    id: "one-piss",
+    title: "One-Piss",
+    description:
+      "A desktop AI copilot for live coding assessments and technical interviews. It sits on screen as a translucent overlay that screen shares and recordings can't capture, reads the problem, and writes a solution. Bring your own model, or run it locally with Ollama.",
+    techStack: ["Electron", "React", "Vite", "TypeScript", "Ollama"],
+    demoLink: "https://github.com/AbdulMuneebSyed/One-Piss",
+    category: "Developer Tools",
+    highlights: [
+      "Hidden from screen shares and recordings via OS-level content protection",
+      "One-click solve or region crop of the problem on screen",
+      "Any model via your own key (OpenAI, Claude, DeepSeek, OpenRouter) or local Ollama",
+    ],
+  },
+  {
+    id: "aletheia",
+    title: "Aletheia",
+    description:
+      "An AI fact-checker. Give it a claim and it breaks it down and says whether it holds up, in short, direct answers. Built on Gemini with Next.js.",
+    techStack: ["Next.js", "TypeScript", "Gemini"],
+    demoLink: "https://aletheia-truth-debugger.vercel.app",
+    category: "AI Agents",
+  },
+  {
     id: "muneebos",
     title: "Muneeb OS (this portfolio)",
     description:

@@ -262,28 +262,64 @@ export function MockScreen({ kind, tint }: { kind: MockKind; tint: string }) {
           <p className="me">Usually under a minute.</p>
         </div>
       );
-    case "agent-chat":
-      return (
-        <div className="mock mock-chat" style={style}>
-          <p className="them">What are customers saying about onboarding this week?</p>
-          <p className="me">12 calls mention setup friction, mostly around SSO. Two contradict last sprint&apos;s notes.</p>
-          <p className="them">Show me the contradictions.</p>
-          <p className="me">Here they are, with the source of each.</p>
-        </div>
-      );
-    case "daily-brief":
+    case "overlay":
       return (
         <div className="mock mock-stack" style={style}>
-          <div className="mock-heading">Daily Brief</div>
+          <div className="mock-card muted">
+            <small>Shared screen</small>
+            <p>Two Sum: return the indices of the two numbers that add up to target.</p>
+          </div>
+          <div className="mock-card accent">
+            <small>Overlay · only you see this</small>
+            <p className="font-mono text-[11px] leading-snug">
+              seen = {"{}"}; for i, n in enumerate(nums): if target - n in seen: return [seen[target - n], i]; seen[n] = i
+            </p>
+          </div>
+        </div>
+      );
+    case "fact-check":
+      return (
+        <div className="mock mock-chat" style={style}>
+          <p className="them">We only use 10% of our brains.</p>
+          <p className="me">False. Brain scans show activity across almost every region, even during sleep.</p>
+          <p className="them">The Great Wall is visible from space?</p>
+          <p className="me">Not to the naked eye from orbit. It&apos;s long but far too narrow.</p>
+        </div>
+      );
+    case "translate-chat":
+      return (
+        <div className="mock mock-chat" style={style}>
+          <p className="them">
+            ¿Vienes a la reunión mañana?
+            <br />
+            <small>Are you coming to the meeting tomorrow?</small>
+          </p>
+          <p className="me">
+            Haan, main 10 baje pahunch jaunga.
+            <br />
+            <small>Sí, llegaré a las 10.</small>
+          </p>
+          <p className="them">
+            ¡Perfecto, nos vemos!
+            <br />
+            <small>Perfect, see you there!</small>
+          </p>
+        </div>
+      );
+    case "clipboard":
+      return (
+        <div className="mock mock-stack" style={style}>
+          <div className="mock-heading">Clipboard · ⌘⇧V</div>
           {[
-            ["Gmail", "3 customer threads need a reply"],
-            ["Calls", "SSO setup came up 5 times"],
-            ["Tickets", "2 bugs reopened overnight"],
-            ["Roadmap", "1 decision contradicts a spec"],
-          ].map(([source, text]) => (
-            <div key={source} className="mock-list-row">
-              <span className="mock-pill">{source}</span>
-              <span className="flex-1">{text}</span>
+            ["Text", "git push origin main"],
+            ["Image", "Screenshot 2026-10-12 at 7.13 PM"],
+            ["Text", "samuneeb786@gmail.com"],
+            ["Link", "syedabdulmuneeb.dev"],
+            ["Text", "SELECT * FROM chapters LIMIT 10;"],
+          ].map(([type, text], i) => (
+            <div key={text} className="mock-list-row" style={i === 0 ? { background: "color-mix(in srgb, var(--tint) 22%, transparent)", borderRadius: 8 } : undefined}>
+              <span className="mock-pill">{type}</span>
+              <span className="flex-1 truncate">{text}</span>
             </div>
           ))}
         </div>

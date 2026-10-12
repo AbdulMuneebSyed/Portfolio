@@ -34,14 +34,16 @@ export type MockKind =
   | "profile"
   | "crm"
   | "chatbot"
-  | "agent-chat"
-  | "daily-brief"
   | "sql"
   | "paper"
   | "hackathon"
   | "stats"
   | "desktop"
-  | "timeline";
+  | "timeline"
+  | "translate-chat"
+  | "clipboard"
+  | "overlay"
+  | "fact-check";
 
 export interface Version {
   version: string;
@@ -185,47 +187,6 @@ const PROJECT_ITEMS: StoreItem[] = [
     ],
   },
   {
-    id: "arrwin",
-    kind: "project",
-    name: "Arrwin",
-    subtitle: "An AI assistant for product managers",
-    category: "AI Agents",
-    description: project("arrwin").description,
-    highlights: project("arrwin").highlights,
-    techStack: project("arrwin").techStack,
-    website: project("arrwin").demoLink,
-    chart: { rank: 1, list: "AI Agents" },
-    award: "Built at PulseGen",
-    size: "Web",
-    age: "4+",
-    platforms: ["Web"],
-    tint: "#5856d6",
-    slides: [
-      {
-        strong: "Ask your product anything.",
-        caption: "Streaming chat over every call, doc and ticket, with contradictions flagged.",
-        mock: "agent-chat",
-      },
-      {
-        strong: "The Daily Brief.",
-        caption: "Gmail and other connectors via MCP and REST, summed up every morning.",
-        mock: "daily-brief",
-      },
-    ],
-    versions: [
-      {
-        version: "Daily Brief",
-        date: "2026",
-        notes: "Gmail and other connectors via MCP and REST APIs.",
-      },
-      {
-        version: "1.0",
-        date: "2026",
-        notes: "Ingestion, streaming chat, contradiction detection and tenant-isolated knowledge.",
-      },
-    ],
-  },
-  {
     id: "hypogen",
     kind: "project",
     name: "Hypogen",
@@ -233,7 +194,7 @@ const PROJECT_ITEMS: StoreItem[] = [
     category: "AI Agents",
     description: project("hypogen").description,
     techStack: project("hypogen").techStack,
-    chart: { rank: 2, list: "AI Agents" },
+    chart: { rank: 1, list: "AI Agents" },
     size: "Pipeline",
     age: "4+",
     platforms: ["Web"],
@@ -391,6 +352,126 @@ const PROJECT_ITEMS: StoreItem[] = [
     ],
   },
   {
+    id: "paighaam",
+    kind: "project",
+    name: "Paighaam",
+    subtitle: "Chat in any language, read in yours",
+    category: "Full Stack",
+    description: project("paighaam").description,
+    highlights: project("paighaam").highlights,
+    techStack: project("paighaam").techStack,
+    website: project("paighaam").demoLink,
+    chart: { rank: 2, list: "Full Stack" },
+    size: "Web",
+    age: "4+",
+    platforms: ["Web", "iPhone"],
+    tint: "#34c759",
+    slides: [
+      {
+        strong: "Write in yours. Read in theirs.",
+        caption: "Every message is translated into the reader's language as it arrives.",
+        mock: "translate-chat",
+      },
+    ],
+    versions: [
+      {
+        version: "1.0",
+        date: "2025",
+        notes: "Real-time translation across 20+ languages, group chats and MetaMask sign-in.",
+      },
+    ],
+  },
+  {
+    id: "copyonscreenshot",
+    kind: "project",
+    name: "CopyOnScreenShot",
+    subtitle: "Clipboard history for the menu bar",
+    category: "macOS",
+    description: project("copyonscreenshot").description,
+    highlights: project("copyonscreenshot").highlights,
+    techStack: project("copyonscreenshot").techStack,
+    website: project("copyonscreenshot").demoLink,
+    chart: { rank: 1, list: "macOS" },
+    award: "Native Swift",
+    size: "Mac app",
+    age: "4+",
+    platforms: ["Mac"],
+    tint: "#8e8e93",
+    slides: [
+      {
+        strong: "⌘⇧V, then Enter.",
+        caption: "Your last five copies, ready to paste back into the app you were in.",
+        mock: "clipboard",
+      },
+    ],
+    versions: [
+      {
+        version: "1.0",
+        date: "2026",
+        notes: "Clipboard history, auto-copied screenshots and launch at login.",
+      },
+    ],
+  },
+  {
+    id: "one-piss",
+    kind: "project",
+    name: "One-Piss",
+    subtitle: "An invisible AI copilot for coding rounds",
+    category: "Developer Tools",
+    description: project("one-piss").description,
+    highlights: project("one-piss").highlights,
+    techStack: project("one-piss").techStack,
+    website: project("one-piss").demoLink,
+    chart: { rank: 1, list: "Developer Tools" },
+    size: "Desktop app",
+    age: "4+",
+    platforms: ["Mac", "Windows"],
+    tint: "#1c1c1e",
+    slides: [
+      {
+        strong: "On your screen. Not on theirs.",
+        caption: "A translucent overlay that screen shares and recordings can't see.",
+        mock: "overlay",
+      },
+    ],
+    versions: [
+      {
+        version: "1.0",
+        date: "2026",
+        notes: "Screen solver, region crop, global hotkeys and local Ollama.",
+      },
+    ],
+  },
+  {
+    id: "aletheia",
+    kind: "project",
+    name: "Aletheia",
+    subtitle: "Debug a claim, get the truth",
+    category: "AI Agents",
+    description: project("aletheia").description,
+    techStack: project("aletheia").techStack,
+    website: project("aletheia").demoLink,
+    chart: { rank: 2, list: "AI Agents" },
+    size: "Web",
+    age: "4+",
+    platforms: ["Web"],
+    tint: "#bf8b2e",
+    slides: [
+      {
+        strong: "Is that actually true?",
+        caption: "Paste a claim and get it broken down, point by point.",
+        mock: "fact-check",
+      },
+    ],
+    versions: [
+      {
+        version: "1.0",
+        date: "2025",
+        notes: "Gemini-powered claim checking with conversation history.",
+      },
+    ],
+  },
+  {
     id: "muneebos",
     kind: "project",
     name: "MuneebOS",
@@ -479,16 +560,21 @@ const EXPERIENCE_SITES: Record<string, string> = {
   "ecell-mjcet": "https://www.ecell-mjcet.com/",
 };
 
+// The App Store leaves out Arrwin, PulseGen's product, so its job page
+// drops the point that names it.
+const storePoints = (points: string[]) => points.filter((p) => !p.startsWith("Arrwin"));
+
 const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
   const { role, company } = entry;
+  const points = storePoints(entry.points);
   return {
     id: `exp-${entry.id}`,
     kind: "experience",
     name: company,
     subtitle: `${role} · ${entry.period}`,
     category: "Experience",
-    description: entry.points.join("\n"),
-    highlights: entry.points,
+    description: points.join("\n"),
+    highlights: points,
     appId: "about",
     aboutTab: "Experience",
     website: EXPERIENCE_SITES[entry.id],
@@ -500,9 +586,9 @@ const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
     tint: EXPERIENCE_TINTS[entry.id] ?? "#0a84ff",
     slides: [
       { strong: role, caption: `${company}, ${entry.location}.`, mock: "timeline" },
-      { strong: "Results.", caption: entry.points[0], mock: "stats" },
+      { strong: "Results.", caption: points[0], mock: "stats" },
     ],
-    versions: [{ version: role, date: entry.period, notes: entry.points[0] }],
+    versions: [{ version: role, date: entry.period, notes: points[0] }],
   };
 });
 
