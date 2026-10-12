@@ -154,6 +154,20 @@ export const Window = memo(function Window({
   const edgeSwipe = useRef<{ x: number; y: number } | null>(null);
   // On a phone every app fills the screen, under the status bar.
   const compact = usePhone();
+  // iOS 26 scroll edge: once a page scrolls, its top edge fades the content
+  // out under the navigation bar instead of cutting it off.
+  useEffect(() => {
+    const root = frame.current;
+    if (!compact || !root) return;
+    const onScroll = (e: Event) => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement) || !root.contains(el)) return;
+      if (el.scrollTop > 2) el.dataset.scrollEdge = "";
+      else delete el.dataset.scrollEdge;
+    };
+    root.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    return () => root.removeEventListener("scroll", onScroll, { capture: true });
+  }, [compact]);
   const availableHeight = compact
     ? viewport.height
     : Math.max(180, viewport.height - MENU_BAR_HEIGHT - DOCK_RESERVED_HEIGHT);

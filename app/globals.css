@@ -3459,6 +3459,10 @@ kbd {
     gap: 8px;
     padding: 4px 16px 8px !important;
   }
+  .mac-window [data-scroll-edge] {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 36px);
+    mask-image: linear-gradient(to bottom, transparent, #000 36px);
+  }
   /* The title keeps its full width; controls that don't fit drop below it,
      like the search field under an iOS large title. */
   .mac-window .mac-toolbar:has(> h2) {
