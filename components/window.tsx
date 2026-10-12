@@ -99,11 +99,13 @@ const INTERACTIVE =
   "button, input, textarea, select, a, label, [role='button'], [contenteditable='true']";
 
 // Unified windows are dragged by the empty parts of the toolbar and of the
-// sidebar's top strip, like a real title bar.
+// top strip the traffic lights sit in, like a real title bar. The strip
+// counts in every app, so ones without a toolbar (the App Store's
+// mini-apps) can still be moved.
 function isDragRegion(target: HTMLElement, frameTop: number, clientY: number) {
-  if (target.closest(INTERACTIVE)) return false;
+  if (target.closest(`${INTERACTIVE}, canvas`)) return false;
   if (target.closest(".mac-toolbar")) return true;
-  return !!target.closest(".mac-sidebar") && clientY - frameTop < 52;
+  return clientY - frameTop < 52;
 }
 
 // Memoised, with stable props from the Desktop, so dragging or focusing one
