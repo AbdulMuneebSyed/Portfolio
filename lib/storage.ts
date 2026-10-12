@@ -19,6 +19,14 @@ export function writeJSON(key: string, value: unknown) {
   }
 }
 
+export function removeKey(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 export function readString(key: string): string | null {
   try {
     return localStorage.getItem(key);
