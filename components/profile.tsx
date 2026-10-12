@@ -17,8 +17,7 @@ export function Profile({ hidden = false }: { hidden?: boolean }) {
       <header>
         <h1>{profile.name}</h1>
         <p>
-          Software engineer · {profile.role} · {profile.location}.{" "}
-          {profile.status}.
+          Software engineer · {profile.role} · {profile.location}.
         </p>
         <p>
           Full-stack engineer who builds AI-agent products. Built

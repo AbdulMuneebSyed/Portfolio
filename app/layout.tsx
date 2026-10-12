@@ -8,7 +8,7 @@ import "./app-store.css";
 
 // Role and impact first: this is what search results and link previews show.
 const DESCRIPTION =
-  "Syed Abdul Muneeb is a software engineer at PulseGen, Hyderabad, building AI-agent products: streaming LLM chat, MCP integrations and multi-tenant search. Previously scaled MathonGO to 30K+ daily users. Open to SDE roles.";
+  "Syed Abdul Muneeb is a software engineer at PulseGen, Hyderabad, building AI-agent products: streaming LLM chat, MCP integrations and multi-tenant search. Previously scaled MathonGO to 30K+ daily users.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.syedabdulmuneeb.dev"),

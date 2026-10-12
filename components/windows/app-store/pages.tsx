@@ -281,14 +281,14 @@ export function AccountPage() {
         </form>
       )}
       <section className="store-section">
-        <SectionHeader title="You Have 1 Developer to Adopt" />
+        <SectionHeader title="You Have 1 Developer to Meet" />
         <div className="store-adopt">
           <p>
-            Syed Abdul Muneeb is open to full-time software engineering roles. Adopting him assigns a
-            full-stack engineer to your team; no hardware identifier required.
+            Syed Abdul Muneeb builds AI-agent products and full-stack apps. Say hello and
+            he'll write back; no hardware identifier required.
           </p>
           <button className="store-get" data-prominent="true" onClick={() => launchApp("contact")}>
-            Hire
+            Say Hi
           </button>
         </div>
         <div className="store-adopt-apps">

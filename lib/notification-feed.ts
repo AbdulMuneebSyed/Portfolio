@@ -50,13 +50,6 @@ export const FEED: FeedItem[] = [
     body: "Now an SDE at PulseGen, working on AI-agent products. Open the full resume.",
   },
   {
-    id: "open-to-roles",
-    tier: 2,
-    appId: "contact",
-    title: "Mail",
-    body: "Muneeb is open to SDE roles. Have an opportunity? Write to him here.",
-  },
-  {
     id: "arrwin",
     tier: 2,
     appId: "projects",

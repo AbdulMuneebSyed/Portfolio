@@ -5,7 +5,6 @@
 export const profile = {
   name: "Syed Abdul Muneeb",
   role: "SDE at PulseGen",
-  status: "Open to SDE roles",
   location: "Hyderabad, India",
   email: "samuneeb786@gmail.com",
   linkedin: "https://www.linkedin.com/in/syed-abdul-muneeb/",

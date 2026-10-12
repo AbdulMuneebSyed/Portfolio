@@ -103,7 +103,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
         {
           itemId: "contact",
           eyebrow: "Say hello",
-          title: "Hiring? Let's talk",
+          title: "Got an idea? Let's talk",
           subtitle: "Messages land straight in my inbox.",
           art: { colors: ["#002a5c", "#0a84ff", "#64d2ff"], motif: "rings", iconId: "contact" },
         },

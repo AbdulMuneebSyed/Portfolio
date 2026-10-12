@@ -76,7 +76,7 @@ export default async function OpengraphImage() {
             opacity: 0.85,
           }}
         >
-          <span>{profile.status} · {profile.location}</span>
+          <span>{profile.location}</span>
           <span>syedabdulmuneeb.dev</span>
         </div>
       </div>

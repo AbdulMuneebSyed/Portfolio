@@ -80,10 +80,6 @@ export function AboutWindow({ tab: initialTab }: { tab?: string }) {
               </p>
               <dl className="about-facts">
                 <div>
-                  <dt>Status</dt>
-                  <dd>{profile.status}</dd>
-                </div>
-                <div>
                   <dt>Currently</dt>
                   <dd>SDE at PulseGen, working on AI agents</dd>
                 </div>

@@ -150,7 +150,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
         <div className="lock-phone-intro mobile-only">
           <strong>{profile.name}</strong>
           <span>
-            {profile.role} · {profile.status}
+            {profile.role}
           </span>
         </div>
         {battery && (
@@ -194,7 +194,7 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
           {profile.name}
         </div>
         <div className="mt-[0.4vh] text-[clamp(12px,1.45vh,15px)] font-medium text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
-          {profile.role} · {profile.status}
+          {profile.role}
         </div>
         <div className="mt-[1.2vh] text-[clamp(12px,1.35vh,14px)] font-medium text-white/80 [text-shadow:0_1px_3px_rgba(0,0,0,0.3)]">
           Click or press Enter to unlock
