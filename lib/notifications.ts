@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { useSystemControls } from "./system-controls";
-import { readJSON, writeJSON } from "./storage";
+import { readJSON, removeKey, writeJSON } from "./storage";
 
 // Notifications, macOS/iOS style. Each one shows briefly as a banner and
 // stays in Notification Center and on the lock screen until it's opened or
@@ -17,7 +17,10 @@ export interface Notice {
 const BANNER_DURATION_MS = 5000;
 const MAX_BANNERS = 3;
 const MAX_NOTICES = 20;
-const STORAGE_KEY = "muneebos-notifications-v1";
+// Saved notices keep their text, so a key bump drops copy that's since
+// changed on the site. v1 still held the old "open to roles" notice.
+const STORAGE_KEY = "muneebos-notifications-v2";
+const OLD_STORAGE_KEY = "muneebos-notifications-v1";
 let seq = 0;
 
 interface NotificationState {
@@ -79,6 +82,7 @@ export const useNotifications = create<NotificationState>((set, get) => ({
   },
   setPendingOpen: (pendingOpen) => set({ pendingOpen }),
   loadNotifications: () => {
+    removeKey(OLD_STORAGE_KEY);
     const saved = readJSON<unknown>(STORAGE_KEY, []);
     if (Array.isArray(saved)) set({ notices: saved.slice(0, MAX_NOTICES) });
   },
