@@ -611,7 +611,7 @@ const APP_DETAILS: Record<string, AppDetails> = {
   about: {
     subtitle: "Meet the developer",
     description:
-      "Syed Abdul Muneeb is a full-stack engineer who has shipped products used by lakhs of students and thousands of businesses. Experience, skills and awards, all in one window.",
+      "Syed Abdul Muneeb is a full-stack engineer who has shipped products used by lakhs of students and thousands of businesses. Work, experience and contact, on one website.",
     tint: "#ff9f0a",
     slides: [
       { strong: "Hello.", caption: "Who I am and what I build.", live: "about" },

@@ -8,11 +8,11 @@ export default function Home() {
   return (
     <>
       {/* The first Tab stop: keyboard and screen-reader users can skip the
-          OS and read the profile as a plain page. */}
+          OS and read the portfolio as an ordinary website. */}
       <a href="/profile" className="skip-link">
-        Skip to a plain-text profile
+        Skip to the website version
       </a>
-      <Profile hidden />
+      <Profile />
       <Shell />
     </>
   );

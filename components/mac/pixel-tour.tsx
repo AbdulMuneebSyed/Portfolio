@@ -123,7 +123,7 @@ export function PixelTour({ run, onComplete, onSkip }: TourProps) {
       switch (icon.id) {
         case "about":
           content =
-            "🙋 About Me: my experience at PulseGen, MathonGO and AiResumate, plus skills and awards.";
+            "🙋 About Me: my portfolio website, with my work, experience at PulseGen, MathonGO and AiResumate, and how to reach me.";
           break;
         case "projects":
           content =

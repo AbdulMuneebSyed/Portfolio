@@ -140,8 +140,8 @@ export function StoreArt({
 
 // Stylised app screens for product-page slides, drawn instead of captured
 // where a live site can't be screenshotted.
-const bar = (w: string, extra?: React.CSSProperties) => (
-  <span className="mock-bar" style={{ width: w, ...extra }} />
+const bar = (w: string, extra?: React.CSSProperties, key?: React.Key) => (
+  <span key={key} className="mock-bar" style={{ width: w, ...extra }} />
 );
 
 export function MockScreen({ kind, tint }: { kind: MockKind; tint: string }) {
@@ -153,7 +153,7 @@ export function MockScreen({ kind, tint }: { kind: MockKind; tint: string }) {
           <div className="mock-paper">
             {bar("60%", { height: 10 })}
             {bar("40%")}
-            {Array.from({ length: 9 }, (_, i) => bar(`${70 + ((i * 13) % 30)}%`))}
+            {Array.from({ length: 9 }, (_, i) => bar(`${70 + ((i * 13) % 30)}%`, undefined, i))}
           </div>
           <div className="mock-panel">
             <div className="mock-gauge">

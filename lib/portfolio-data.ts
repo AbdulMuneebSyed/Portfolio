@@ -247,6 +247,8 @@ export const timeline = [
     role: "SDE",
     company: "PulseGen",
     location: "Hyderabad",
+    url: "https://www.pulsegen.io",
+    stack: ["Next.js", "TypeScript", "MongoDB", "Redis Streams", "AWS", "MCP"],
     points: [
       "Arrwin, an AI assistant for product managers: ingestion, streaming chat, contradiction detection and tenant-isolated knowledge workflows with Next.js, TypeScript, MongoDB, Redis Streams, S3 and AI agents.",
       "Shipped the Daily Brief for PMs, integrating Gmail and other connectors via MCP and REST APIs; diagnosed auth and permission failures across MongoDB Atlas and OAuth scopes.",
@@ -261,6 +263,8 @@ export const timeline = [
     role: "SDE Intern",
     company: "MathonGO (GetMarks)",
     location: "Bengaluru",
+    url: "https://web.getmarks.app",
+    stack: ["React", "Redux", "REST APIs", "Node.js"],
     points: [
       "Built and optimized the Leaderboard and League modules for GetMarks in React with REST APIs, handling 1L+ weekly rank updates with low-latency UX.",
       "Led the NEET v2 revamp: refactored data flow, API caching and the rendering pipeline; the release coincided with 3x daily NEET users.",
@@ -273,6 +277,8 @@ export const timeline = [
     role: "Co-founder & Full Stack Developer",
     company: "AiResumate",
     location: "Remote",
+    url: "https://airesumate.com",
+    stack: ["Next.js", "Gemini", "OpenAI", "Claude", "Cashfree", "Vercel"],
     points: [
       "Shipped an AI resume platform (Next.js) routing between Gemini, OpenAI GPT and Claude for real-time ATS scoring and rewriting, via serverless REST endpoints.",
       "Integrated Cashfree payments with zero-downtime Vercel CI/CD; reached 1K+ visitors and $150+ revenue in month one.",
@@ -286,6 +292,8 @@ export const timeline = [
     role: "Full Stack Developer",
     company: "Capco-CS",
     location: "Remote",
+    url: "https://www.capco-cs.com",
+    stack: ["React", "Supabase", "Gemini"],
     points: [
       "Built a custom CRM and a React/Supabase vendor portal: +30% client management efficiency, +25% vendor onboarding.",
       "Integrated a Gemini-powered support chatbot, making support responses 90% faster.",
@@ -297,6 +305,8 @@ export const timeline = [
     role: "Tech Lead",
     company: "E-Cell MJCET",
     location: "Hyderabad",
+    url: "https://www.hackrevolution.in",
+    stack: ["Next.js", "TypeScript", "Tailwind"],
     points: [
       "Led a 5-member team building the hackathon platform (Next.js): 500K+ visitors, 30K users (440% growth), 127+ registrations/day at peak.",
     ],

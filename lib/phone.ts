@@ -66,7 +66,6 @@ export interface PhoneApp {
 }
 
 export const PHONE_APPS: Record<string, PhoneApp> = {
-  about: { sidebar: "tabs" },
   projects: { icon: "xcode" },
   resume: { icon: "pages" },
   "github-activity": { icon: "github" },

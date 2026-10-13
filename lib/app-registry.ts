@@ -41,7 +41,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     icon: "/avatar-256.jpg",
     component: "AboutWindow",
     category: "Portfolio",
-    description: "Experience, skills, and awards.",
+    description: "Muneeb's portfolio website: work, experience and contact.",
     defaultSize: { width: 860, height: 640 },
     defaultIconPosition: gridCell(0, 0),
     showOnDesktop: true,

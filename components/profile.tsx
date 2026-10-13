@@ -8,12 +8,12 @@ import {
   timeline,
 } from "@/lib/portfolio-data";
 
-// Muneeb's profile as plain, server-rendered HTML. On `/` it is visually
-// hidden behind the OS (for crawlers, screen readers and no-JS visitors);
-// at `/profile` it is the page.
-export function Profile({ hidden = false }: { hidden?: boolean }) {
+// Muneeb's profile as plain, server-rendered HTML, visually hidden behind
+// the OS on `/` for crawlers, screen readers and no-JS visitors. The
+// readable version is the website at `/profile`.
+export function Profile() {
   return (
-    <main className={hidden ? "sr-only" : "profile-page"} id="profile">
+    <main className="sr-only" id="profile">
       <header>
         <h1>{profile.name}</h1>
         <p>
@@ -100,15 +100,9 @@ export function Profile({ hidden = false }: { hidden?: boolean }) {
         </ul>
       </section>
 
-      {hidden ? (
-        <p>
-          <a href="/profile">Read this profile as a plain page</a>
-        </p>
-      ) : (
-        <p>
-          <a href="/">Open Muneeb OS, the interactive version</a>
-        </p>
-      )}
+      <p>
+        <a href="/profile">Read this portfolio as a website</a>
+      </p>
     </main>
   );
 }

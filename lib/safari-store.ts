@@ -33,7 +33,18 @@ export const START_SECTIONS: { id: StartSection; label: string }[] = [
   { id: "closed", label: "Recently Closed Tabs" },
 ];
 
+// The portfolio website, on whichever host the OS is served from, so a
+// preview deploy or localhost opens its own copy.
+const LIVE_PORTFOLIO = "https://www.syedabdulmuneeb.dev/profile";
+const portfolioUrl = () =>
+  typeof window === "undefined" ? LIVE_PORTFOLIO : `${location.origin}/profile`;
+
 export const DEFAULT_BOOKMARKS: SafariPage[] = [
+  {
+    title: "Portfolio",
+    url: portfolioUrl(),
+    description: "Muneeb's portfolio as an ordinary website.",
+  },
   {
     title: "LinkedIn",
     url: profile.linkedin,
@@ -151,8 +162,11 @@ export const useSafari = create<SafariState>((set, get) => {
       const saved = readJSON<Partial<Persisted>>(STORAGE_KEY, {}) ?? {};
       set({
         loaded: true,
+        // Saved bookmarks keep the portfolio on this host too.
         bookmarks: Array.isArray(saved.bookmarks)
-          ? saved.bookmarks
+          ? saved.bookmarks.map((b) =>
+              sameUrl(b.url, LIVE_PORTFOLIO) ? { ...b, url: portfolioUrl() } : b,
+            )
           : DEFAULTS.bookmarks,
         readingList: Array.isArray(saved.readingList) ? saved.readingList : [],
         history: Array.isArray(saved.history) ? saved.history : [],

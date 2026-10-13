@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Profile } from "@/components/profile";
+import { Site } from "@/components/site/site";
+import "./site.css";
 
 export const metadata: Metadata = {
-  title: "Profile",
+  title: { absolute: "Syed Abdul Muneeb · Software Engineer" },
   description:
-    "Syed Abdul Muneeb's experience, projects, skills and contact details as a plain page.",
+    "Syed Abdul Muneeb's portfolio: software engineer at PulseGen building AI-agent products. Experience, projects, research and contact.",
   alternates: { canonical: "/profile" },
 };
 
 export default function ProfilePage() {
-  return <Profile />;
+  return <Site />;
 }

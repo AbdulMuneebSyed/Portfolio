@@ -94,6 +94,8 @@ const TITLE_BARS: Partial<
 > = {
   TerminalWindow: { style: "titled", title: "muneeb — -zsh — 80×24" },
   Calculator: { style: "transparent" },
+  // A web page fills the window, so it needs a title bar to drag by.
+  AboutWindow: { style: "titled" },
 };
 const INTERACTIVE =
   "button, input, textarea, select, a, label, [role='button'], [contenteditable='true']";
