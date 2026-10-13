@@ -8,10 +8,23 @@ Control Center, and windows they can drag, zoom, and minimize.
 
 ![MuneebOS lock screen](public/og-image.png)
 
-> The portfolio website (`/profile`, also About Me) is inspired by
-> [Majd's portfolio](https://majd-portfolio.framer.website/) by
-> Mejed Alkoutaini ([@mejed-alkoutaini](https://github.com/mejed-alkoutaini)).
-> Thank you for the inspiration!
+> **Credits and shout-outs**
+>
+> - The portfolio website (`/profile`, also About Me) is inspired by
+>   [Majd's portfolio](https://majd-portfolio.framer.website/) by
+>   Mejed Alkoutaini ([@mejed-alkoutaini](https://github.com/mejed-alkoutaini)).
+>   Thank you for the inspiration!
+> - The look and feel is modeled on Apple's macOS (and iOS on phones).
+>   The default wallpaper is Apple's macOS Big Sur wallpaper.
+> - Big Sur-style app icons (Finder, Safari, Terminal, Mail, System Settings,
+>   Calculator, Notes) from [PuruVJ/macos-web](https://github.com/PuruVJ/macos-web).
+> - System Settings sidebar icons from the
+>   [Alfred System Settings workflow](https://github.com/alfredapp/system-settings-workflow).
+>
+> I don't own any of these designs, icons, wallpapers or trademarks; all
+> rights belong to their owners. Apple, macOS, iOS, Finder, Safari, and the
+> Apple logo are trademarks of Apple Inc. This is a personal portfolio project
+> and is not affiliated with or endorsed by Apple.
 
 ## What's inside
 
@@ -202,17 +215,6 @@ builds with `npm run build` and needs no environment variables.
   tab to share each time.
 - Wi-Fi, Bluetooth, and brightness controls affect the site only — a web
   page can't change system settings.
-
-## Credits
-
-- Big Sur-style app icons (Finder, Safari, Terminal, Mail, System Settings,
-  Calculator, Notes) from [PuruVJ/macos-web](https://github.com/PuruVJ/macos-web).
-- System Settings sidebar icons from the
-  [Alfred System Settings workflow](https://github.com/alfredapp/system-settings-workflow).
-- The default wallpaper is Apple's macOS Big Sur wallpaper.
-- Apple, macOS, Finder, Safari, and the Apple logo are trademarks of
-  Apple Inc. This is a personal portfolio project and is not affiliated with
-  or endorsed by Apple.
 
 ## Contact
 
