@@ -1,3 +1,5 @@
+import { profile } from "./portfolio-data";
+
 // The notifications that drop in while someone looks around, drawn from the
 // resume. Tier 0 opens every visit (the LinkedIn invite), then tier 1
 // (GitHub, the resume), highlights, and nudges towards corners of the OS
@@ -148,7 +150,12 @@ export function pickNext(
   openedApps: ReadonlySet<string>,
   random = Math.random,
 ): FeedItem | null {
-  const fresh = FEED.filter((item) => !seen.has(item.id) && !openedApps.has(item.appId));
+  const fresh = FEED.filter(
+    (item) =>
+      !seen.has(item.id) &&
+      !openedApps.has(item.appId) &&
+      !(profile.resumeLocked && item.appId === "resume"),
+  );
   if (fresh.length === 0) return null;
   const tier = Math.min(...fresh.map((item) => item.tier));
   const pool = fresh.filter((item) => item.tier === tier);

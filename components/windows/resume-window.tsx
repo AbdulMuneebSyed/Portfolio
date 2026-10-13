@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Download, FileText, ExternalLink, Share } from "lucide-react";
+import { Download, FileText, ExternalLink, Share, Lock } from "lucide-react";
 import { usePhone } from "@/lib/phone";
+import { launchApp } from "@/lib/launch-app";
+import { profile } from "@/lib/portfolio-data";
 
 const PDF_URL = "/syedabdulmuneebresume.pdf";
 const DOWNLOAD_NAME = "syedabdulmuneebresume.pdf";
@@ -31,6 +33,39 @@ function PageImages() {
 }
 
 export function ResumeWindow() {
+  return profile.resumeLocked ? <ResumeLocked /> : <ResumeViewer />;
+}
+
+// While the résumé is on request: a locked file and a way to ask for it.
+function ResumeLocked() {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="mac-toolbar">
+        <FileText size={17} />
+        <h2>Resume.pdf</h2>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
+        <div className="flex size-16 items-center justify-center rounded-full bg-black/5 dark:bg-white/10">
+          <Lock size={28} className="opacity-70" />
+        </div>
+        <h3 className="text-[17px] font-semibold">Resume.pdf is locked</h3>
+        <p className="max-w-[320px] text-[13px] leading-relaxed opacity-70">
+          I&apos;m updating it right now. Ask, and I&apos;ll send you a copy.
+        </p>
+        <div className="mt-2 flex gap-2">
+          <button className="mac-button" onClick={() => launchApp("contact")}>
+            Ask for it
+          </button>
+          <a className="mac-button" href={`mailto:${profile.email}?subject=Resume`}>
+            Email me
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResumeViewer() {
   const phone = usePhone();
   // Android Chrome and some in-app browsers can't show a PDF inside a page.
   const [canEmbedPdf, setCanEmbedPdf] = useState(true);

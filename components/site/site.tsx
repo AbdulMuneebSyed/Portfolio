@@ -33,6 +33,15 @@ const SKILLS = [
   { name: "Performance at Scale", tags: ["Virtualization", "Caching", "CI/CD"] },
 ];
 
+// What I've shipped at PulseGen, one row per area.
+const PULSEGEN = [
+  { name: "AI assistant for product managers", tags: ["Streaming LLM chat", "Contradiction detection", "Tenant-isolated knowledge"] },
+  { name: "Daily Brief over MCP", tags: ["Gmail and other connectors", "REST APIs", "OAuth scopes"] },
+  { name: "Search across 400K+ accounts", tags: ["AWS", "MongoDB Atlas", "3-tier relevance scoring"] },
+  { name: "~80% fewer database round trips", tags: ["7-level adoption tracking", "Change Streams", "Batch fetching"] },
+  { name: "100K+ elements on one page", tags: ["Virtualized views", "RBAC and onboarding", "84 tickets shipped with tests"] },
+];
+
 // Featured with a picture, best first; the rest are listed below them.
 const FEATURED: { id: string; label: string; title?: string }[] = [
   { id: "airesumate", label: "AI résumé platform · Co-founder" },
@@ -237,6 +246,24 @@ export function Site() {
           </ul>
         </section>
 
+        <section className="mj-section mj-wrap" aria-labelledby="pulsegen-title">
+          <h2 id="pulsegen-title" className="mj-title" data-reveal>
+            Now at PulseGen
+          </h2>
+          <ul className="mj-rows">
+            {PULSEGEN.map((s) => (
+              <li key={s.name} data-reveal>
+                <h3>{s.name}</h3>
+                <p className="mj-dots">
+                  {s.tags.map((t) => (
+                    <span key={t}>{t}</span>
+                  ))}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <section id="work" className="mj-section mj-wrap" aria-labelledby="work-title">
           <div className="mj-title-row">
             <h2 id="work-title" className="mj-title" data-reveal>
@@ -329,11 +356,23 @@ export function Site() {
               </li>
             ))}
             <li className="mj-card-plain" data-reveal>
-              <p>Every role, every number, on one page.</p>
-              <a className="mj-cta" href={profile.resume} target="_blank" rel="noreferrer">
-                Read the résumé
-                <Arrow />
-              </a>
+              {profile.resumeLocked ? (
+                <>
+                  <p>My résumé is being updated. Ask, and I&apos;ll send you a copy.</p>
+                  <a className="mj-cta" href="#contact">
+                    Ask for my résumé
+                    <Arrow />
+                  </a>
+                </>
+              ) : (
+                <>
+                  <p>Every role, every number, on one page.</p>
+                  <a className="mj-cta" href={profile.resume} target="_blank" rel="noreferrer">
+                    Read the résumé
+                    <Arrow />
+                  </a>
+                </>
+              )}
             </li>
           </ul>
         </section>
@@ -386,9 +425,11 @@ export function Site() {
               <li>
                 <a href={`mailto:${profile.email}`}>Email</a>
               </li>
-              <li>
-                <a href={profile.resume} target="_blank" rel="noreferrer">Résumé</a>
-              </li>
+              {!profile.resumeLocked && (
+                <li>
+                  <a href={profile.resume} target="_blank" rel="noreferrer">Résumé</a>
+                </li>
+              )}
             </ul>
           </div>
           <ContactForm />

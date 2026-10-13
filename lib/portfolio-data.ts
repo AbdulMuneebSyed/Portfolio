@@ -10,6 +10,10 @@ export const profile = {
   linkedin: "https://www.linkedin.com/in/syed-abdul-muneeb/",
   github: "https://github.com/AbdulMuneebSyed",
   resume: "/syedabdulmuneebresume.pdf",
+  // While true the résumé is on request: the Resume app shows a lock and
+  // links point to Contact. The PDF and its page image are out of public/;
+  // restore them from git (git checkout 3f3441b -- public/) to unlock.
+  resumeLocked: true,
 };
 
 export interface Project {

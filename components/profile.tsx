@@ -30,7 +30,11 @@ export function Profile() {
             <a href={`mailto:${profile.email}`}>{profile.email}</a>
           </li>
           <li>
-            <a href={profile.resume}>Resume (PDF)</a>
+            {profile.resumeLocked ? (
+              <a href={`mailto:${profile.email}?subject=Resume`}>Resume (on request)</a>
+            ) : (
+              <a href={profile.resume}>Resume (PDF)</a>
+            )}
           </li>
           <li>
             <a href={profile.linkedin}>LinkedIn</a>
