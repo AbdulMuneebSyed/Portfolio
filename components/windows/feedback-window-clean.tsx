@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Send, Bug, MessageCircle } from "lucide-react";
-import { submitForm } from "@/lib/supabase-client";
+import { composeMail, signature } from "@/lib/compose-mail";
 
 interface ReviewFormData {
   name: string;
@@ -19,7 +19,6 @@ interface ReportFormData {
 export function FeedbackWindow() {
   // page 1 = review form, page 2 = bug/suggestion form (classic page nav mimic)
   const [page, setPage] = useState<1 | 2>(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string | null>(null);
 
   const [reviewData, setReviewData] = useState<ReviewFormData>({
@@ -36,60 +35,39 @@ export function FeedbackWindow() {
 
   // No listing display for now per user request
 
-  const handleSubmit = async (kind: "review" | "report") => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    setSubmitStatus(null);
+  const ready = {
+    appId: "feedback",
+    title: "Feedback ready",
+    body: "Your mail app has the draft. Press Send there. Thank you!",
+  };
 
-    try {
-      if (kind === "review") {
-        if (!reviewData.name.trim() || !reviewData.review_text.trim()) {
-          setSubmitStatus("Please add name & review text (rating optional)");
-          return;
-        }
-        await submitForm(
-          "review",
-          {
-            name: reviewData.name.trim(),
-            email: reviewData.email.trim() || null,
-            rating: reviewData.rating ?? null,
-            review_text: reviewData.review_text.trim(),
-          },
-          {
-            appId: "feedback",
-            title: "Review sent",
-            body: "Thanks for the review — it helps a lot.",
-          },
-        );
-        setReviewData({ name: "", email: "", review_text: "", rating: null });
-        setSubmitStatus("Saved review successfully");
-      } else {
-        if (!reportData.name.trim() || !reportData.report_text.trim()) {
-          setSubmitStatus("Please add name & details");
-          return;
-        }
-        await submitForm(
-          "bugs_and_suggestions",
-          {
-            name: reportData.name.trim(),
-            email: reportData.email.trim() || null,
-            report_text: reportData.report_text.trim(),
-          },
-          {
-            appId: "feedback",
-            title: "Report sent",
-            body: "Thanks! I'll look into it.",
-          },
-        );
-        setReportData({ name: "", email: "", report_text: "" });
-        setSubmitStatus("Saved report successfully");
+  const handleSubmit = (kind: "review" | "report") => {
+    if (kind === "review") {
+      if (!reviewData.name.trim() || !reviewData.review_text.trim()) {
+        setSubmitStatus("Please add name & review text (rating optional)");
+        return;
       }
-      setTimeout(() => setSubmitStatus(null), 2500);
-    } catch (e: any) {
-      setSubmitStatus(e.message || "Failed to save");
-    } finally {
-      setIsSubmitting(false);
+      const stars = reviewData.rating ? ` (${reviewData.rating}/5)` : "";
+      composeMail(
+        `Portfolio review${stars}`,
+        reviewData.review_text.trim() + signature(reviewData.name, reviewData.email),
+        ready,
+      );
+      setReviewData({ name: "", email: "", review_text: "", rating: null });
+    } else {
+      if (!reportData.name.trim() || !reportData.report_text.trim()) {
+        setSubmitStatus("Please add name & details");
+        return;
+      }
+      composeMail(
+        "Portfolio issue",
+        reportData.report_text.trim() + signature(reportData.name, reportData.email),
+        ready,
+      );
+      setReportData({ name: "", email: "", report_text: "" });
     }
+    setSubmitStatus("Your mail app should open with it ready. Press Send there.");
+    setTimeout(() => setSubmitStatus(null), 6000);
   };
 
   const data = page === 1 ? reviewData : reportData;
@@ -125,7 +103,7 @@ export function FeedbackWindow() {
         className="feedback-form"
         onSubmit={(e) => {
           e.preventDefault();
-          void handleSubmit(page === 1 ? "review" : "report");
+          handleSubmit(page === 1 ? "review" : "report");
         }}
       >
         <div className="feedback-heading">
@@ -201,13 +179,9 @@ export function FeedbackWindow() {
           <span className="text-xs mac-muted" role="status">
             {submitStatus ?? "Thank you for taking the time."}
           </span>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="mac-button primary"
-          >
+          <button type="submit" className="mac-button primary">
             <Send size={13} />
-            {isSubmitting ? "Sending…" : "Submit"}
+            Submit
           </button>
         </div>
       </form>

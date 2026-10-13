@@ -1,15 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { supabase } from "@/lib/supabase-client";
-import { profile } from "@/lib/portfolio-data";
+import { composeMail, signature } from "@/lib/compose-mail";
 
-// The website's contact form. It saves to the same table as the OS's
-// Contact app, tagged so the two can be told apart.
+// The website's contact form. Like the OS's Contact app, Submit opens the
+// visitor's mail app with the message ready to send.
 export function ContactForm() {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [sent, setSent] = useState(false);
 
-  const submit = async (e: FormEvent<HTMLFormElement>) => {
+  const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -17,15 +16,9 @@ export function ContactForm() {
     const email = String(data.get("email") ?? "").trim();
     const message = String(data.get("message") ?? "").trim();
     if (!name || !email || !message) return;
-    setStatus("sending");
-    const { error } = await supabase.from("bugs_and_suggestions").insert({
-      name,
-      email,
-      report_text: `[WEBSITE CONTACT FORM]\n\n${message}`,
-    });
-    if (error) return setStatus("error");
+    composeMail(`Hello from ${name}`, message + signature(name, email));
     form.reset();
-    setStatus("sent");
+    setSent(true);
   };
 
   return (
@@ -42,17 +35,9 @@ export function ContactForm() {
         Message
         <textarea name="message" placeholder="Tell me about your project" rows={5} required />
       </label>
-      <button type="submit" disabled={status === "sending"}>
-        {status === "sending" ? "Sending…" : status === "sent" ? "Sent, thank you!" : "Submit"}
-      </button>
+      <button type="submit">Submit</button>
       <p className="mj-form-note" role="status">
-        {status === "error" && (
-          <>
-            That didn&apos;t go through. Email me at{" "}
-            <a href={`mailto:${profile.email}`}>{profile.email}</a> instead.
-          </>
-        )}
-        {status === "sent" && "I'll get back to you soon."}
+        {sent && "Your mail app should open with the message ready. Press Send there."}
       </p>
     </form>
   );

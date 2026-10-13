@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState } from "react";
 import { Mail, Send, Github, Linkedin, ArrowUp, Phone } from "lucide-react";
-import { submitForm } from "@/lib/supabase-client";
+import { composeMail, signature } from "@/lib/compose-mail";
 import { profile } from "@/lib/portfolio-data";
 
 export function ContactWindow() {
@@ -14,7 +14,7 @@ export function ContactWindow() {
     subject: "",
     message: "",
   });
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+  const [status, setStatus] = useState<"idle" | "sent" | "error">(
     "idle",
   );
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -34,35 +34,19 @@ export function ContactWindow() {
       return;
     }
 
-    setStatus("sending");
     setErrorMessage("");
-
-    try {
-      await submitForm(
-        "bugs_and_suggestions",
-        {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          report_text: `[CONTACT FORM] Subject: ${
-            formData.subject.trim() || "(no subject)"
-          }\n\n${formData.message.trim()}`,
-        },
-        {
-          appId: "contact",
-          title: "Message sent",
-          body: `Thanks, ${formData.name.trim()}! Muneeb will reply to ${formData.email.trim()}.`,
-        },
-      );
-      setStatus("sent");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-      setTimeout(() => setStatus("idle"), 3500);
-    } catch (err: any) {
-      setErrorMessage(
-        err?.message || "Something went wrong. Try emailing me directly.",
-      );
-      setStatus("error");
-      setTimeout(() => setStatus("idle"), 4000);
-    }
+    composeMail(
+      formData.subject.trim() || `Hello from ${formData.name.trim()}`,
+      formData.message.trim() + signature(formData.name, formData.email),
+      {
+        appId: "contact",
+        title: "Message ready",
+        body: "Your mail app has the draft. Press Send there and it's on its way.",
+      },
+    );
+    setStatus("sent");
+    setFormData({ name: "", email: "", subject: "", message: "" });
+    setTimeout(() => setStatus("idle"), 6000);
   };
 
   const handleChange = (
@@ -115,13 +99,7 @@ export function ContactWindow() {
             disabled={status !== "idle"}
           >
             <Send size={14} className="desktop-only" />
-            <span className="desktop-only">
-              {status === "sending"
-                ? "Sending…"
-                : status === "sent"
-                  ? "Sent"
-                  : "Send"}
-            </span>
+            <span className="desktop-only">Send</span>
             {/* iOS Mail sends with a round arrow button. */}
             <ArrowUp size={20} strokeWidth={2.6} className="mobile-only" />
           </button>
@@ -191,7 +169,7 @@ export function ContactWindow() {
         )}
         {status === "sent" && (
           <p role="status" className="px-5 py-2 text-xs text-green-600">
-            Your message has been sent. Thank you!
+            Your mail app should open with the message ready. Press Send there.
           </p>
         )}
         <div className="mac-statusbar">

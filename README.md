@@ -77,14 +77,14 @@ Control Center, and windows they can drag, zoom, and minimize.
 | About Me | The portfolio website (`/profile`): work, experience and a contact form |
 | Projects | Work and research: Arrwin, AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
 | Resume | PDF viewer with download (`public/syedabdulmuneebresume.pdf`) |
-| Contact | Message form (saved to Supabase), email, phone, socials |
+| Contact | Message form (opens your mail app with the message ready), email, phone, socials |
 | GitHub | Live public activity and repositories |
 | App Store | My projects, jobs and skills presented like the Mac App Store: Discover, Arcade, Create, Work, Play, Develop, Categories, Updates, Account, product pages and search |
 | Terminal | `help`, `about`, `projects`, `open <app>`, `install <app>`, `uninstall <app>`, `store`, … |
 | Safari | Links to products I've worked on |
 | Finder | Folders, music, and the games you've installed |
 | System Settings | Appearance, wallpaper, display, sound, accessibility, keyboard shortcuts |
-| Feedback | Reviews and bug reports (saved to Supabase) |
+| Feedback | Reviews and bug reports, sent through your mail app |
 | Trash, Activity Monitor, Calculator, Music | Small desktop utilities |
 
 #### App Store apps
@@ -131,7 +131,6 @@ saved locally. Music and Control Center share one audio player.
 - [Tailwind CSS 4](https://tailwindcss.com)
 - [Zustand](https://zustand-demo.pmnd.rs) for window and settings state
 - [Framer Motion](https://www.framer.com/motion/) for animation
-- [Supabase](https://supabase.com) for the contact and feedback forms
 - [lucide-react](https://lucide.dev) icons
 
 ## Getting started
@@ -179,7 +178,6 @@ public/
   icons/mac/            App icon PNGs
   wallpapers/           Default wallpaper
 docs/
-  supabase.md           Database setup for the forms
   superpowers/          Design spec and implementation plan for the macOS shell
 ```
 
@@ -197,9 +195,9 @@ and anywhere else that calls `launchApp(id)`.
 
 ## Contact and feedback forms
 
-The Contact and Feedback apps write to Supabase. Table definitions and
-row-level security policies are in [docs/supabase.md](docs/supabase.md).
-The client is configured in `lib/supabase-client.ts`.
+The Contact app, the Feedback app and the website's contact form need no
+backend: Submit opens the visitor's mail app with a draft to me, filled in
+from the form (`lib/compose-mail.ts`).
 
 ## Deployment
 
