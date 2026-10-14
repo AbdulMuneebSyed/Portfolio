@@ -43,6 +43,7 @@ import {
   useViewport,
 } from "@/lib/phone";
 import { PhoneAppIcon } from "@/lib/app-icons";
+import { useBackToClose } from "@/lib/use-back-to-close";
 import { Spotlight } from "./mac/spotlight";
 import { AppSwitcher } from "./mac/app-switcher";
 import { BootScreen } from "./mac/boot-screen";
@@ -559,6 +560,14 @@ export function Desktop({ onLock }: DesktopProps) {
       .forEach((w) => manager.minimizeWindow(w.id));
     setIsSpotlightOpen(false);
   }, []);
+  // On a phone the edge swipe (the browser's Back) goes Home from an app,
+  // and closes Search or the App Switcher, rather than leaving the site.
+  useBackToClose(phone && mobileAppOpen, goMobileHome);
+  useBackToClose(phone && isSpotlightOpen, () => setIsSpotlightOpen(false));
+  useBackToClose(phone && missionOpen, () => {
+    goMobileHome();
+    setMissionOpen(false);
+  });
 
   // Opening or closing a window leaves Mission Control. The iPhone App
   // Switcher stays open while cards are swiped away, until none are left.

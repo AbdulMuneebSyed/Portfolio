@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { PhoneAppIcon } from "@/lib/app-icons";
 import { launchApp } from "@/lib/launch-app";
+import { useBackToClose } from "@/lib/use-back-to-close";
 
 // iPhone welcome sheet, like the "What's New" screen an iOS app shows on its
 // first launch: a large title, a short list of what's here, one big button.
@@ -41,6 +42,7 @@ export function PhoneTour({
   onSkip: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  useBackToClose(run, onSkip);
   useEffect(() => {
     if (!run) return;
     const id = setTimeout(() => ref.current?.focus(), 0);

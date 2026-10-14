@@ -15,6 +15,7 @@ import { phoneTitle, rememberLaunch } from "@/lib/phone";
 import { timeline } from "@/lib/portfolio-data";
 import { formatClock, useMinute } from "@/lib/clock";
 import { attachRefraction } from "@/lib/glass";
+import { useBackToClose } from "@/lib/use-back-to-close";
 
 const homeApps = [
   "about",
@@ -126,6 +127,10 @@ export function MobileHome({
   const [folder, setFolder] = useState<string | null>(null);
   const [controlOpen, setControlOpen] = useState(false);
   const [noticesOpen, setNoticesOpen] = useState(false);
+  // The edge swipe (the browser's Back) closes these, like an app.
+  useBackToClose(!!folder && !appOpen, () => setFolder(null));
+  useBackToClose(controlOpen, () => setControlOpen(false));
+  useBackToClose(noticesOpen, () => setNoticesOpen(false));
   const swipe = useRef<number | null>(null);
   const pull = useRef<number | null>(null);
   const pulled = useRef(false);
