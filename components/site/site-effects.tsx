@@ -9,6 +9,7 @@ const clamp = (v: number) => Math.min(1, Math.max(0, v));
 // - the portrait that rides down from the hero into "Hey!", flipping from
 //   its black-and-white back to its colour front
 // - the quote whose words darken as you scroll through it
+// - the closing motto: the painting pulls back as its words sharpen in
 // - titles and cards that sharpen into view
 export function SiteEffects() {
   useEffect(() => {
@@ -57,6 +58,11 @@ export function SiteEffects() {
     const card = site.querySelector<HTMLElement>(".mj-portrait-card");
     const quote = site.querySelector<HTMLElement>(".mj-quote");
     const words = quote ? [...quote.querySelectorAll<HTMLElement>("span")] : [];
+    const alps = site.querySelector<HTMLElement>(".mj-alps");
+    const [lineOne = [], lineTwo = []] = alps
+      ? [...alps.querySelectorAll(".mj-alps-line")].map((l) => [...l.querySelectorAll<HTMLElement>("span")])
+      : [];
+    const credits = alps ? [...alps.querySelectorAll<HTMLElement>(".mj-alps-credit, .mj-alps-plate")] : [];
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -71,6 +77,18 @@ export function SiteEffects() {
         const p = still ? 1 : clamp((vh * 0.8 - top) / (vh * 0.55));
         const lit = Math.round(p * words.length);
         words.forEach((w, i) => w.toggleAttribute("data-lit", i < lit));
+      }
+      if (alps) {
+        const box = alps.getBoundingClientRect();
+        const p = still ? 1 : clamp((vh - box.top) / box.height);
+        alps.style.setProperty("--alps", p.toFixed(4));
+        const sharpen = (els: HTMLElement[], from: number, to: number) => {
+          const n = Math.round(clamp((p - from) / (to - from)) * els.length);
+          els.forEach((el, i) => el.toggleAttribute("data-in", i < n));
+        };
+        sharpen(lineOne, 0.3, 0.48);
+        sharpen(lineTwo, 0.56, 0.74);
+        sharpen(credits, 0.8, 0.86);
       }
     };
     const onScroll = () => {

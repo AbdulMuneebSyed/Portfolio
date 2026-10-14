@@ -364,6 +364,131 @@
   }
 }
 
+/* Closing motto, above the footer: David's "Crossing the Alps" in black and
+   white, fading into the footer's black. The band is tall and its stage
+   sticks; --alps (0 to 1, set on scroll) pulls the picture back from
+   Napoleon to the whole painting, and the words, credit and caption sharpen
+   in the same way [data-reveal] does elsewhere. */
+.mj-alps {
+  --alps: 1;
+  --pull: clamp(0, (var(--alps) - 0.12) / 0.62, 1);
+  position: relative;
+  height: 260dvh;
+  background: var(--card);
+  color: #faf7f3;
+}
+.mj-alps-stage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.mj-alps-print {
+  position: absolute;
+  inset: 0 0 0 36%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 40%),
+    linear-gradient(0deg, transparent 0%, #000 22%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 40%),
+    linear-gradient(0deg, transparent 0%, #000 22%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.mj-alps-img {
+  object-fit: cover;
+  object-position: 62% 30%;
+  transform-origin: 60% 24%;
+  scale: calc(2.3 - 1.3 * var(--pull));
+  opacity: calc(0.88 * clamp(0, var(--alps) / 0.16, 1));
+  filter: blur(calc((1 - clamp(0, (var(--alps) - 0.04) / 0.22, 1)) * 12px));
+}
+.mj-alps-inner {
+  position: relative;
+}
+.mj-alps-quote {
+  max-width: 920px;
+  margin: 0;
+}
+.mj-alps-motto {
+  margin: 0;
+  font-family: var(--font-bodoni), "Didot", "Bodoni 72", serif;
+  font-size: clamp(40px, 5.4vw, 84px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 30px #111111cc;
+}
+.mj-alps-line {
+  display: block;
+}
+.mj-alps-line + .mj-alps-line {
+  font-style: italic;
+}
+.mj-alps-line > span {
+  display: inline-block;
+  white-space: pre;
+}
+.mj-alps-credit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 14px;
+  margin-top: 36px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #faf7f3b3;
+}
+.mj-alps-credit::before {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+}
+.mj-alps-credit span {
+  color: #faf7f366;
+}
+.mj-alps-dot {
+  margin: 0 -4px;
+}
+.mj-alps-plate {
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  margin: 0;
+  font-family: var(--font-bodoni), "Didot", "Bodoni 72", serif;
+  font-size: 13px;
+  color: #faf7f380;
+}
+/* The same sharpen as [data-reveal], toggled by scroll so it runs back too */
+.site[data-js] .mj-alps-line > span,
+.site[data-js] .mj-alps-credit,
+.site[data-js] .mj-alps-plate {
+  opacity: 0;
+  filter: blur(12px);
+  translate: 0 28px;
+  transition: opacity 0.9s, filter 0.9s, translate 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.site[data-js] .mj-alps-line > span[data-in],
+.site[data-js] .mj-alps-credit[data-in],
+.site[data-js] .mj-alps-plate[data-in] {
+  opacity: 1;
+  filter: none;
+  translate: 0 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site[data-js] .mj-alps-line > span,
+  .site[data-js] .mj-alps-credit,
+  .site[data-js] .mj-alps-plate {
+    opacity: 1;
+    filter: none;
+    translate: 0 0;
+  }
+}
+
 /* Quote whose words darken on scroll */
 .mj-quote-wrap {
   padding: 22dvh 0 18dvh;
@@ -858,6 +983,45 @@
   }
   .mj-quote-wrap {
     padding: 100px 0;
+  }
+  .mj-alps {
+    height: 230dvh;
+  }
+  .mj-alps-stage {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+  .mj-alps-print {
+    inset: 0 0 34% 0;
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  }
+  .mj-alps-img {
+    object-position: 58% 22%;
+  }
+  .mj-alps-inner {
+    padding-bottom: 72px;
+  }
+  .mj-alps-motto {
+    font-size: clamp(30px, 8.6vw, 44px);
+  }
+  .mj-alps-credit {
+    margin-top: 22px;
+    font-size: 11px;
+  }
+  .mj-alps-dot {
+    display: none;
+  }
+  .mj-alps-source {
+    flex-basis: 100%;
+    padding-left: 54px;
+  }
+  .mj-alps-plate {
+    right: auto;
+    left: 20px;
+    bottom: 22px;
+    font-size: 12px;
   }
   .mj-quote {
     text-align: left;

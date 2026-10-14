@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { Archivo } from "next/font/google";
+import { Archivo, Bodoni_Moda } from "next/font/google";
 import { ArrowUpRight } from "lucide-react";
 import { profile, projects, timeline, type Project } from "@/lib/portfolio-data";
+import { AlpsPrint } from "./alps-print";
 import { ContactForm } from "./contact-form";
 import { CompanyIcon, ProjectShot } from "./project-shot";
 import { SiteEffects } from "./site-effects";
@@ -14,6 +15,14 @@ const archivo = Archivo({
   subsets: ["latin"],
   weight: ["400", "500", "600", "800"],
   variable: "--font-archivo",
+});
+
+// Didone, the face Firmin Didot cut for Napoleon's imperial press.
+const bodoni = Bodoni_Moda({
+  subsets: ["latin"],
+  weight: ["500"],
+  style: ["normal", "italic"],
+  variable: "--font-bodoni",
 });
 
 const NAV = [
@@ -129,7 +138,7 @@ function Portrait({ className }: { className?: string }) {
 
 export function Site() {
   return (
-    <div className={`site ${archivo.variable}`} id="site">
+    <div className={`site ${archivo.variable} ${bodoni.variable}`} id="site">
       <SiteEffects />
       <div className="mj-grain" aria-hidden="true" />
 
@@ -435,6 +444,8 @@ export function Site() {
           <ContactForm />
         </section>
       </main>
+
+      <AlpsPrint />
 
       <footer className="mj-footer">
         <div className="mj-wrap mj-footer-cols">
