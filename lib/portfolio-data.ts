@@ -29,28 +29,6 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    id: "arrwin",
-    title: "Arrwin (PulseGen)",
-    description:
-      "An AI assistant for product managers. Built ingestion, streaming chat, contradiction detection and tenant-isolated knowledge workflows, plus the Daily Brief that pulls in Gmail and other connectors over MCP and REST.",
-    techStack: [
-      "Next.js",
-      "TypeScript",
-      "MongoDB",
-      "Redis Streams",
-      "S3",
-      "AI agents",
-      "MCP",
-    ],
-    demoLink: "https://www.pulsegen.io",
-    category: "AI Agents",
-    highlights: [
-      "Streaming LLM chat with contradiction detection",
-      "Daily Brief with Gmail and other connectors via MCP",
-      "Tenant-isolated knowledge workflows",
-    ],
-  },
-  {
     id: "airesumate",
     title: "AiResumate",
     description:
@@ -252,13 +230,11 @@ export const timeline = [
     company: "PulseGen",
     location: "Hyderabad",
     url: "https://www.pulsegen.io",
-    stack: ["Next.js", "TypeScript", "MongoDB", "Redis Streams", "AWS", "MCP"],
+    stack: ["Next.js", "TypeScript", "MongoDB", "AWS"],
     points: [
-      "Arrwin, an AI assistant for product managers: ingestion, streaming chat, contradiction detection and tenant-isolated knowledge workflows with Next.js, TypeScript, MongoDB, Redis Streams, S3 and AI agents.",
-      "Shipped the Daily Brief for PMs, integrating Gmail and other connectors via MCP and REST APIs; diagnosed auth and permission failures across MongoDB Atlas and OAuth scopes.",
-      "Search pipeline on AWS and MongoDB Atlas with 3-tier relevance scoring across 400K+ accounts in a multi-tenant SaaS.",
-      "7-level user-adoption tracking with batch fetching, cron jobs and MongoDB Change Streams, cutting database round trips by ~80%.",
-      "RBAC, onboarding, notifications, email workflows, CI/CD and virtualized views rendering 100K+ elements per page; closed 84 feature and bug tickets with Jest unit and integration tests.",
+      "Building AI-agent products end to end, from the model integration to the interface.",
+      "Full-stack features across a SaaS platform: integrations, data pipelines and performance work.",
+      "Shipping with tests and CI/CD, from design to production.",
     ],
   },
   {

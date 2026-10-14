@@ -52,13 +52,6 @@ export const FEED: FeedItem[] = [
     body: "Now an SDE at PulseGen, working on AI-agent products. Open the full resume.",
   },
   {
-    id: "arrwin",
-    tier: 2,
-    appId: "projects",
-    title: "Arrwin · PulseGen",
-    body: "An AI assistant for PMs: streaming LLM chat and a Daily Brief over MCP connectors.",
-  },
-  {
     id: "agent-research",
     tier: 2,
     appId: "projects",
@@ -71,13 +64,6 @@ export const FEED: FeedItem[] = [
     appId: "projects",
     title: "AiResumate",
     body: "1K+ visitors and $150+ revenue in its first month. See how it was built.",
-  },
-  {
-    id: "pulsegen-adoption",
-    tier: 2,
-    appId: "about",
-    title: "Shipped at PulseGen",
-    body: "7-level adoption tracking with Change Streams cut database round-trips by ~80%.",
   },
   {
     id: "hackathon-platform",

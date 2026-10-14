@@ -61,7 +61,7 @@ export const DEFAULT_BOOKMARKS: SafariPage[] = [
     title: "PulseGen",
     url: "https://www.pulsegen.io/",
     description:
-      "PulseGen, where Muneeb works on AI-agent products such as Arrwin.",
+      "PulseGen, where Muneeb works on AI-agent products.",
   },
   {
     title: "Capco CS",

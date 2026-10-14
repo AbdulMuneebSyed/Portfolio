@@ -75,7 +75,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 | App | What it shows |
 |---|---|
 | About Me | The portfolio website (`/profile`): work, experience and a contact form |
-| Projects | Work and research: Arrwin, AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
+| Projects | Work and research: AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
 | Resume | PDF viewer with download (`public/syedabdulmuneebresume.pdf`) |
 | Contact | Message form (opens your mail app with the message ready), email, phone, socials |
 | GitHub | Live public activity and repositories |

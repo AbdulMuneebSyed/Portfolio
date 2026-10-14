@@ -44,12 +44,11 @@ const SKILLS = [
 
 // What I've shipped at PulseGen, one row per area.
 const PULSEGEN = [
-  { name: "AI assistant for product managers", tags: ["Streaming LLM chat", "Contradiction detection", "Tenant-isolated knowledge"] },
-  { name: "Daily Brief over MCP", tags: ["Gmail and other connectors", "REST APIs", "OAuth scopes"] },
-  { name: "Search across 400K+ accounts", tags: ["AWS", "MongoDB Atlas", "3-tier relevance scoring"] },
-  { name: "~80% fewer database round trips", tags: ["7-level adoption tracking", "Change Streams", "Batch fetching"] },
-  { name: "100K+ elements on one page", tags: ["Virtualized views", "RBAC and onboarding", "84 tickets shipped with tests"] },
-];
+  { name: "AI-agent products", tags: ["LLM integrations", "Agents", "Full stack"] },
+  { name: "Integrations and data", tags: ["APIs", "Background jobs", "MongoDB"] },
+  { name: "Performance at scale", tags: ["Caching", "Virtualized UI", "Query tuning"] },
+  { name: "Quality and delivery", tags: ["Tests", "CI/CD", "Code review"] },
+]
 
 // Featured with a picture, best first; the rest are listed below them.
 const FEATURED: { id: string; label: string; title?: string }[] = [
@@ -70,7 +69,7 @@ const MORE: { id: string; title?: string }[] = [
 // Each role in one line, for the experience cards.
 const HEADLINES: Record<string, string> = {
   pulsegen:
-    "Building AI-agent products: streaming LLM chat, MCP and REST connectors, and search across 400K+ accounts.",
+    "Building AI-agent products as a full-stack engineer.",
   mathongo:
     "Built GetMarks' Leaderboard, League and Courses modules, serving 30K+ daily learners and 1L+ weekly rank updates.",
   airesumate:
@@ -214,8 +213,7 @@ export function Site() {
             <div className="mj-bio-right">
               <p>
                 I build full-stack products end to end, from the model call to
-                the pixels: streaming LLM chat, MCP and REST integrations, and
-                multi-tenant search across 400K+ accounts.
+                the pixels.
               </p>
               <p>
                 Before PulseGen I scaled GetMarks to 30K+ daily learners at

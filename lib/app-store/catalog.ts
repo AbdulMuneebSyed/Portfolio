@@ -560,13 +560,9 @@ const EXPERIENCE_SITES: Record<string, string> = {
   "ecell-mjcet": "https://www.ecell-mjcet.com/",
 };
 
-// The App Store leaves out Arrwin, PulseGen's product, so its job page
-// drops the point that names it.
-const storePoints = (points: string[]) => points.filter((p) => !p.startsWith("Arrwin"));
-
 const EXPERIENCE_ITEMS: StoreItem[] = timeline.map((entry, index) => {
   const { role, company } = entry;
-  const points = storePoints(entry.points);
+  const { points } = entry;
   return {
     id: `exp-${entry.id}`,
     kind: "experience",

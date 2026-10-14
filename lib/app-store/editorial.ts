@@ -213,7 +213,7 @@ export const EDITORIAL: Record<StoreTab, Section[]> = {
           itemId: "exp-pulsegen",
           eyebrow: "Now working at",
           title: "PulseGen",
-          subtitle: "AI agents for PMs, and search across 400K+ accounts.",
+          subtitle: "Building AI-agent products.",
           art: { colors: ["#1a1446", "#5856d6", "#64d2ff"], motif: "grid", iconId: "exp-pulsegen" },
         },
         {

@@ -20,10 +20,9 @@ export function Profile() {
           Software engineer · {profile.role} · {profile.location}.
         </p>
         <p>
-          Full-stack engineer who builds AI-agent products. Built
-          streaming LLM chat, MCP and REST integrations, and multi-tenant search
-          at PulseGen, and scaled a learning platform serving 30K+ daily users
-          at MathonGO.
+          Full-stack engineer building AI-agent products at PulseGen.
+          Previously scaled a learning platform serving 30K+ daily users at
+          MathonGO.
         </p>
         <ul className="profile-links">
           <li>
