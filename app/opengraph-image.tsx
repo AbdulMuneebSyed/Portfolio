@@ -3,10 +3,10 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { profile } from "@/lib/portfolio-data";
 
-// The card shown when the link is shared (LinkedIn, Slack, X). It uses the
-// /profile site's look (warm paper, near-black ink, Archivo) and shows the
-// real thing: the desktop with About Me open, and the phone's home screen.
-export const alt = `Most portfolios, you scroll. Mine, you boot up. ${profile.name}'s portfolio runs as a desktop in your browser and as an iPhone on your phone.`;
+// The card shown when the link is shared (LinkedIn, Slack, X): who Muneeb is
+// and what he has shipped, rather than a screenshot of the lock screen.
+// Dressed in the /profile site's look: warm paper, near-black ink, Archivo.
+export const alt = `${profile.name}, Software Engineer`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -14,16 +14,21 @@ const PAPER = "#faf7f3";
 const INK = "#111111";
 const INK_SOFT = "#1111118c";
 
-const asset = (file: string) => readFile(path.join(process.cwd(), "app/_og", file));
-const jpeg = (buf: Buffer) => `data:image/jpeg;base64,${buf.toString("base64")}`;
+const HIGHLIGHTS = [
+  "AI-agent products at PulseGen",
+  "30K+ daily users at MathonGO",
+  "500K+ visitors, hackathon platform",
+];
+
+const asset = (file: string) => readFile(path.join(process.cwd(), file));
 
 export default async function OpengraphImage() {
-  const [desktop, phone, archivo500, archivo800] = await Promise.all([
-    asset("desktop.jpg"),
-    asset("phone.jpg"),
-    asset("archivo-500.woff"),
-    asset("archivo-800.woff"),
+  const [photo, archivo500, archivo800] = await Promise.all([
+    asset("public/avatar-256.jpg"),
+    asset("app/_og/archivo-500.woff"),
+    asset("app/_og/archivo-800.woff"),
   ]);
+  const src = `data:image/jpeg;base64,${photo.toString("base64")}`;
 
   return new ImageResponse(
     (
@@ -32,101 +37,82 @@ export default async function OpengraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          position: "relative",
-          background: PAPER,
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "72px 80px",
           color: INK,
+          background: PAPER,
           fontFamily: "Archivo",
         }}
       >
-        {/* Copy, left */}
-        <div
-          style={{
-            position: "absolute",
-            left: 64,
-            top: 58,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div style={{ fontSize: 22, fontWeight: 500, color: INK_SOFT, letterSpacing: "-0.02em" }}>
-            /MUNEEBOS · LIVE NOW
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              marginTop: 18,
-              fontSize: 52,
-              fontWeight: 800,
-              lineHeight: 0.94,
-              letterSpacing: "-0.035em",
-            }}
-          >
-            <span>MOST PORTFOLIOS,</span>
-            <span>YOU SCROLL.</span>
-            <span>MINE, YOU BOOT UP.</span>
-          </div>
-          <div
-            style={{
-              marginTop: 24,
-              width: 500,
-              fontSize: 23,
-              fontWeight: 500,
-              lineHeight: 1.3,
-              letterSpacing: "-0.03em",
-              color: INK_SOFT,
-            }}
-          >
-            My portfolio is a desktop that runs in your browser. On your phone, it becomes an iPhone.
-          </div>
-        </div>
-
-        <div
-          style={{
-            position: "absolute",
-            left: 64,
-            bottom: 54,
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-          }}
-        >
-          <div style={{ width: 16, height: 16, borderRadius: 8, background: "#30c85a" }} />
-          <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em" }}>syedabdulmuneeb.dev</div>
-        </div>
-
-        {/* Desktop window, right */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={jpeg(desktop)}
-          width={496}
-          height={279}
-          style={{
-            position: "absolute",
-            left: 590,
-            top: 262,
-            borderRadius: 12,
-            boxShadow: "0 24px 60px rgba(17,17,17,0.22)",
-          }}
-        />
-
-        {/* iPhone in front of it */}
-        <div
-          style={{
-            position: "absolute",
-            left: 966,
-            top: 196,
-            width: 198,
-            height: 412,
-            padding: 8,
-            borderRadius: 40,
-            background: "#111111",
-            display: "flex",
-            boxShadow: "0 24px 60px rgba(17,17,17,0.3)",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 40 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={jpeg(phone)} width={182} height={396} style={{ borderRadius: 32 }} />
+          <img
+            src={src}
+            width={150}
+            height={150}
+            style={{
+              borderRadius: 75,
+              objectFit: "cover",
+              border: "5px solid #ffffff",
+              boxShadow: "0 14px 30px rgba(17,17,17,0.22)",
+            }}
+          />
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ fontSize: 22, fontWeight: 500, color: INK_SOFT, letterSpacing: "-0.02em" }}>
+              /MUNEEBOS · PORTFOLIO
+            </div>
+            <div
+              style={{
+                fontSize: 70,
+                fontWeight: 800,
+                lineHeight: 1,
+                letterSpacing: "-0.035em",
+                textTransform: "uppercase",
+                marginTop: 10,
+              }}
+            >
+              {profile.name}
+            </div>
+            <div style={{ fontSize: 32, fontWeight: 500, color: INK_SOFT, letterSpacing: "-0.03em", marginTop: 12 }}>
+              Software Engineer · AI agents · Full stack
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {HIGHLIGHTS.map((text) => (
+            <div
+              key={text}
+              style={{
+                display: "flex",
+                padding: "13px 26px",
+                borderRadius: 999,
+                background: INK,
+                color: PAPER,
+                fontSize: 25,
+                fontWeight: 500,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              {text}
+            </div>
+          ))}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 26,
+            fontWeight: 500,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          <span style={{ color: INK_SOFT }}>{profile.location}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 14, height: 14, borderRadius: 7, background: "#30c85a" }} />
+            <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.04em" }}>syedabdulmuneeb.dev</span>
+          </div>
         </div>
       </div>
     ),
