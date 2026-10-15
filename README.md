@@ -9,8 +9,6 @@ Control Center, and windows they can drag, zoom, and minimize.
 ![MuneebOS lock screen](public/og-image.png)
 
 > **Credits and shout-outs**
->
-> - OpenAI Codex helped build and refine this portfolio.
 > - The portfolio website (`/profile`, also About Me) is inspired by
 >   [Majd's portfolio](https://majd-portfolio.framer.website/) by
 >   Mejed Alkoutaini ([@mejed-alkoutaini](https://github.com/mejed-alkoutaini)).
@@ -23,9 +21,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 >   [Alfred System Settings workflow](https://github.com/alfredapp/system-settings-workflow).
 >
 > I don't own any of these designs, icons, wallpapers or trademarks; all
-> rights belong to their owners. Apple, macOS, iOS, Finder, Safari, and the
-> Apple logo are trademarks of Apple Inc. This is a personal portfolio project
-> and is not affiliated with or endorsed by Apple.
+> rights belong to their owners.
 
 ## What's inside
 
