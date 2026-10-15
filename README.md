@@ -73,7 +73,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 |---|---|
 | About Me | The portfolio website (`/profile`): work, experience and a contact form |
 | Projects | Work and research: AiResumate, GetMarks, Hypogen, a paper on checkpointed LLM agents, LaunchPad, Capco, E-Cell |
-| Resume | PDF viewer with download (`public/syedabdulmuneebresume.pdf`) |
+| Resume | Résumé viewer. Locked for now: shows "on request" and links to Contact (`resumeLocked` in `lib/portfolio-data.ts`) |
 | Contact | Message form (opens your mail app with the message ready), email, phone, socials |
 | GitHub | Live public activity and repositories |
 | App Store | My projects, jobs and skills presented like the Mac App Store: Discover, Arcade, Create, Work, Play, Develop, Categories, Updates, Account, product pages and search |
@@ -144,48 +144,63 @@ Open [http://localhost:3000](http://localhost:3000) at any screen size.
 Other scripts:
 
 ```bash
-npm run build   # production build
-npm run start   # serve the production build
-npm run lint    # lint
+npm run build                       # production build
+npm run start                       # serve the production build
+npx tsc --noEmit                    # typecheck (after a dev or build run)
+node --test scripts/test-macos.cjs  # unit tests
 ```
+
+`next build` skips type errors, so run the typecheck yourself. `npm run lint`
+is currently broken (see `TODO.md`).
 
 ## Project structure
 
 ```
 app/
-  layout.tsx            Metadata, fonts, analytics
-  page.tsx              Lock screen → responsive desktop
-  globals.css           Global styles and the .font-mac typography class
+  layout.tsx            Metadata, JSON-LD, analytics
+  page.tsx              Server-rendered text profile + the client-side OS
+  profile/              /profile: the portfolio as a plain website
+  globals.css           Shell and app styles; phone styles at the end
 components/
+  shell.tsx             Lock screen → desktop
   desktop.tsx           Composes the desktop: menu bar, files, windows, Dock
   window.tsx            Window chrome (traffic lights, drag, resize, zoom)
-  desktop-icon.tsx      Desktop files (top-right anchored, grid snapping)
+  mobile-home.tsx       iPhone Home Screen
   mac/                  macOS shell: menu bar, Dock, Spotlight, lock and boot
                         screens, Control Center, Notification Center, tour
-  windows/              The apps (About, Projects, Contact, Terminal, …)
+  windows/              The apps; app-store/ and mini/ (installable apps)
+  site/                 Pieces of the /profile website
 lib/
   app-registry.ts       Every app: id, title, component, size, Dock order
-  app-icons.tsx         App icons (Big Sur-style PNGs and drawn icons)
   launch-app.ts         launchApp(id) — the one way to open an app
-  window-manager.ts     Zustand store for windows and desktop state
+  portfolio-data.ts     Profile, projects, experience, skills (all content)
+  window-manager.ts     Zustand store for windows, Spaces and desktop state
   system-controls.ts    Control Center settings (Wi-Fi, brightness, …)
-  desktop-grid.ts       Grid used by desktop files and drag-and-drop
-  now-playing.ts        Shared audio player for Control Center
+  shortcuts.ts          Every keyboard shortcut
+  phone.ts              Phone breakpoint and per-app phone settings
+  app-store/            App Store catalog, layouts and installs
+scripts/
+  test-macos.cjs        Unit tests (node --test)
 public/
-  icons/mac/            App icon PNGs
+  icons/                Mac, iOS and Settings icons
   wallpapers/           Default wallpaper
-docs/
-  superpowers/          Design spec and implementation plan for the macOS shell
 ```
+
+Working on this repo with an AI agent? Start with `CLAUDE.md` (the source
+of truth for how the app works and the rules for changing it); other agents
+read `AGENTS.md`, which points to it.
 
 ## Adding an app
 
 1. Build the window content as a component in `components/windows/`.
-2. Register it in `windowComponents` in `components/desktop.tsx`.
+2. Lazy-load it and register it in `windowComponents` in
+   `components/desktop.tsx`.
 3. Add an entry to `APP_REGISTRY` in `lib/app-registry.ts` (id, title,
    component name, default size, Spotlight aliases).
 4. Optionally add its id to `DOCK_APP_IDS`, give it an icon in
-   `lib/app-icons.tsx`, or set `showOnDesktop` to place it on the desktop.
+   `lib/app-icons.tsx`, set `showOnDesktop` to place it on the desktop, and
+   add a `PHONE_APPS` entry in `lib/phone.ts`. Installable apps also need an
+   item in `lib/app-store/catalog.ts`.
 
 It is then available from the Dock, Spotlight, the Terminal (`open <alias>`),
 and anywhere else that calls `launchApp(id)`.
