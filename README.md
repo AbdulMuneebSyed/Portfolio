@@ -10,6 +10,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 
 > **Credits and shout-outs**
 >
+> - OpenAI Codex helped build and refine this portfolio.
 > - The portfolio website (`/profile`, also About Me) is inspired by
 >   [Majd's portfolio](https://majd-portfolio.framer.website/) by
 >   Mejed Alkoutaini ([@mejed-alkoutaini](https://github.com/mejed-alkoutaini)).
