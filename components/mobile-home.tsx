@@ -23,6 +23,7 @@ const homeApps = [
   "resume",
   "github-activity",
   "linkedin",
+  "instagram",
   "notes",
   "calculator",
   "feedback",

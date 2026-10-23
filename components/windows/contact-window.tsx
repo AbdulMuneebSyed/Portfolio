@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { Mail, Send, Github, Linkedin, ArrowUp, Phone } from "lucide-react";
+import { Mail, Send, Github, Linkedin, Instagram, ArrowUp, Phone } from "lucide-react";
 import { composeMail, signature } from "@/lib/compose-mail";
 import { profile } from "@/lib/portfolio-data";
 
@@ -87,6 +87,14 @@ export function ContactWindow() {
             >
               <Linkedin size={17} />
             </a>
+            <a
+              href={profile.instagram}
+              aria-label="Instagram"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Instagram size={17} />
+            </a>
           </div>
         </div>
       </aside>
@@ -111,6 +119,7 @@ export function ContactWindow() {
             { label: "mail", href: `mailto:${profile.email}`, icon: Mail },
             { label: "LinkedIn", href: profile.linkedin, icon: Linkedin },
             { label: "GitHub", href: profile.github, icon: Github },
+            { label: "Instagram", href: profile.instagram, icon: Instagram },
           ].map((action) => (
             <a
               key={action.label}

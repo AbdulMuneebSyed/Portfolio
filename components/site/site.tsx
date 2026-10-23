@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Archivo, Bodoni_Moda } from "next/font/google";
 import { ArrowUpRight } from "lucide-react";
-import { profile, projects, timeline, type Project } from "@/lib/portfolio-data";
+import { instagram, profile, projects, timeline, type Project } from "@/lib/portfolio-data";
 import { AlpsPrint } from "./alps-print";
 import { ContactForm } from "./contact-form";
 import { CompanyIcon, ProjectShot } from "./project-shot";
@@ -406,6 +406,13 @@ export function Site() {
                 <p>This portfolio&apos;s other half: a whole desktop that runs in your browser.</p>
               </a>
             </li>
+            <li className="mj-post mj-post-os mj-post-graphite" data-reveal>
+              <a href={profile.instagram} target="_blank" rel="noreferrer">
+                <p className="mj-post-date">Instagram · {instagram.handle}</p>
+                <h3>{instagram.name}</h3>
+                <p>{instagram.blurb}</p>
+              </a>
+            </li>
             <li className="mj-post mj-post-cta" data-reveal>
               <p>Prefer to explore? Open the operating system version of this site.</p>
               <a className="mj-cta mj-cta-light" href="/" target="_top">
@@ -428,6 +435,9 @@ export function Site() {
               </li>
               <li>
                 <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+              </li>
+              <li>
+                <a href={profile.instagram} target="_blank" rel="noreferrer">Instagram</a>
               </li>
               <li>
                 <a href={`mailto:${profile.email}`}>Email</a>

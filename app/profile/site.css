@@ -713,7 +713,7 @@
   letter-spacing: -0.02em;
 }
 
-/* Also: research, the OS, a call to action */
+/* Also: research, the OS, Professor Graphite, a call to action */
 .mj-posts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -775,8 +775,20 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='126' height='126'%3E%3Cpath d='M126 0v21.584L21.584 126H0v-17.585L108.415 0H126Zm0 108.414V126h-17.586L126 108.414Zm0-84v39.171L63.585 126H24.414L126 24.414Zm0 42v39.17L105.584 126h-39.17L126 66.414ZM105.586 0 0 105.586V66.415L66.415 0h39.171Zm-42 0L0 63.586V24.415L24.415 0h39.171Zm-42 0L0 21.586V0h21.586Z' fill='%23ffffff' fill-opacity='.06' fill-rule='evenodd'/%3E%3C/svg%3E"),
     var(--card);
 }
+/* Professor Graphite's rust and amber, from the channel's artwork. */
+.mj-post-graphite {
+  background:
+    radial-gradient(circle at 85% 12%, #d9622b80, transparent 55%),
+    radial-gradient(circle at 10% 95%, #f2a54a33, transparent 50%),
+    var(--card);
+}
 .mj-post-cta {
   justify-content: space-between;
+}
+/* Three cards then the call to action across the row. */
+.mj-posts .mj-post-cta {
+  grid-column: 1 / -1;
+  min-height: 240px;
 }
 .mj-post-cta p {
   font-size: clamp(28px, 2.6vw, 36px);
@@ -941,9 +953,10 @@
   .mj-posts {
     grid-template-columns: repeat(2, 1fr);
   }
+  /* Two by two: the call to action sits beside Professor Graphite. */
   .mj-posts .mj-post-cta {
-    grid-column: 1 / -1;
-    min-height: 240px;
+    grid-column: auto;
+    min-height: 420px;
   }
 }
 
@@ -1044,6 +1057,9 @@
   }
   .mj-post {
     min-height: 320px;
+  }
+  .mj-posts .mj-post-cta {
+    min-height: 240px;
   }
   .mj-flip,
   .mj-flip-inner,

@@ -106,6 +106,17 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
     launchAliases: ["linkedin", "profile"],
   },
   {
+    id: "instagram",
+    title: "Instagram",
+    icon: "/icons/instagram.svg",
+    component: "PlaceholderWindow",
+    category: "Portfolio",
+    description: "Watch Professor Graphite, Muneeb's reels on how AI works.",
+    defaultSize: { width: 800, height: 600 },
+    externalUrl: profile.instagram,
+    launchAliases: ["instagram", "insta", "ig", "reels", "professor graphite"],
+  },
+  {
     id: "terminal",
     title: "Terminal",
     icon: "/icons/mac/terminal.png",
@@ -359,6 +370,7 @@ export const DOCK_APP_IDS = [
   "settings",
   "separator",
   "linkedin",
+  "instagram",
   "recycle",
 ] as const;
 

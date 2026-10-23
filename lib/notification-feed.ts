@@ -52,6 +52,13 @@ export const FEED: FeedItem[] = [
     body: "Now an SDE at PulseGen, working on AI-agent products. Open the full resume.",
   },
   {
+    id: "professor-graphite",
+    tier: 2,
+    appId: "instagram",
+    title: "Instagram",
+    body: "professor_graphite posted a new reel. Muneeb explains AI as a detective.",
+  },
+  {
     id: "agent-research",
     tier: 2,
     appId: "projects",

@@ -92,7 +92,7 @@ export default function RootLayout({
       "TypeScript",
       "MongoDB",
     ],
-    sameAs: [profile.linkedin, profile.github],
+    sameAs: [profile.linkedin, profile.github, profile.instagram],
     description:
       "Full-stack engineer building AI-agent products at PulseGen.",
   };

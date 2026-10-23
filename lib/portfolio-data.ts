@@ -9,11 +9,20 @@ export const profile = {
   email: "samuneeb786@gmail.com",
   linkedin: "https://www.linkedin.com/in/syed-abdul-muneeb/",
   github: "https://github.com/AbdulMuneebSyed",
+  instagram: "https://www.instagram.com/professor_graphite/",
   resume: "/syedabdulmuneebresume.pdf",
   // While true the résumé is on request: the Resume app shows a lock and
   // links point to Contact. The PDF and its page image are out of public/;
   // restore them from git (git checkout 3f3441b -- public/) to unlock.
   resumeLocked: true,
+};
+
+// Muneeb's Instagram, where he explains AI as the detective Professor
+// Graphite: a 30-day series from the perceptron up, and The Agent Files.
+export const instagram = {
+  handle: "@professor_graphite",
+  name: "Professor Graphite",
+  blurb: "Short reels on how AI works: a 30-day series from the perceptron up, and The Agent Files.",
 };
 
 export interface Project {

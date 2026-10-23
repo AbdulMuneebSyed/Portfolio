@@ -5,6 +5,7 @@
 import {
   awards,
   education,
+  instagram,
   profile,
   projects,
   skillGroups,
@@ -96,10 +97,22 @@ export const HOME: FsDir = dir({
       `Email:    ${profile.email}`,
       `LinkedIn: ${profile.linkedin}`,
       `GitHub:   ${profile.github}`,
+      `Instagram: ${profile.instagram}`,
       "",
       "Run 'open contact' to send me a message.",
     ],
     "contact",
+  ),
+  "instagram.txt": file(
+    [
+      `${instagram.name} (${instagram.handle})`,
+      instagram.blurb,
+      "",
+      profile.instagram,
+      "",
+      "Run 'open instagram' to watch.",
+    ],
+    "instagram",
   ),
   ".bashrc": file([
     "# ~/.bashrc",

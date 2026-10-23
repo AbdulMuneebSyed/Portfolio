@@ -253,6 +253,7 @@ export function MenuBar({
         { separator: true },
         { label: "GitHub", onSelect: () => launchApp("github-activity") },
         { label: "LinkedIn", onSelect: () => launchApp("linkedin") },
+        { label: "Instagram", onSelect: () => launchApp("instagram") },
         { separator: true },
         { label: "Spotlight…", shortcut: shortcutKeys("spotlight"), onSelect: onOpenSpotlight },
       ],

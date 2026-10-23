@@ -41,6 +41,9 @@ export function Profile() {
           <li>
             <a href={profile.github}>GitHub</a>
           </li>
+          <li>
+            <a href={profile.instagram}>Instagram (Professor Graphite)</a>
+          </li>
         </ul>
       </header>
 

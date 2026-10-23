@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { sameUrl } from "./safari-url";
-import { profile } from "./portfolio-data";
+import { instagram, profile } from "./portfolio-data";
 import { readJSON, writeJSON } from "./storage";
 
 // Safari's saved data: bookmarks, Reading List, history and which Start Page
@@ -50,6 +50,11 @@ export const DEFAULT_BOOKMARKS: SafariPage[] = [
     url: profile.linkedin,
     description:
       "Professional profile of Syed Abdul Muneeb - Software Developer and Entrepreneur",
+  },
+  {
+    title: "Instagram",
+    url: profile.instagram,
+    description: `${instagram.name}: ${instagram.blurb}`,
   },
   {
     title: "GetMarks",
