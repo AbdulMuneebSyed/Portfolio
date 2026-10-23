@@ -108,7 +108,7 @@ export const APP_REGISTRY: AppRegistryEntry[] = [
   {
     id: "instagram",
     title: "Instagram",
-    icon: "/icons/instagram.svg",
+    icon: "/icons/mac/instagram.svg",
     component: "PlaceholderWindow",
     category: "Portfolio",
     description: "Watch Professor Graphite, Muneeb's reels on how AI works.",

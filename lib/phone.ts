@@ -83,6 +83,7 @@ export const PHONE_APPS: Record<string, PhoneApp> = {
   "task-manager": { title: "Activity", icon: "activity", macOnly: true },
   recycle: { title: "Recently Deleted" },
   linkedin: { icon: "linkedin" },
+  instagram: { icon: "instagram" },
 };
 
 export function phoneApp(id: string): PhoneApp {

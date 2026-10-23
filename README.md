@@ -17,6 +17,7 @@ Control Center, and windows they can drag, zoom, and minimize.
 >   The default wallpaper is Apple's macOS Big Sur wallpaper.
 > - Big Sur-style app icons (Finder, Safari, Terminal, Mail, System Settings,
 >   Calculator, Notes) from [PuruVJ/macos-web](https://github.com/PuruVJ/macos-web).
+> - LinkedIn and Instagram logos from [Simple Icons](https://simpleicons.org) (CC0).
 > - System Settings sidebar icons from the
 >   [Alfred System Settings workflow](https://github.com/alfredapp/system-settings-workflow).
 >
