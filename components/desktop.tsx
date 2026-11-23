@@ -408,7 +408,7 @@ export function Desktop({ onLock }: DesktopProps) {
           title: "Welcome to Muneeb OS",
           body: "Everything here is an app. Press ⌘K to search them all.",
         });
-      }, 1200);
+      }, 500);
       return () => clearTimeout(id);
     }
   }, []);

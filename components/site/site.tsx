@@ -126,10 +126,10 @@ function Portrait({ className }: { className?: string }) {
   return (
     <div className={`mj-portrait-card ${className ?? ""}`}>
       <div className="mj-face mj-face-back">
-        <Image src="/avatar-1200.jpg" alt="" fill sizes="360px" priority />
+        <Image src="/avatar-840.webp" alt="" fill sizes="360px" priority />
       </div>
       <div className="mj-face mj-face-front">
-        <Image src="/avatar-1200.jpg" alt="Syed Abdul Muneeb" fill sizes="360px" priority />
+        <Image src="/avatar-840.webp" alt="Syed Abdul Muneeb" fill sizes="360px" priority />
       </div>
     </div>
   );
